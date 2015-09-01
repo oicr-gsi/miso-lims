@@ -428,9 +428,8 @@ Pool.ui = {
                                             "aaData": json.poolelements,
                                             "aoColumns": [
                                               { "sTitle": "Dilution Name", "sType":"natural"},
+                                              { "sTitle": "Concentration", "sType":"natural"},
                                               { "sTitle": "Library", "sType":"natural"},
-                                              { "sTitle": "Sample", "sType":"natural"},
-                                              { "sTitle": "Project", "sType":"natural"},
                                               { "sTitle": "Add"}
                                             ],
                                             "bJQueryUI": true,
