@@ -797,7 +797,9 @@
             <td class="misoicon" onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
                 <b>${pool.name}</b>
             </td>
-            <td>${pool.alias}</td>
+            <td class="misoicon" onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
+                ${pool.alias}
+            </td>
             <td>${pool.platformType.key}</td>
             <td>${pool.creationDate}</td>
             <td>${pool.concentration}</td>
@@ -864,7 +866,9 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
             <b>${run.name}</b>
           </td>
-          <td>${run.alias}</td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
+            ${run.alias}
+          </td>
           <td>
             <c:forEach items="${run.sequencerPartitionContainers}" var="container" varStatus="fCount">
               <table class="containerSummary">
