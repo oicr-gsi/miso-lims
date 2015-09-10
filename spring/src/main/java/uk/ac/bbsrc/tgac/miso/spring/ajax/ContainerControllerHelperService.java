@@ -852,12 +852,12 @@ public class ContainerControllerHelperService {
         if (spc.getRun() != null) {
           run = TableHelper.hyperLinkify(path + "run/" + spc.getRun().getId(), spc.getRun().getAlias());
           if (spc.getRun().getSequencerReference() != null) {
-            sequencer = TableHelper.hyperLinkify(path + "sequencer/" + spc.getRun().getSequencerReference().getId(), 
+            sequencer = TableHelper.hyperLinkify(path + "sequencer/" + spc.getRun().getSequencerReference().getId(),
                                      spc.getRun().getSequencerReference().getPlatform().getNameAndModel());
           }
         }
         // If the barcode exists get it, else pass on the empty string
-        if (spc.getIdentificationBarcode() != null) 
+        if (spc.getIdentificationBarcode() != null)
           id = TableHelper.hyperLinkify(path + "container/" + spc.getId(), spc.getIdentificationBarcode(), true);
         // If the Platform exists get it, else pass on the empty string
         if (spc.getPlatform() != null && spc.getPlatform().getPlatformType() != null)

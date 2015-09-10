@@ -471,7 +471,8 @@
                 <b>${library.name}</b></td>
             <td class="misoicon"
                 onclick="window.location.href='<c:url value="/miso/library/${library.id}"/>'">
-                ${library.alias}</td>
+                ${library.alias}
+            </td>
             <td>${library.libraryType.description}</td>
             <td>${library.qcPassed}</td>
             <%-- GLT-201: Comment to remove 'Edit Column' --%>
@@ -539,8 +540,12 @@
           <tr poolId="${pool.id}" onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
             <td class="misoicon"
                 onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
-                <b>${pool.name}</b></td>
-            <td>${pool.alias}</td>
+                <b>${pool.name}</b>
+            </td>
+            <td class="misoicon"
+                onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
+                ${pool.alias}
+            </td>
             <td>${pool.platformType.key}</td>
             <td>${pool.creationDate}</td>
             <td>${pool.concentration}</td>
@@ -606,8 +611,12 @@
         <tr runId="${run.id}" onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
           <td class="misoicon"
               onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
-              <b>${run.name}</b></td>
-          <td>${run.alias}</td>
+              <b>${run.name}</b>
+          </td>
+          <td class="misoicon"
+              onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
+              ${run.alias}
+          </td>
           <td>
             <c:forEach items="${run.sequencerPartitionContainers}" var="container" varStatus="fCount">
               <table class="containerSummary">

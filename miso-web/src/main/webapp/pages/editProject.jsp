@@ -409,8 +409,13 @@
       <c:forEach items="${overview.sampleGroup.entities}" var="sample">
         <tr sampleId="${sample.id}" onMouseOver="this.className='highlightrow'"
             onMouseOut="this.className='normalrow'">
-          <td><b>${sample.name}</b></td>
-          <td>${sample.alias}</td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
+            <b>${sample.name}</b>
+          </td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
+            ${sample.alias}
+          </td>
+
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
@@ -572,11 +577,15 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/study/${study.id}"/>'">
             <b>${study.name}</b>
           </td>
-          <td>${study.alias}</td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/study/${study.id}"/>'">
+            ${study.alias}
+          </td>
+
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/study/${study.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
+
           <sec:authorize access="hasRole('ROLE_ADMIN')">
             <td class="misoicon" onclick="Study.deleteStudy(${study.id}, Utils.page.pageReload);">
               <span class="ui-icon ui-icon-trash"/>
@@ -745,20 +754,24 @@
           <tbody>
           <c:forEach items="${project.samples}" var="sample">
             <tr sampleId="${sample.id}" onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
-              <td class="misoicon" onclick="Sample.deleteSample(${sample.id}, Utils.page.pageReload);">
+              <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
                 <b>${sample.name}</b>
               </td>
-              <td>${sample.alias}</td>
+              <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
+                ${sample.alias}
+              </td>
               <td>${sample.description}</td>
               <td>${sample.sampleType}</td>
               <td>${sample.receivedDate}</td>
               <td>${sample.qcPassed}</td>
               <td>${sample.id}</td>
+
+              <%-- GLT-201: Comment to remove 'Edit Column' --%>
               <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
                 <span class="ui-icon ui-icon-pencil"/>
               </td>
+
               <sec:authorize access="hasRole('ROLE_ADMIN')">
-                <%-- GLT-201: Comment to remove 'Edit Column' --%>
                 <td class="misoicon" onclick="Sample.deleteSample(${sample.id}, Utils.page.pageReload);">
                   <span class="ui-icon ui-icon-trash"/>
                 </td>
@@ -858,16 +871,23 @@
                 <tbody>
                 <c:forEach items="${overview.sampleGroup.entities}" var="sample">
                   <tr sampleId="${sample.id}" onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
-                    <td><b>${sample.name}</b></td>
-                    <td>${sample.alias}</td>
+                    <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
+                      <td><b>${sample.name}</b></td>
+                    </td>
+                    <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
+                      <td>${sample.alias}</td>
+                    </td>
                     <td>${sample.description}</td>
                     <td>${sample.sampleType}</td>
                     <td>${sample.receivedDate}</td>
                     <td>${sample.qcPassed}</td>
                     <td>${sample.id}</td>
+
+                    <%-- GLT-201: Comment to remove 'Edit Column' --%>
                     <td class="misoicon" onclick="window.location.href='<c:url value="/miso/sample/${sample.id}"/>'">
                       <span class="ui-icon ui-icon-pencil"/>
                     </td>
+
                     <sec:authorize access="hasRole('ROLE_ADMIN')">
                       <td class="misoicon" onclick="Sample.deleteSample(${sample.id}, Utils.page.pageReload);">
                         <span class="ui-icon ui-icon-trash"/>
@@ -989,10 +1009,12 @@
           <tbody>
           <c:forEach items="${projectLibraries}" var="library">
             <tr libraryId="${library.id}" onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
-              <td class="misoicon" onclick="Library.deleteLibrary(${library.id}, Utils.page.pageReload);">
+              <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${library.id}"/>'">
                 <b>${library.name}</b>
               </td>
-              <td>${library.alias}</td>
+              <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${library.id}"/>'">
+                ${library.alias}
+              </td>
               <td>${library.creationDate}</td>
               <td>${library.description}</td>
               <td>${library.libraryType.description}</td>
@@ -1007,11 +1029,13 @@
               </c:if></td>
               <td><c:forEach var="qc" items="${library.libraryQCs}" end="0">${qc.insertSize}</c:forEach></td>
               <td>${library.qcPassed}</td>
+
+              <%-- GLT-201: Comment to remove 'Edit Column' --%>
               <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${library.id}"/>'">
                 <span class="ui-icon ui-icon-pencil"/>
               </td>
+
               <sec:authorize access="hasRole('ROLE_ADMIN')">
-                <%-- GLT-201: Comment to remove 'Edit Column' --%>
                 <td class="misoicon" onclick="Library.deleteLibrary(${library.id}, Utils.page.pageReload);">
                   <span class="ui-icon ui-icon-trash"/>
                 </td>
@@ -1099,7 +1123,9 @@
                   <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${grouplib.id}"/>'">
                     <b>${grouplib.name}</b>
                   </td>
-                  <td>${grouplib.alias}</td>
+                  <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${grouplib.id}"/>'">
+                    ${grouplib.alias}
+                  </td>
                   <td>${grouplib.creationDate}</td>
                   <td>${grouplib.description}</td>
                   <td>${grouplib.libraryType.description}</td>
@@ -1119,6 +1145,7 @@
                   <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${grouplib.id}"/>'">
                     <span class="ui-icon ui-icon-pencil"/>
                   </td>
+
                   <sec:authorize access="hasRole('ROLE_ADMIN')">
                     <td class="misoicon" onclick="Library.deleteLibrary(${grouplib.id}, Utils.page.pageReload);">
                       <span class="ui-icon ui-icon-trash"/>
@@ -1215,16 +1242,20 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${dil.library.id}"/>'">
             <b>${dil.name}</b>
           </td>
-          <td>${dil.library.alias}<c:if test="${not empty dil.library.tagBarcode}">
-            (${dil.library.tagBarcode.name})</c:if></td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${dil.library.id}"/>'">
+            ${dil.library.alias}<c:if test="${not empty dil.library.tagBarcode}">
+            (${dil.library.tagBarcode.name})</c:if>
+          </td>
           <td>${dil.dilutionCreator}</td>
           <td>${dil.creationDate}</td>
           <td>${dil.library.platformName}</td>
           <td>${dil.concentration}</td>
+
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${dil.library.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
+
           <sec:authorize access="hasRole('ROLE_ADMIN')">
             <td class="misoicon" onclick="Library.dilution.deleteLibraryDilution(${dil.id}, Utils.page.pageReload);">
               <span class="ui-icon ui-icon-trash"/>
@@ -1306,7 +1337,9 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
             <b>${pool.name}</b>
           </td>
-          <td>${pool.alias}</td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/pool/${pool.id}"/>'">
+            ${pool.alias}
+          </td>
           <td>${pool.platformType.key}</td>
           <td>${pool.creationDate}</td>
           <td>${pool.concentration}</td>
@@ -1397,14 +1430,18 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${pcr.libraryDilution.library.id}"/>'">
             <b>${pcr.name}</b>
           </td>
-          <td>${pcr.libraryDilution.name}</td>
+          <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${pcr.libraryDilution.library.id}"/>'">
+            ${pcr.libraryDilution.name}
+          </td>
           <td>${pcr.pcrCreator}</td>
           <td>${pcr.creationDate}</td>
           <td>${pcr.concentration}</td>
+
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${pcr.libraryDilution.library.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
+
           <sec:authorize access="hasRole('ROLE_ADMIN')">
             <td class="misoicon" onclick="Library.empcr.deleteEmPCR(${pcr.id}, Utils.page.pageReload);">
               <span class="ui-icon ui-icon-trash"/>
@@ -1484,10 +1521,12 @@
           <td>${dil.dilutionCreator}</td>
           <td>${dil.creationDate}</td>
           <td>${dil.concentration}</td>
+
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/library/${dil.library.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
+
           <sec:authorize access="hasRole('ROLE_ADMIN')">
             <td class="misoicon" onclick="Library.empcr.deleteEmPCRDilution(${dil.id}, Utils.page.pageReload);">
               <span class="ui-icon ui-icon-trash"/>
@@ -1570,6 +1609,7 @@
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/plate/${plate.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
           </td>
+
           <sec:authorize access="hasRole('ROLE_ADMIN')">
             <td class="misoicon" onclick="Plate.deletePlate(${plate.id}, Utils.page.pageReload);">
               <span class="ui-icon ui-icon-trash"/>
@@ -1628,7 +1668,9 @@
         <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
           <b>${run.name}</b>
         </td>
-        <td>${run.alias}</td>
+        <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
+          ${run.alias}
+        </td>
         <td>
           <c:forEach items="${run.sequencerPartitionContainers}" var="container" varStatus="fCount">
             <table class="containerSummary">
@@ -1653,10 +1695,12 @@
             </c:if>
           </c:forEach>
         </td>
+
         <%-- GLT-201: Comment to remove 'Edit Column' --%>
         <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
           <span class="ui-icon ui-icon-pencil"/>
         </td>
+
         <sec:authorize access="hasRole('ROLE_ADMIN')">
           <td class="misoicon" onclick="Run.deleteRun(${run.id}, Utils.page.pageReload);">
             <span class="ui-icon ui-icon-trash"/>
