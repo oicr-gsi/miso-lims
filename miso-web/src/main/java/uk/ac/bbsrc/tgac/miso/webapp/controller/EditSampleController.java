@@ -53,6 +53,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractSample;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractSampleQC;
+import uk.ac.bbsrc.tgac.miso.core.data.ChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.EntityGroup;
 import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
@@ -299,6 +300,12 @@ public class EditSampleController {
    public @ResponseBody
    Sample jsonRest(@PathVariable Long sampleId) throws IOException {
       return requestManager.getSampleById(sampleId);
+   }
+
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Sample");
    }
 
    @RequestMapping(value = "/{sampleId}", method = RequestMethod.GET)

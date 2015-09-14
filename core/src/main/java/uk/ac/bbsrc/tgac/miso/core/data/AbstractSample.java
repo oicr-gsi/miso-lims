@@ -79,6 +79,8 @@ public abstract class AbstractSample implements Sample {
 
    private Collection<Note> notes = new HashSet<Note>();
 
+   private final Collection<ChangeLog> changeLog = new ArrayList<>();
+
    private Set<Plate<? extends LinkedList<Sample>, Sample>> plates = new HashSet<Plate<? extends LinkedList<Sample>, Sample>>();
 
    @Transient
@@ -296,6 +298,11 @@ public abstract class AbstractSample implements Sample {
    @Override
    public void setNotes(Collection<Note> notes) {
       this.notes = notes;
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 
    @Override

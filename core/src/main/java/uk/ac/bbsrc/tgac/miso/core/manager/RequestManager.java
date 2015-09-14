@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import uk.ac.bbsrc.tgac.miso.core.data.ChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
 import uk.ac.bbsrc.tgac.miso.core.data.EntityGroup;
 import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
@@ -227,6 +228,7 @@ public interface RequestManager {
    public Collection<Sample> listAllSamplesByExperimentId(long experimentId) throws IOException;
    public Collection<Sample> listSamplesByAlias(String alias) throws IOException;
 
+   public Collection<ChangeLog> listAllChanges(String type) throws IOException;
 
    public Collection<String> listAllSampleTypes() throws IOException;
    public Collection<SampleQC> listAllSampleQCsBySampleId(long sampleId) throws IOException;
