@@ -32,8 +32,6 @@
     <version>0.2.1-SNAPSHOT</version>
   </parent>
 
-  <groupId>${parent.groupId}</groupId>
-  <version>${parent.version}</version>
   <artifactId>notification-server</artifactId>
 
   <packaging>jar</packaging>
@@ -45,6 +43,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
         <configuration>
           <archive>
             <manifest>
@@ -78,6 +77,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
@@ -96,19 +96,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>${parent.groupId}</groupId>
+      <groupId>${project.parent.groupId}</groupId>
       <artifactId>core</artifactId>
-      <version>${parent.version}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
-      <groupId>${parent.groupId}</groupId>
+      <groupId>${project.parent.groupId}</groupId>
       <artifactId>integration-tools</artifactId>
-      <version>${parent.version}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
-      <groupId>${parent.groupId}</groupId>
+      <groupId>${project.parent.groupId}</groupId>
       <artifactId>run-tools</artifactId>
-      <version>${parent.version}</version>
+      <version>${project.parent.version}</version>
     </dependency>
 
     <dependency>
