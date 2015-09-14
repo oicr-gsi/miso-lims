@@ -40,3 +40,12 @@ FOR EACH ROW
         CASE WHEN NEW.scientificName <> OLD.scientificName THEN  CONCAT('scientificName: ', OLD.scientificName, ' → ', NEW.scientificName) END,
         CASE WHEN NEW.taxonIdentifier <> OLD.taxonIdentifier THEN  CONCAT('taxonIdentifier: ', OLD.taxonIdentifier, ' → ', NEW.taxonIdentifier) END)));
 
+CREATE TRIGGER SampleInsert AFTER INSERT ON Sample
+FOR EACH ROW
+  INSERT INTO SampleChangeLog(sampleId, columnsChanged, securityProfile_profileId, message) VALUES (
+    NEW.sampleId,
+    NULL,
+    NEW.securityProfile_profileId,
+    CONCAT(
+      (SELECT DISTINCT fullname FROM User, SecurityProfile WHERE profileId = NEW.securityProfile_profileId AND owner_userId = userId),
+      ' created sample.'));
