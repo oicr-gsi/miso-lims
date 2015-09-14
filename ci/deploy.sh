@@ -9,18 +9,20 @@ fi
 
 mkdir -p "${DIR}/ROOT"
 cd "${DIR}/ROOT"
-jar xfv "${WORKSPACE}/miso-web/target/ROOT.war"
-sed -r \
-    -e 's|localhost:3306/lims|miso-db.res.oicr.on.ca:3306/'\"${DB_NAME}\"'|1' \
-    -e 's|(username=)[^=]*$|\1'\"$MYSQL_USER\"'|1' \
-    -e 's|(password=)([^=][^ />]*)|\1'\"$MYSQL_PASS\"'|1' \
-    <"${DIR}/context.xml" >"${DIR}/ROOT/META-INF/context.xml"
+jar xf "${WORKSPACE}/miso-web/target/ROOT.war"
 
+
+perl -i -pe "s/devlims/$DB_NAME/g" "${WORKSPACE}/ci/context.xml"
+perl -i -pe "s/username-here/$MYSQL_USER/g" "${WORKSPACE}/ci/context.xml"
+perl -i -pe "s/password-here/$MYSQL_PASS/g" "${WORKSPACE}/ci/context.xml"
+
+    <"${DIR}/context.xml" >"${DIR}/ROOT/META-INF/context.xml"
+cp "${DIR}/context.xml" "${DIR}/ROOT/META-INF/context.xml"
 
 if [ -e "${DIR}/ROOT.war" ]; then
-    jar ufv "${DIR}/ROOT.war" -C "${DIR}/ROOT" .
+    jar uf "${DIR}/ROOT.war" -C "${DIR}/ROOT" .
 else
-    jar cfv "${DIR}/ROOT.war" -C "${DIR}/ROOT" .
+    jar cf "${DIR}/ROOT.war" -C "${DIR}/ROOT" .
 fi
 
 rm "${WORKSPACE}/miso-web/target/ROOT.war"
