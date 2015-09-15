@@ -195,6 +195,8 @@ public interface RequestManager {
    public Collection<Experiment> listAllExperimentsWithLimit(long limit) throws IOException;
    public Collection<Experiment> listAllExperimentsBySearch(String query) throws IOException;
 
+   public Collection<Platform> listAllPlatforms() throws IOException;
+
    /**
     * Obtain a list of all the requests the user has access to within this project. Access is defined as either read or write access.
     */

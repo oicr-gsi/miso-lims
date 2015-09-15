@@ -1017,6 +1017,7 @@ public class MisoRequestManager implements RequestManager {
       }
    }
 
+   @Override
    public Collection<Platform> listAllPlatforms() throws IOException {
       if (platformStore != null) {
          return platformStore.listAll();
