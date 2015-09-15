@@ -1,4 +1,5 @@
 #!/bin/bash -e
 
-curl --user "jenkins:deployer" --upload-file "ROOT.war" --url ${1}
+DIR=$( cd "$( dirname ${BASH_SOURCE[0]} )" && pwd )
+curl --user "jenkins:deployer" --upload-file "${DIR}/ROOT.war" --url ${1}
 
