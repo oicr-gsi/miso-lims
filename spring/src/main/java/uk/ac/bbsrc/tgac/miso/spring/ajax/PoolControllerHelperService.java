@@ -824,6 +824,7 @@ public class PoolControllerHelperService {
           pout.add(libraryDilution.getName());
           pout.add(libraryDilution.getConcentration());
           pout.add(libraryDilution.getLibrary().getName() + "  :  " + libraryDilution.getLibrary().getAlias());
+          pout.add(libraryDilution.getLibrary().getSample().getName() + "  :  " + libraryDilution.getLibrary().getSample().getAlias());
           pout.add("<div style='cursor:pointer;' onmousedown=\"Pool.search.poolSearchSelectElement('" + libraryDilution.getId() + "', '"
                    + libraryDilution.getName() + "')\"><span class=\"ui-icon ui-icon-plusthick\"></span></div>");
           arr.add(pout);
