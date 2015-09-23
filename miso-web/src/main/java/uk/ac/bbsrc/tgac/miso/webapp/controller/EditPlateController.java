@@ -38,6 +38,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import uk.ac.bbsrc.tgac.miso.core.data.*;
+
 import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
@@ -48,155 +49,149 @@ import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 @RequestMapping("/plate")
 @SessionAttributes("plate")
 public class EditPlateController {
-  protected static final Logger log = LoggerFactory.getLogger(EditPlateController.class);
+   protected static final Logger log = LoggerFactory.getLogger(EditPlateController.class);
 
-  @Autowired
-  private SecurityManager securityManager;
+   @Autowired
+   private SecurityManager securityManager;
 
-  @Autowired
-  private RequestManager requestManager;
+   @Autowired
+   private RequestManager requestManager;
 
-  @Autowired
-  private DataObjectFactory dataObjectFactory;
+   @Autowired
+   private DataObjectFactory dataObjectFactory;
 
-  @Autowired
-  private JdbcTemplate interfaceTemplate;
+   @Autowired
+   private JdbcTemplate interfaceTemplate;
 
-  public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
-    this.interfaceTemplate = interfaceTemplate;
-  }
-  
-  public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
-    this.dataObjectFactory = dataObjectFactory;
-  }
+   public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
+      this.interfaceTemplate = interfaceTemplate;
+   }
 
-  public void setRequestManager(RequestManager requestManager) {
-    this.requestManager = requestManager;
-  }
+   public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
+      this.dataObjectFactory = dataObjectFactory;
+   }
 
-  public void setSecurityManager(SecurityManager securityManager) {
-    this.securityManager = securityManager;
-  }
+   public void setRequestManager(RequestManager requestManager) {
+      this.requestManager = requestManager;
+   }
 
-  @ModelAttribute("materialTypes")
-  public Collection<String> populateMaterialTypes() throws IOException {
-    return requestManager.listAllStudyTypes();
-  }
+   public void setSecurityManager(SecurityManager securityManager) {
+      this.securityManager = securityManager;
+   }
 
-  public Collection<TagBarcode> populateAvailableTagBarcodes() throws IOException {
-    List<TagBarcode> barcodes = new ArrayList<TagBarcode>(requestManager.listAllTagBarcodes());
-    Collections.sort(barcodes);
-    return barcodes;
-  }
+   @ModelAttribute("materialTypes")
+   public Collection<String> populateMaterialTypes() throws IOException {
+      return requestManager.listAllStudyTypes();
+   }
 
-  public String tagBarcodesString(String platformName) throws IOException {
-    List<TagBarcode> tagBarcodes = new ArrayList<TagBarcode>(requestManager.listAllTagBarcodes());
-    Collections.sort(tagBarcodes);
-    List<String> names = new ArrayList<String>();
-    for (TagBarcode tb : tagBarcodes) {
-      names.add("\"" + tb.getName() + " ("+tb.getSequence()+")\"" + ":" + "\"" + tb.getId() + "\"");
-    }
-    return LimsUtils.join(names, ",");
-  }
+   public Collection<TagBarcode> populateAvailableTagBarcodes() throws IOException {
+      List<TagBarcode> barcodes = new ArrayList<TagBarcode>(requestManager.listAllTagBarcodes());
+      Collections.sort(barcodes);
+      return barcodes;
+   }
 
-  @RequestMapping(value = "/new", method = RequestMethod.GET)
-  public ModelAndView newPlate(ModelMap model) throws IOException {
-    return setupForm(AbstractPlate.UNSAVED_ID, model);
-  }
-
-  @RequestMapping(value = "/rest/{plateId}", method = RequestMethod.GET)
-  public @ResponseBody Plate<? extends List<? extends Plateable>, ? extends Plateable> jsonRest(@PathVariable Long plateId) throws IOException {
-    //return requestManager.<LinkedList<Plateable>, Plateable> getPlateById(plateId);
-    return requestManager.getPlateById(plateId);
-  }
-
-  @RequestMapping(value = "/{plateId}", method = RequestMethod.GET)
-  public ModelAndView setupForm(@PathVariable Long plateId,
-                                ModelMap model) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      Plate<? extends List<? extends Plateable>, ? extends Plateable> plate = null;
-      if (plateId == AbstractPlate.UNSAVED_ID) {
-        plate = dataObjectFactory.getPlateOfSize(96, user);
-        model.put("title", "New Plate");
+   public String tagBarcodesString(String platformName) throws IOException {
+      List<TagBarcode> tagBarcodes = new ArrayList<TagBarcode>(requestManager.listAllTagBarcodes());
+      Collections.sort(tagBarcodes);
+      List<String> names = new ArrayList<String>();
+      for (TagBarcode tb : tagBarcodes) {
+         names.add("\"" + tb.getName() + " (" + tb.getSequence() + ")\"" + ":" + "\"" + tb.getId() + "\"");
       }
-      else {
-        //plate = requestManager.<LinkedList<Plateable>, Plateable> getPlateById(plateId);
-        plate = requestManager.getPlateById(plateId);
-        model.put("title", "Plate "+plateId);
-      }
+      return LimsUtils.join(names, ",");
+   }
 
-      if (plate != null) {
-        if (!plate.userCanRead(user)) {
-          throw new SecurityException("Permission denied.");
-        }
-        model.put("formObj", plate);
-        model.put("plate", plate);
-      }
-      else {
-        throw new SecurityException("No such Plate");
-      }
+   @RequestMapping(value = "/new", method = RequestMethod.GET)
+   public ModelAndView newPlate(ModelMap model) throws IOException {
+      return setupForm(AbstractPlate.UNSAVED_ID, model);
+   }
 
-      model.put("availableTagBarcodes", populateAvailableTagBarcodes());
+   @RequestMapping(value = "/rest/{plateId}", method = RequestMethod.GET)
+   public @ResponseBody
+   Plate<? extends List<? extends Plateable>, ? extends Plateable> jsonRest(@PathVariable Long plateId) throws IOException {
+      // return requestManager.<LinkedList<Plateable>, Plateable> getPlateById(plateId);
+      return requestManager.getPlateById(plateId);
+   }
 
-      /*
-      model.put("owners", LimsSecurityUtils.getPotentialOwners(user, study, securityManager.listAllUsers()));
-      model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, study, securityManager.listAllUsers()));
-      model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, study, securityManager.listAllGroups()));
-      */
-      return new ModelAndView("/pages/editPlate.jsp", model);
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to show Plate", ex);
+   @RequestMapping(value = "/{plateId}", method = RequestMethod.GET)
+   public ModelAndView setupForm(@PathVariable Long plateId, ModelMap model) throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         Plate<? extends List<? extends Plateable>, ? extends Plateable> plate = null;
+         if (plateId == AbstractPlate.UNSAVED_ID) {
+            plate = dataObjectFactory.getPlateOfSize(96, user);
+            model.put("title", "New Plate");
+         } else {
+            // plate = requestManager.<LinkedList<Plateable>, Plateable> getPlateById(plateId);
+            plate = requestManager.getPlateById(plateId);
+            model.put("title", "Plate " + plateId);
+         }
+
+         if (plate != null) {
+            if (!plate.userCanRead(user)) {
+               throw new SecurityException("Permission denied.");
+            }
+            model.put("formObj", plate);
+            model.put("plate", plate);
+         } else {
+            throw new SecurityException("No such Plate");
+         }
+
+         model.put("availableTagBarcodes", populateAvailableTagBarcodes());
+
+         /*
+          * model.put("owners", LimsSecurityUtils.getPotentialOwners(user, study, securityManager.listAllUsers()));
+          * model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, study, securityManager.listAllUsers()));
+          * model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, study, securityManager.listAllGroups()));
+          */
+         return new ModelAndView("/pages/editPlate.jsp", model);
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to show Plate", ex);
+         }
+         throw ex;
       }
-      throw ex;
-    }
-  }
+   }
 
-  @RequestMapping(value = "/import", method = RequestMethod.GET)
-  public ModelAndView importPlate(ModelMap model) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      Plate<? extends List<? extends Plateable>, ? extends Plateable> plate = dataObjectFactory.getPlateOfSize(96, user);
-      model.put("title", "Import Plate");
-      model.put("formObj", plate);
-      model.put("plate", plate);
-      model.put("availableTagBarcodes", populateAvailableTagBarcodes());
-      return new ModelAndView("/pages/importPlate.jsp", model);
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to show Plate", ex);
+   @RequestMapping(value = "/import", method = RequestMethod.GET)
+   public ModelAndView importPlate(ModelMap model) throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         Plate<? extends List<? extends Plateable>, ? extends Plateable> plate = dataObjectFactory.getPlateOfSize(96, user);
+         model.put("title", "Import Plate");
+         model.put("formObj", plate);
+         model.put("plate", plate);
+         model.put("availableTagBarcodes", populateAvailableTagBarcodes());
+         return new ModelAndView("/pages/importPlate.jsp", model);
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to show Plate", ex);
+         }
+         throw ex;
       }
-      throw ex;
-    }
-  }
+   }
 
-  @RequestMapping(value = "/export", method = RequestMethod.GET)
-  public ModelAndView exportPlate(ModelMap model) throws IOException {
+   @RequestMapping(value = "/export", method = RequestMethod.GET)
+   public ModelAndView exportPlate(ModelMap model) throws IOException {
       return new ModelAndView("/pages/exportPlate.jsp", model);
-  }
+   }
 
-  @RequestMapping(method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("plate") Plate<LinkedList<Plateable>, Plateable> plate,
-                              ModelMap model,
-                              SessionStatus session) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      if (!plate.userCanWrite(user)) {
-        throw new SecurityException("Permission denied.");
+   @RequestMapping(method = RequestMethod.POST)
+   public String processSubmit(@ModelAttribute("plate") Plate<LinkedList<Plateable>, Plateable> plate, ModelMap model, SessionStatus session)
+         throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         if (!plate.userCanWrite(user)) {
+            throw new SecurityException("Permission denied.");
+         }
+         requestManager.savePlate(plate);
+         session.setComplete();
+         model.clear();
+         return "redirect:/miso/plate/" + plate.getId();
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to save Plate", ex);
+         }
+         throw ex;
       }
-      requestManager.savePlate(plate);
-      session.setComplete();
-      model.clear();
-      return "redirect:/miso/plate/"+plate.getId();
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to save Plate", ex);
-      }
-      throw ex;
-    }
-  }
+   }
 }
