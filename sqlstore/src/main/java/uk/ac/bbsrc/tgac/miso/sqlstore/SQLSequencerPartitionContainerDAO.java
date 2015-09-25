@@ -118,6 +118,7 @@ public class SQLSequencerPartitionContainerDAO implements SequencerPartitionCont
    private CascadeType cascadeType;
 
    private PlatformStore platformDAO;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
 
    @Autowired
@@ -470,6 +471,7 @@ public class SQLSequencerPartitionContainerDAO implements SequencerPartitionCont
             s.setValidationBarcode(rs.getString("validationBarcode"));
             s.setSecurityProfile(securityProfileDAO.get(rs.getLong("securityProfile_profileId")));
             s.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
+            s.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, "container", id));
          } catch (IOException e1) {
             e1.printStackTrace();
          }
@@ -523,6 +525,14 @@ public class SQLSequencerPartitionContainerDAO implements SequencerPartitionCont
          return true;
       }
       return false;
+   }
+
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
    }
 
    public SecurityStore getSecurityDAO() {

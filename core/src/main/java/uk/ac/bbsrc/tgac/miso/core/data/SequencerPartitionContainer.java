@@ -34,6 +34,7 @@ import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -174,3 +175,4 @@ public interface SequencerPartitionContainer<T extends Partition> extends Secura
     */
    public void setLastModifier(User user);
 }
+

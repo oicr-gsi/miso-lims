@@ -80,6 +80,12 @@ public class EditSequencerPartitionContainerController {
       this.securityManager = securityManager;
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("SequencerPartitionContainer");
+   }
+
    @ModelAttribute("maxLengths")
    public Map<String, Integer> maxLengths() throws IOException {
       return DbUtils.getColumnSizes(interfaceTemplate, "Flowcell");

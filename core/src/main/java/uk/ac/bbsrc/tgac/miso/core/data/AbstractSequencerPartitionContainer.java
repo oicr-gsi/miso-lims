@@ -56,6 +56,7 @@ public abstract class AbstractSequencerPartitionContainer<T extends Partition> i
    private SecurityProfile securityProfile;
    private Platform platform;
    private String validationBarcode;
+   private final Collection<ChangeLog> changeLog = new ArrayList<ChangeLog>();
    private User lastModifier;
 
    @Override
@@ -66,6 +67,11 @@ public abstract class AbstractSequencerPartitionContainer<T extends Partition> i
    @Override
    public void setLastModifier(User lastModifier) {
       this.lastModifier = lastModifier;
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 
    @Override

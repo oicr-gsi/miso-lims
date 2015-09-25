@@ -287,6 +287,7 @@ public interface Run extends SecurableByProfile, Submittable<Document>, Comparab
 
    void setLastUpdated(Date lastUpdated);
 
+   public Collection<ChangeLog> getChangeLog();
    /**
     * Returns the user who last modified this item.
     */

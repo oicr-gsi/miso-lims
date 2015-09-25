@@ -95,9 +95,9 @@ public abstract class AbstractRun implements Run {
    // listeners
    private Set<MisoListener> listeners = new HashSet<MisoListener>();
    private Set<User> watchers = new HashSet<User>();
- 
+
    private User lastModifier;
- 
+
    @Override
    public User getLastModifier() {
       return lastModifier;
@@ -107,6 +107,8 @@ public abstract class AbstractRun implements Run {
    public void setLastModifier(User lastModifier) {
       this.lastModifier = lastModifier;
    }
+
+   private final Collection<ChangeLog> changeLog = new ArrayList<>();
 
    @Deprecated
    public Long getRunId() {
@@ -463,5 +465,10 @@ public abstract class AbstractRun implements Run {
          sb.append("(" + getStatus().getStatusId() + ")");
       }
       return sb.toString();
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 }

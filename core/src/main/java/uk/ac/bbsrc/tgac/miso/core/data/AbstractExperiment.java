@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Skeleton implementation of an Experiment
@@ -75,6 +76,7 @@ public abstract class AbstractExperiment implements Experiment {
    private Platform platform;
 
    private Collection<Kit> kits = new HashSet<Kit>();
+   private final List<ChangeLog> changeLog = new ArrayList<ChangeLog>();
    private User lastModifier;
 
    @Override
@@ -85,6 +87,10 @@ public abstract class AbstractExperiment implements Experiment {
    @Override
    public void setLastModifier(User lastModifier) {
       this.lastModifier = lastModifier;
+   }
+
+   public List<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 
    @Override

@@ -78,6 +78,7 @@ public abstract class AbstractPool<P extends Poolable> implements Pool<P> {
    // listeners
    private final Set<MisoListener> listeners = new HashSet<MisoListener>();
    private Set<User> watchers = new HashSet<User>();
+   private final Collection<ChangeLog> changeLog = new ArrayList<ChangeLog>();
    private User lastModifier;
 
    @Override
@@ -88,6 +89,11 @@ public abstract class AbstractPool<P extends Poolable> implements Pool<P> {
    @Override
    public void setLastModifier(User lastModifier) {
       this.lastModifier = lastModifier;
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 
    @Override

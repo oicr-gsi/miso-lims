@@ -179,6 +179,7 @@ public class SQLRunDAO implements RunStore {
    private NoteStore noteDAO;
    private WatcherStore watcherDAO;
    private CascadeType cascadeType;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
 
    @Autowired
@@ -640,6 +641,14 @@ public class SQLRunDAO implements RunStore {
       return false;
    }
 
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
+   }
+
    public SecurityStore getSecurityDAO() {
       return securityDAO;
    }
@@ -705,6 +714,7 @@ public class SQLRunDAO implements RunStore {
                r.setNotes(noteDAO.listByRun(id));
             }
             r.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
+            r.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             e1.printStackTrace();
          } catch (Exception e) {

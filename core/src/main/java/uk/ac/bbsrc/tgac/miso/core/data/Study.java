@@ -198,6 +198,7 @@ public interface Study extends SecurableByProfile, Submittable<Document>, Compar
     */
    public void setExperiments(Collection<Experiment> experiments);
 
+   public Collection<ChangeLog> getChangeLog();
    /**
     * Returns the user who last modified this item.
     */

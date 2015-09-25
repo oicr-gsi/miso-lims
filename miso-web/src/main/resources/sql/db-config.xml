@@ -118,6 +118,7 @@
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="projectDAO" ref="sqlProjectDAO"/>
     <property name="experimentDAO" ref="sqlExperimentDAO"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
@@ -171,6 +172,7 @@
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="studyDAO" ref="sqlStudyDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
     <property name="runDAO" ref="sqlRunDAO"/>
@@ -220,6 +222,7 @@
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="securityManager" ref="securityManager"/>
     <property name="sequencerPartitionContainerDAO" ref="sqlSequencerPartitionContainerDAO"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
@@ -247,6 +250,7 @@
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="partitionDAO" ref="sqlPartitionDAO"/>
     <property name="runDAO" ref="sqlRunDAO"/>
     <property name="platformDAO" ref="sqlPlatformDAO"/>
@@ -271,6 +275,7 @@
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="noteDAO" ref="sqlNoteDAO"/>
     <property name="poolDAO" ref="sqlPoolDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
@@ -297,6 +302,7 @@
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="securityManager" ref="securityManager"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
     <property name="experimentDAO" ref="sqlExperimentDAO"/>
@@ -380,6 +386,7 @@
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
     <property name="securityDAO" ref="sqlSecurityDAO"/>
+    <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="libraryDAO" ref="sqlLibraryDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
     <property name="dilutionDAO" ref="sqlLibraryDilutionDAO"/>

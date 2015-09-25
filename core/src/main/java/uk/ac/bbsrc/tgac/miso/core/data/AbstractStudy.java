@@ -77,6 +77,7 @@ public abstract class AbstractStudy implements Study {
    private String studyType;
    @Column(name = "alias")
    private String alias;
+   private final Collection<ChangeLog> changeLog = new ArrayList<ChangeLog>();
    private User lastModifier;
 
    @Override
@@ -87,6 +88,12 @@ public abstract class AbstractStudy implements Study {
    @Override
    public void setLastModifier(User lastModifier) {
       this.lastModifier = lastModifier;
+   }
+
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 
    @Override

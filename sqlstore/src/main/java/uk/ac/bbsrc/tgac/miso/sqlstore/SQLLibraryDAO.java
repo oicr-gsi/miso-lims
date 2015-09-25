@@ -188,6 +188,7 @@ public class SQLLibraryDAO implements LibraryStore {
    private LibraryDilutionStore dilutionDAO;
    private NoteStore noteDAO;
    private CascadeType cascadeType;
+   private ChangeLogStore changeLogDAO;
 
    @Autowired
    private MisoNamingScheme<Library> libraryNamingScheme;
@@ -662,6 +663,14 @@ public class SQLLibraryDAO implements LibraryStore {
       return template.query(TAG_BARCODES_SELECT, new TagBarcodeMapper());
    }
 
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
+   }
+
    public SecurityStore getSecurityDAO() {
       return securityDAO;
    }
@@ -736,6 +745,7 @@ public class SQLLibraryDAO implements LibraryStore {
             } else {
                library.setSample(sampleDAO.lazyGet(rs.getLong("sample_sampleId")));
             }
+            library.getChangeLog().addAll(getChangeLogDAO().listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             e1.printStackTrace();
          } catch (MalformedLibraryQcException e) {

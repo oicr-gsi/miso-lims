@@ -118,6 +118,7 @@ public class SQLPlateDAO implements PlateStore {
    private SampleStore sampleDAO;
    private LibraryDilutionStore dilutionDAO;
    private Store<SecurityProfile> securityProfileDAO;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
 
    @Autowired
@@ -422,6 +423,7 @@ public class SQLPlateDAO implements PlateStore {
             if (!isLazy()) {
                plate.setElements(resolvePlateElements(plate.getId()));
             }
+            plate.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             e1.printStackTrace();
          }
@@ -467,6 +469,14 @@ public class SQLPlateDAO implements PlateStore {
       } else {
          throw new IllegalArgumentException("Element type " + elementType.getName() + " is not a valid Plateable type");
       }
+   }
+
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogStore) {
+      this.changeLogDAO = changeLogStore;
    }
 
    public SecurityStore getSecurityDAO() {

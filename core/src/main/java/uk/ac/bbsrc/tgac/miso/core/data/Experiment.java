@@ -257,6 +257,8 @@ public interface Experiment extends SecurableByProfile, Submittable<Document>, C
    @JsonIgnore
    public Collection<Kit> getKitsByKitType(KitType kitType);
 
+   public Collection<ChangeLog> getChangeLog();
+
    /**
     * Returns the user who last modified this item.
     */

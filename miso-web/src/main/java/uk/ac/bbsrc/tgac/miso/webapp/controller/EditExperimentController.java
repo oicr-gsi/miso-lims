@@ -118,6 +118,12 @@ public class EditExperimentController {
       return requestManager.getExperimentById(experimentId);
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Experiment");
+   }
+
    @RequestMapping(value = "/{experimentId}", method = RequestMethod.GET)
    public ModelAndView setupForm(@PathVariable Long experimentId, ModelMap model) throws IOException {
       try {

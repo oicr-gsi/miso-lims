@@ -45,6 +45,7 @@ import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractStudy;
+import uk.ac.bbsrc.tgac.miso.core.data.ChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.factory.TgacDataObjectFactory;
@@ -95,6 +96,12 @@ public class EditStudyController {
          }
          throw ex;
       }
+   }
+
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Study");
    }
 
    @ModelAttribute("maxLengths")

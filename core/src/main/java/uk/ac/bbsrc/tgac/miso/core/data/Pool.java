@@ -270,6 +270,8 @@ public interface Pool<P extends Poolable> extends SecurableByProfile, Comparable
 
    void setLastUpdated(Date lastUpdated);
 
+   public Collection<ChangeLog> getChangeLog();
+
    /**
     * Returns the user who last modified this item.
     */

@@ -61,6 +61,7 @@ public abstract class AbstractPlate<T extends List<S>, S extends Plateable> impl
    private String locationBarcode;
 
    private Date lastUpdated;
+   private final List<ChangeLog> changeLog = new ArrayList<ChangeLog>();
    private User lastModifier;
 
    @Override
@@ -281,5 +282,10 @@ public abstract class AbstractPlate<T extends List<S>, S extends Plateable> impl
       sb.append(" : ");
       sb.append(getDescription());
       return sb.toString();
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
    }
 }

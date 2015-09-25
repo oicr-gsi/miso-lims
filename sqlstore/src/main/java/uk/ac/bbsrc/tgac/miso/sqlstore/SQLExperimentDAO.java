@@ -123,6 +123,7 @@ public class SQLExperimentDAO implements ExperimentStore {
    private KitStore kitDAO;
    private Store<SecurityProfile> securityProfileDAO;
    private CascadeType cascadeType;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
 
    @Autowired
@@ -452,6 +453,14 @@ public class SQLExperimentDAO implements ExperimentStore {
       return false;
    }
 
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
+   }
+
    public SecurityStore getSecurityDAO() {
       return securityDAO;
    }
@@ -500,6 +509,7 @@ public class SQLExperimentDAO implements ExperimentStore {
                e.setPool(poolDAO.getPoolByExperiment(e));
                e.setKits(kitDAO.listByExperiment(rs.getLong("experimentId")));
             }
+            e.getChangeLog().addAll(getChangeLogDAO().listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             e1.printStackTrace();
          }

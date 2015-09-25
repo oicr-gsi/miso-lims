@@ -360,6 +360,12 @@ public class EditLibraryController {
       }
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Library");
+   }
+
    public Collection<emPCR> populateEmPcrs(User user, Library library) throws IOException {
       Collection<emPCR> pcrs = new HashSet<emPCR>();
       for (emPCR pcr : requestManager.listAllEmPCRs()) {

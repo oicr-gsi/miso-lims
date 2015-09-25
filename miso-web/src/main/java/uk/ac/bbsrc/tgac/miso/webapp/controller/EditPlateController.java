@@ -112,6 +112,12 @@ public class EditPlateController {
       return requestManager.getPlateById(plateId);
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Plate");
+   }
+
    @RequestMapping(value = "/{plateId}", method = RequestMethod.GET)
    public ModelAndView setupForm(@PathVariable Long plateId, ModelMap model) throws IOException {
       try {

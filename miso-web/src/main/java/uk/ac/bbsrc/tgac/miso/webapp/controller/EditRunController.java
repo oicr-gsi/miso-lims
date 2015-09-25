@@ -239,6 +239,12 @@ public class EditRunController {
       return requestManager.getRunById(runId);
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Run");
+   }
+
    @RequestMapping(value = "/{runId}", method = RequestMethod.GET)
    public ModelAndView setupForm(@PathVariable Long runId, ModelMap model) throws IOException {
       try {

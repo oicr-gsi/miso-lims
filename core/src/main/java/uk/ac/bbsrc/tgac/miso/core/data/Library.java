@@ -379,6 +379,8 @@ public interface Library extends SecurableByProfile, Comparable, Barcodable, Loc
 
    void setLastUpdated(Date lastUpdated);
 
+   public Collection<ChangeLog> getChangeLog();
+
    /**
     * Returns the user who last modified this item.
     */

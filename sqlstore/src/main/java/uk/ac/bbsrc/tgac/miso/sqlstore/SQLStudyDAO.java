@@ -35,6 +35,7 @@ import com.eaglegenomics.simlims.core.store.SecurityStore;
 
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
+import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
 import uk.ac.bbsrc.tgac.miso.core.store.ExperimentStore;
 import uk.ac.bbsrc.tgac.miso.core.store.ProjectStore;
 import uk.ac.bbsrc.tgac.miso.core.store.Store;
@@ -125,6 +126,7 @@ public class SQLStudyDAO implements StudyStore {
    private ExperimentStore experimentDAO;
    private Store<SecurityProfile> securityProfileDAO;
    private CascadeType cascadeType;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
 
    @Autowired
@@ -379,6 +381,14 @@ public class SQLStudyDAO implements StudyStore {
       return template.queryForList(STUDY_TYPES_SELECT, String.class);
    }
 
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
+   }
+
    public SecurityStore getSecurityDAO() {
       return securityDAO;
    }
@@ -427,6 +437,7 @@ public class SQLStudyDAO implements StudyStore {
                s.setProject(projectDAO.lazyGet(rs.getLong("project_projectId")));
             }
             s.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
+            s.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             e1.printStackTrace();
          } catch (MalformedExperimentException e) {

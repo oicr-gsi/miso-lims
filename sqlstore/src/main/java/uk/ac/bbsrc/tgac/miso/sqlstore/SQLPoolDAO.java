@@ -233,7 +233,16 @@ public class SQLPoolDAO implements PoolStore {
    private Store<SecurityProfile> securityProfileDAO;
    private WatcherStore watcherDAO;
    private CascadeType cascadeType;
+   private ChangeLogStore changeLogDAO;
    private SecurityStore securityDAO;
+
+   public ChangeLogStore getChangeLogDAO() {
+      return changeLogDAO;
+   }
+
+   public void setChangeLogDAO(ChangeLogStore changeLogDAO) {
+      this.changeLogDAO = changeLogDAO;
+   }
 
    @Autowired
    private PoolAlertManager poolAlertManager;
@@ -693,6 +702,7 @@ public class SQLPoolDAO implements PoolStore {
                   p.addQc(qc);
                }
             }
+            p.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
          } catch (IOException e1) {
             log.error("Cannot map from database to Pool: ", e1);
             e1.printStackTrace();

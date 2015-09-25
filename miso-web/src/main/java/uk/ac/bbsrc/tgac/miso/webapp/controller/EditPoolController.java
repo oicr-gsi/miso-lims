@@ -85,6 +85,12 @@ public class EditPoolController {
       this.securityManager = securityManager;
    }
 
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Pool");
+   }
+
    @ModelAttribute("platformTypes")
    public Collection<String> populatePlatformTypes() {
       return PlatformType.getKeys();
