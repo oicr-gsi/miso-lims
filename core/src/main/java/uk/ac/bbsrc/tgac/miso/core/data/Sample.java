@@ -39,6 +39,7 @@ import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 import com.eaglegenomics.simlims.core.Note;
 //import com.fasterxml.jackson.annotation.*;
 //import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.eaglegenomics.simlims.core.User;
 
 /**
  * A Sample contains information about the original material upon which a sequencing experiment is to be based.
@@ -55,7 +56,7 @@ import com.eaglegenomics.simlims.core.Note;
 @JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({"securityProfile", "submissionDocument"})
+@JsonIgnoreProperties({"lastModifier", "securityProfile", "submissionDocument"})
 @PrintableBarcode
 public interface Sample
       extends
@@ -314,4 +315,13 @@ public interface Sample
    Date getLastUpdated();
 
    void setLastUpdated(Date lastUpdated);
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

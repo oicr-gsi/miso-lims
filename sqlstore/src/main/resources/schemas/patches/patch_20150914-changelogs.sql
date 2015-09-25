@@ -1,3 +1,12 @@
+ALTER TABLE Experiment ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Library ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Plate ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Pool ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Run ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Sample ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE SequencerPartitionContainer ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+ALTER TABLE Study ADD COLUMN lastModifier bigint(20) NOT NULL DEFAULT 1 REFERENCES User(userId);
+
 CREATE TABLE SampleChangeLog (
   sampleId bigint(20) NOT NULL REFERENCES Sample(sampleId),
   columnsChanged text NOT NULL,

@@ -24,6 +24,7 @@
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
 import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
 import com.google.common.collect.LinkedListMultimap;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.KeyGenerator;
@@ -72,7 +73,7 @@ import java.util.*;
 public class SQLPlateDAO implements PlateStore {
    private static final String TABLE_NAME = "Plate";
 
-   public static final String PLATE_SELECT = "SELECT plateId, name, description, creationDate, plateMaterialType, identificationBarcode, locationBarcode, size, tagBarcodeId, securityProfile_profileId "
+   public static final String PLATE_SELECT = "SELECT plateId, name, description, creationDate, plateMaterialType, identificationBarcode, locationBarcode, size, tagBarcodeId, securityProfile_profileId, lastModifier "
          + "FROM " + TABLE_NAME;
 
    public static final String PLATE_SELECT_BY_ID = PLATE_SELECT + " WHERE plateId = ?";
@@ -82,7 +83,7 @@ public class SQLPlateDAO implements PlateStore {
    public static final String PLATE_UPDATE = "UPDATE "
          + TABLE_NAME
          + " "
-         + "SET plateId=:plateId, name=:name, description=:description, creationDate=:creationDate, plateMaterialType=:plateMaterialType, identificationBarcode=:identificationBarcode, locationBarcode=:locationBarcode, size=:size, tagBarcodeId=:tagBarcodeId, securityProfile_profileId=:securityProfile_profileId "
+         + "SET plateId=:plateId, name=:name, description=:description, creationDate=:creationDate, plateMaterialType=:plateMaterialType, identificationBarcode=:identificationBarcode, locationBarcode=:locationBarcode, size=:size, tagBarcodeId=:tagBarcodeId, securityProfile_profileId=:securityProfile_profileId, lastModifier=:lastModifier "
          + "WHERE plateId=:plateId";
 
    public static final String PLATE_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE plateId=:plateId";
@@ -117,6 +118,7 @@ public class SQLPlateDAO implements PlateStore {
    private SampleStore sampleDAO;
    private LibraryDilutionStore dilutionDAO;
    private Store<SecurityProfile> securityProfileDAO;
+   private SecurityStore securityDAO;
 
    @Autowired
    private DaoLookup daoLookup;
@@ -248,7 +250,8 @@ public class SQLPlateDAO implements PlateStore {
       MapSqlParameterSource params = new MapSqlParameterSource();
       params.addValue("description", plate.getDescription()).addValue("creationDate", plate.getCreationDate())
             .addValue("plateMaterialType", plate.getPlateMaterialType().getKey()).addValue("locationBarcode", plate.getLocationBarcode())
-            .addValue("size", plate.getSize()).addValue("securityProfile_profileId", securityProfileId);
+            .addValue("size", plate.getSize()).addValue("securityProfile_profileId", securityProfileId)
+            .addValue("lastModifier", plate.getLastModifier().getUserId());
 
       if (plate.getTagBarcode() != null) {
          params.addValue("tagBarcodeId", plate.getTagBarcode().getId());
@@ -414,6 +417,7 @@ public class SQLPlateDAO implements PlateStore {
             plate.setSecurityProfile(securityProfileDAO.get(rs.getLong("securityProfile_profileId")));
             plate.setPlateMaterialType(PlateMaterialType.get(rs.getString("plateMaterialType")));
             plate.setTagBarcode(libraryDAO.getTagBarcodeById(rs.getLong("tagBarcodeId")));
+            plate.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
 
             if (!isLazy()) {
                plate.setElements(resolvePlateElements(plate.getId()));
@@ -463,5 +467,13 @@ public class SQLPlateDAO implements PlateStore {
       } else {
          throw new IllegalArgumentException("Element type " + elementType.getName() + " is not a valid Plateable type");
       }
+   }
+
+   public SecurityStore getSecurityDAO() {
+      return securityDAO;
+   }
+
+   public void setSecurityDAO(SecurityStore securityDAO) {
+      this.securityDAO = securityDAO;
    }
 }

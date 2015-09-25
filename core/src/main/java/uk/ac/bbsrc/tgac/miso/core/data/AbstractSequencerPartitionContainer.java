@@ -28,6 +28,9 @@ import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
 import javax.persistence.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,6 +56,17 @@ public abstract class AbstractSequencerPartitionContainer<T extends Partition> i
    private SecurityProfile securityProfile;
    private Platform platform;
    private String validationBarcode;
+   private User lastModifier;
+
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
+
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
    @Override
    @Deprecated

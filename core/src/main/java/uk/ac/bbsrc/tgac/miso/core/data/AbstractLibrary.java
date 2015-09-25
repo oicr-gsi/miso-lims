@@ -84,6 +84,18 @@ public abstract class AbstractLibrary implements Library {
    private Collection<Note> notes = new HashSet<Note>();
 
    private Date lastUpdated;
+   private User lastModifier;
+
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
+
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
+
 
    @Deprecated
    public Long getLibraryId() {

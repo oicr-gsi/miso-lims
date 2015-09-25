@@ -61,6 +61,17 @@ public abstract class AbstractPlate<T extends List<S>, S extends Plateable> impl
    private String locationBarcode;
 
    private Date lastUpdated;
+   private User lastModifier;
+
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
+
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
    @Override
    @Deprecated

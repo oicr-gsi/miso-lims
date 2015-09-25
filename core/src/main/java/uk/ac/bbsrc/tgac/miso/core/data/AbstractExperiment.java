@@ -75,6 +75,17 @@ public abstract class AbstractExperiment implements Experiment {
    private Platform platform;
 
    private Collection<Kit> kits = new HashSet<Kit>();
+   private User lastModifier;
+
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
+
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
    @Override
    public Study getStudy() {

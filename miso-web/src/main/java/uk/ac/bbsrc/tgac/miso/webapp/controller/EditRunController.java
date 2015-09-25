@@ -322,7 +322,7 @@ public class EditRunController {
          if (!run.userCanWrite(user)) {
             throw new SecurityException("Permission denied.");
          }
-
+         run.setLastModifier(user);
          requestManager.saveRun(run);
          session.setComplete();
          model.clear();

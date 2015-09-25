@@ -74,6 +74,7 @@ import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 
 import com.eaglegenomics.simlims.core.Note;
 import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.KeyGenerator;
 import com.googlecode.ehcache.annotations.Property;
@@ -91,7 +92,7 @@ public class SQLSampleDAO implements SampleStore {
    private static final String TABLE_NAME = "Sample";
 
    public static final String SAMPLES_SELECT = "SELECT sampleId, name, description, scientificName, taxonIdentifier, alias, accession, securityProfile_profileId, identificationBarcode, locationBarcode, "
-         + "sampleType, receivedDate, qcPassed, project_projectId " + "FROM " + TABLE_NAME;
+         + "sampleType, receivedDate, qcPassed, project_projectId, lastModifier " + "FROM " + TABLE_NAME;
 
    public static final String SAMPLES_SELECT_LIMIT = SAMPLES_SELECT + " ORDER BY sampleId DESC LIMIT ?";
 
@@ -112,7 +113,7 @@ public class SQLSampleDAO implements SampleStore {
          + " "
          + "SET name=:name, description=:description, scientificName=:scientificName, taxonIdentifier=:taxonIdentifier, alias=:alias, accession=:accession, securityProfile_profileId=:securityProfile_profileId, "
          + "identificationBarcode=:identificationBarcode, locationBarcode=:locationBarcode, sampleType=:sampleType, receivedDate=:receivedDate, "
-         + "qcPassed=:qcPassed, project_projectId=:project_projectId " + "WHERE sampleId=:sampleId";
+         + "qcPassed=:qcPassed, project_projectId=:project_projectId, lastModifier=:lastModifier " + "WHERE sampleId=:sampleId";
 
    public static final String SAMPLE_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE sampleId=:sampleId";
 
@@ -126,14 +127,13 @@ public class SQLSampleDAO implements SampleStore {
    SAMPLES_SELECT + " " + "WHERE project_projectId = ?";
 
    public static final String SAMPLES_SELECT_BY_EXPERIMENT_ID = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-         + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId "
+         + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId, s.lastModifier "
          + "FROM "
          + TABLE_NAME
-         + " s, Experiment_Sample es "
-         + "WHERE es.samples_sampleId=s.sampleId " + "AND es.Experiment_experimentId=?";
+         + " s, Experiment_Sample es " + "WHERE es.samples_sampleId=s.sampleId " + "AND es.Experiment_experimentId=?";
 
    public static final String SAMPLE_SELECT_BY_LIBRARY_ID = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-         + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId "
+         + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId, s.lastModifier "
          + "FROM "
          + TABLE_NAME
          + " s, Library l "
@@ -143,11 +143,10 @@ public class SQLSampleDAO implements SampleStore {
          + "WHERE samples_sampleId=:samples_sampleId";
 
    public static final String SAMPLES_BY_RELATED_SUBMISSION = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-         + "s.sampleType, s.receivedDate, s.qcPassed, project_projectId "
+         + "s.sampleType, s.receivedDate, s.qcPassed, project_projectId, s.lastModifier "
          + "FROM "
          + TABLE_NAME
-         + " s, Submission_Sample ss "
-         + "WHERE s.sampleId=ss.samples_sampleId " + "AND ss.submission_submissionId=?";
+         + " s, Submission_Sample ss " + "WHERE s.sampleId=ss.samples_sampleId " + "AND ss.submission_submissionId=?";
 
    public static final String SAMPLE_TYPES_SELECT = "SELECT name FROM SampleType";
 
@@ -161,6 +160,7 @@ public class SQLSampleDAO implements SampleStore {
    private NoteStore noteDAO;
    private CascadeType cascadeType;
    private ChangeLogStore changeLogDAO;
+   private SecurityStore securityDAO;
 
    @Autowired
    private MisoNamingScheme<Sample> sampleNamingScheme;
@@ -271,7 +271,7 @@ public class SQLSampleDAO implements SampleStore {
                   .addValue("locationBarcode", sample.getLocationBarcode()).addValue("sampleType", sample.getSampleType())
                   .addValue("receivedDate", sample.getReceivedDate()).addValue("qcPassed", sample.getQcPassed().toString())
                   .addValue("project_projectId", sample.getProject().getProjectId())
-                  .addValue("securityProfile_profileId", securityProfileId);
+                  .addValue("securityProfile_profileId", securityProfileId).addValue("lastModifier", sample.getLastModifier().getUserId());
 
             if (sampleNamingScheme.validateField("name", sample.getName()) && sampleNamingScheme.validateField("alias", sample.getAlias())) {
                batch.add(params);
@@ -288,8 +288,8 @@ public class SQLSampleDAO implements SampleStore {
    }
 
    @Transactional(readOnly = false, rollbackFor = IOException.class)
-   @TriggersRemove(cacheName = {"sampleCache", "lazySampleCache"}, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
-         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false")}))
+   @TriggersRemove(cacheName = { "sampleCache", "lazySampleCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }))
    public long save(Sample sample) throws IOException {
       Long securityProfileId = sample.getSecurityProfile().getProfileId();
       if (this.cascadeType != null) {// && this.cascadeType.equals(CascadeType.PERSIST) || this.cascadeType.equals(CascadeType.REMOVE)) {
@@ -303,7 +303,7 @@ public class SQLSampleDAO implements SampleStore {
             // .addValue("identificationBarcode", sample.getIdentificationBarcode())
             .addValue("locationBarcode", sample.getLocationBarcode()).addValue("sampleType", sample.getSampleType())
             .addValue("receivedDate", sample.getReceivedDate()).addValue("project_projectId", sample.getProject().getProjectId())
-            .addValue("securityProfile_profileId", securityProfileId);
+            .addValue("securityProfile_profileId", securityProfileId).addValue("lastModifier", sample.getLastModifier().getUserId());
 
       if (sample.getQcPassed() != null) {
          params.addValue("qcPassed", sample.getQcPassed().toString());
@@ -345,7 +345,7 @@ public class SQLSampleDAO implements SampleStore {
             }
          }
       } else {
-         SqlRowSet ss = template.queryForRowSet(SAMPLE_SELECT_BY_ALIAS, new Object[]{sample.getAlias()});
+         SqlRowSet ss = template.queryForRowSet(SAMPLE_SELECT_BY_ALIAS, new Object[] { sample.getAlias() });
          if (!sampleNamingScheme.allowDuplicateEntityNameFor("alias") && ss.next() && ss.getLong("sampleId") != sample.getId()) {
             throw new IOException("UPD: A sample with this alias already exists in the database");
          } else {
@@ -398,19 +398,19 @@ public class SQLSampleDAO implements SampleStore {
    }
 
    @Cacheable(cacheName = "sampleListCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
-         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false")}))
+         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }))
    public List<Sample> listAll() {
       return template.query(SAMPLES_SELECT, new SampleMapper(true));
    }
 
    @Override
    public List<Sample> listAllWithLimit(long limit) throws IOException {
-      return template.query(SAMPLES_SELECT_LIMIT, new Object[]{limit}, new SampleMapper(true));
+      return template.query(SAMPLES_SELECT_LIMIT, new Object[] { limit }, new SampleMapper(true));
    }
 
    @Override
    public List<Sample> listAllByReceivedDate(long limit) throws IOException {
-      return template.query(SAMPLES_SELECT_RECEIVED_DATE, new Object[]{limit}, new SampleMapper(true));
+      return template.query(SAMPLES_SELECT_RECEIVED_DATE, new Object[] { limit }, new SampleMapper(true));
    }
 
    @Override
@@ -421,14 +421,14 @@ public class SQLSampleDAO implements SampleStore {
    @Override
    public List<Sample> listBySearch(String query) {
       String mySQLQuery = "%" + query.replaceAll("_", Matcher.quoteReplacement("\\_")) + "%";
-      return template.query(SAMPLES_SELECT_BY_SEARCH, new String[]{mySQLQuery, mySQLQuery, mySQLQuery, mySQLQuery, mySQLQuery},
+      return template.query(SAMPLES_SELECT_BY_SEARCH, new String[] { mySQLQuery, mySQLQuery, mySQLQuery, mySQLQuery, mySQLQuery },
             new SampleMapper(true));
    }
 
    @Override
    @Transactional(readOnly = false, rollbackFor = IOException.class)
-   @TriggersRemove(cacheName = {"sampleCache", "lazySampleCache"}, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
-         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false")}))
+   @TriggersRemove(cacheName = { "sampleCache", "lazySampleCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }))
    public boolean remove(Sample sample) throws IOException {
       NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
       if (sample.isDeletable()
@@ -451,42 +451,42 @@ public class SQLSampleDAO implements SampleStore {
 
    @Override
    @Cacheable(cacheName = "sampleCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
-         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false")}))
+         @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }))
    public Sample get(long sampleId) throws IOException {
-      List eResults = template.query(SAMPLE_SELECT_BY_ID, new Object[]{sampleId}, new SampleMapper());
-      Sample e = eResults.size() > 0 ? (Sample) eResults.get(0) : null;
+      List<Sample> eResults = template.query(SAMPLE_SELECT_BY_ID, new Object[] { sampleId }, new SampleMapper());
+      Sample e = eResults.size() > 0 ? eResults.get(0) : null;
       return e;
    }
 
    @Override
    public Sample lazyGet(long sampleId) throws IOException {
-      List eResults = template.query(SAMPLE_SELECT_BY_ID, new Object[]{sampleId}, new SampleMapper(true));
-      Sample e = eResults.size() > 0 ? (Sample) eResults.get(0) : null;
-      return e;
+      List<Sample> eResults = template.query(SAMPLE_SELECT_BY_ID, new Object[] { sampleId }, new SampleMapper(true));
+      if (eResults.size() == 0) throw new NullPointerException("No such database record for sample " + sampleId);
+      return eResults.get(0);
    }
 
    @Override
    public Sample getByBarcode(String barcode) throws IOException {
-      List eResults = template.query(SAMPLE_SELECT_BY_IDENTIFICATION_BARCODE, new Object[]{barcode}, new SampleMapper(true));
-      Sample e = eResults.size() > 0 ? (Sample) eResults.get(0) : null;
+      List<Sample> eResults = template.query(SAMPLE_SELECT_BY_IDENTIFICATION_BARCODE, new Object[] { barcode }, new SampleMapper(true));
+      Sample e = eResults.size() > 0 ? eResults.get(0) : null;
       return e;
    }
 
    @Override
    public List<Sample> listByProjectId(long projectId) throws IOException {
-      List<Sample> samples = template.query(SAMPLES_SELECT_BY_PROJECT_ID, new Object[]{projectId}, new SampleMapper(true));
+      List<Sample> samples = template.query(SAMPLES_SELECT_BY_PROJECT_ID, new Object[] { projectId }, new SampleMapper(true));
       Collections.sort(samples);
       return samples;
    }
 
    @Override
    public List<Sample> listByExperimentId(long experimentId) throws IOException {
-      return template.query(SAMPLES_SELECT_BY_EXPERIMENT_ID, new Object[]{experimentId}, new SampleMapper(true));
+      return template.query(SAMPLES_SELECT_BY_EXPERIMENT_ID, new Object[] { experimentId }, new SampleMapper(true));
    }
 
    @Override
    public Collection<Sample> listByAlias(String alias) throws IOException {
-      return template.query(SAMPLE_SELECT_BY_ALIAS, new Object[]{alias}, new SampleMapper(true));
+      return template.query(SAMPLE_SELECT_BY_ALIAS, new Object[] { alias }, new SampleMapper(true));
    }
 
    @Override
@@ -496,7 +496,7 @@ public class SQLSampleDAO implements SampleStore {
 
    @Override
    public List<Sample> listBySubmissionId(long submissionId) throws IOException {
-      return template.query(SAMPLES_BY_RELATED_SUBMISSION, new Object[]{submissionId}, new SampleMapper());
+      return template.query(SAMPLES_BY_RELATED_SUBMISSION, new Object[] { submissionId }, new SampleMapper());
    }
 
    public ChangeLogStore getChangeLogDAO() {
@@ -507,7 +507,16 @@ public class SQLSampleDAO implements SampleStore {
       this.changeLogDAO = changeLogDAO;
    }
 
+   public SecurityStore getSecurityDAO() {
+      return securityDAO;
+   }
+
+   public void setSecurityDAO(SecurityStore securityDao) {
+      this.securityDAO = securityDao;
+   }
+
    public class SampleMapper extends CacheAwareRowMapper<Sample> {
+
       public SampleMapper() {
          super(Sample.class);
       }
@@ -556,6 +565,7 @@ public class SQLSampleDAO implements SampleStore {
 
          try {
             s.setSecurityProfile(securityProfileDAO.get(rs.getLong("securityProfile_profileId")));
+            s.setLastModifier(getSecurityDAO().getUserById(rs.getLong("lastModifier")));
             if (!isLazy()) {
                s.setProject(projectDAO.get(rs.getLong("project_projectId")));
 

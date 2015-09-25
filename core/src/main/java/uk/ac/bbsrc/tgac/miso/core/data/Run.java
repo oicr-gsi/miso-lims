@@ -30,6 +30,8 @@ import org.codehaus.jackson.annotate.JsonManagedReference;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.User;
+
 import org.w3c.dom.Document;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunQcException;
@@ -51,7 +53,7 @@ import java.util.List;
 @JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({ "securityProfile", "submissionDocument" })
+@JsonIgnoreProperties({ "lastModifier", "securityProfile", "submissionDocument" })
 public interface Run extends SecurableByProfile, Submittable<Document>, Comparable, Reportable, Watchable, Deletable, Nameable, Alertable {
    /** Field PREFIX */
    public static final String PREFIX = "RUN";
@@ -284,4 +286,14 @@ public interface Run extends SecurableByProfile, Submittable<Document>, Comparab
    Date getLastUpdated();
 
    void setLastUpdated(Date lastUpdated);
+
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

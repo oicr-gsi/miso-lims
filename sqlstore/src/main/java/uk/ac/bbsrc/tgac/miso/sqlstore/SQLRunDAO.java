@@ -26,6 +26,7 @@ package uk.ac.bbsrc.tgac.miso.sqlstore;
 import com.eaglegenomics.simlims.core.Note;
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.KeyGenerator;
 import com.googlecode.ehcache.annotations.Property;
@@ -77,7 +78,7 @@ import java.util.regex.Matcher;
 public class SQLRunDAO implements RunStore {
    private static final String TABLE_NAME = "Run";
 
-   public static final String RUNS_SELECT = "SELECT runId, name, alias, description, accession, platformRunId, pairedEnd, cycles, filePath, securityProfile_profileId, platformType, status_statusId, sequencerReference_sequencerReferenceId "
+   public static final String RUNS_SELECT = "SELECT runId, name, alias, description, accession, platformRunId, pairedEnd, cycles, filePath, securityProfile_profileId, platformType, status_statusId, sequencerReference_sequencerReferenceId, lastModifier "
          + "FROM " + TABLE_NAME;
 
    public static final String RUNS_SELECT_LIMIT = RUNS_SELECT + " ORDER BY runId DESC LIMIT ?";
@@ -94,7 +95,7 @@ public class SQLRunDAO implements RunStore {
          + " "
          + "SET name=:name, alias=:alias, description=:description, accession=:accession, platformRunId=:platformRunId, "
          + "pairedEnd=:pairedEnd, cycles=:cycles, filePath=:filePath, securityProfile_profileId=:securityProfile_profileId, "
-         + "platformType=:platformType, status_statusId=:status_statusId, sequencerReference_sequencerReferenceId=:sequencerReference_sequencerReferenceId "
+         + "platformType=:platformType, status_statusId=:status_statusId, sequencerReference_sequencerReferenceId=:sequencerReference_sequencerReferenceId, lastModifier=:lastModifier "
          + "WHERE runId=:runId";
 
    public static final String RUN_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE runId=:runId";
@@ -114,10 +115,10 @@ public class SQLRunDAO implements RunStore {
 
          "WHERE l.experiment_experimentId = ?";
 
-   public static final String RUNS_SELECT_BY_PLATFORM_ID = "SELECT r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId "
+   public static final String RUNS_SELECT_BY_PLATFORM_ID = "SELECT r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId, r.lastModifier "
          + "FROM " + TABLE_NAME + " r, Platform p " + "WHERE r.platform_platformId=p.platformId " + "AND r.platform_platformId=?";
 
-   public static final String RUNS_SELECT_BY_STATUS_HEALTH = "SELECT r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId "
+   public static final String RUNS_SELECT_BY_STATUS_HEALTH = "SELECT r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId, r.lastModifier "
          + "FROM " + TABLE_NAME + " r, Status s " + "WHERE r.status_statusId=s.statusId " + "AND s.health=?";
 
    public static String RUNS_SELECT_BY_PROJECT_ID = "SELECT DISTINCT ra.* " + "FROM Project p "
@@ -144,7 +145,7 @@ public class SQLRunDAO implements RunStore {
          + "INNER JOIN Run_SequencerPartitionContainer rf ON container.containerId = rf.containers_containerId " + "LEFT JOIN "
          + TABLE_NAME + " ra ON rf.Run_runId = ra.runId " + "WHERE container.containerId=?";
 
-   public static String LATEST_RUN_STARTED_SELECT_BY_SEQUENCER_PARTITION_CONTAINER_ID = "SELECT max(s.startDate), r.runId, r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId "
+   public static String LATEST_RUN_STARTED_SELECT_BY_SEQUENCER_PARTITION_CONTAINER_ID = "SELECT max(s.startDate), r.runId, r.name, r.alias, r.description, r.accession, r.platformRunId, r.pairedEnd, r.cycles, r.filePath, r.securityProfile_profileId, r.platformType, r.status_statusId, r.sequencerReference_sequencerReferenceId, r.lastModifier "
          + "FROM SequencerPartitionContainer container "
          + "INNER JOIN Run_SequencerPartitionContainer rf ON container.containerId = rf.containers_containerId "
          + "LEFT JOIN "
@@ -153,7 +154,7 @@ public class SQLRunDAO implements RunStore {
          + "INNER JOIN Status s ON r.status_statusId=s.statusId "
          + "WHERE container.containerId=?";
 
-   public static String LATEST_RUN_ID_SELECT_BY_SEQUENCER_PARTITION_CONTAINER_ID = "SELECT runId, name, alias, description, accession, platformRunId, pairedEnd, cycles, filePath, securityProfile_profileId, platformType, status_statusId, sequencerReference_sequencerReferenceId "
+   public static String LATEST_RUN_ID_SELECT_BY_SEQUENCER_PARTITION_CONTAINER_ID = "SELECT runId, name, alias, description, accession, platformRunId, pairedEnd, cycles, filePath, securityProfile_profileId, platformType, status_statusId, sequencerReference_sequencerReferenceId, lastModifier "
          + "FROM "
          + TABLE_NAME
          + " "
@@ -178,6 +179,7 @@ public class SQLRunDAO implements RunStore {
    private NoteStore noteDAO;
    private WatcherStore watcherDAO;
    private CascadeType cascadeType;
+   private SecurityStore securityDAO;
 
    @Autowired
    private RunAlertManager runAlertManager;
@@ -317,7 +319,8 @@ public class SQLRunDAO implements RunStore {
             .addValue("platformRunId", run.getPlatformRunId()).addValue("pairedEnd", run.getPairedEnd())
             .addValue("cycles", run.getCycles()).addValue("filePath", run.getFilePath())
             .addValue("platformType", run.getPlatformType().getKey()).addValue("securityProfile_profileId", securityProfileId)
-            .addValue("status_statusId", statusId).addValue("sequencerReference_sequencerReferenceId", run.getSequencerReference().getId());
+            .addValue("status_statusId", statusId).addValue("sequencerReference_sequencerReferenceId", run.getSequencerReference().getId())
+            .addValue("lastModifier", run.getLastModifier().getUserId());
 
       if (run.getId() == AbstractRun.UNSAVED_ID) {
          SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("runId");
@@ -439,7 +442,8 @@ public class SQLRunDAO implements RunStore {
                   .addValue("pairedEnd", run.getPairedEnd()).addValue("cycles", run.getCycles()).addValue("filePath", run.getFilePath())
                   .addValue("platformType", run.getPlatformType().getKey()).addValue("securityProfile_profileId", securityProfileId)
                   .addValue("status_statusId", statusId)
-                  .addValue("sequencerReference_sequencerReferenceId", run.getSequencerReference().getId());
+                  .addValue("sequencerReference_sequencerReferenceId", run.getSequencerReference().getId())
+                  .addValue("lastModifier", run.getLastModifier().getUserId());
 
             if (run.getId() == AbstractRun.UNSAVED_ID) {
                SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("runId");
@@ -636,6 +640,14 @@ public class SQLRunDAO implements RunStore {
       return false;
    }
 
+   public SecurityStore getSecurityDAO() {
+      return securityDAO;
+   }
+
+   public void setSecurityDAO(SecurityStore securityDAO) {
+      this.securityDAO = securityDAO;
+   }
+
    public class RunMapper extends CacheAwareRowMapper<Run> {
       public RunMapper() {
          super(Run.class);
@@ -692,6 +704,7 @@ public class SQLRunDAO implements RunStore {
 
                r.setNotes(noteDAO.listByRun(id));
             }
+            r.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
          } catch (IOException e1) {
             e1.printStackTrace();
          } catch (Exception e) {

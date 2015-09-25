@@ -28,6 +28,9 @@ package uk.ac.bbsrc.tgac.miso.core.data;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.w3c.dom.Document;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.type.KitType;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
@@ -45,7 +48,7 @@ import java.util.Collection;
 @JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({"securityProfile"})
+@JsonIgnoreProperties({ "lastModifier", "securityProfile" })
 public interface Experiment extends SecurableByProfile, Submittable<Document>, Comparable, Deletable, Nameable {
 
    /** Field UNSAVED_ID */
@@ -144,6 +147,7 @@ public interface Experiment extends SecurableByProfile, Submittable<Document>, C
     * 
     * @return String name.
     */
+   @Override
    public String getName();
 
    /**
@@ -252,4 +256,14 @@ public interface Experiment extends SecurableByProfile, Submittable<Document>, C
     */
    @JsonIgnore
    public Collection<Kit> getKitsByKitType(KitType kitType);
+
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

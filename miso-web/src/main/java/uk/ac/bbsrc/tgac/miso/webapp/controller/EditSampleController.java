@@ -448,7 +448,7 @@ public class EditSampleController {
          if (!sample.userCanWrite(user)) {
             throw new SecurityException("Permission denied.");
          }
-
+         sample.setLastModifier(user);
          requestManager.saveSample(sample);
          session.setComplete();
          model.clear();

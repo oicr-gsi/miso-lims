@@ -25,6 +25,7 @@ package uk.ac.bbsrc.tgac.miso.sqlstore;
 
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
 import com.googlecode.ehcache.annotations.KeyGenerator;
 import com.googlecode.ehcache.annotations.Property;
 import net.sf.ehcache.Cache;
@@ -73,7 +74,7 @@ import java.util.*;
 public class SQLPoolDAO implements PoolStore {
    private static final String TABLE_NAME = "Pool";
 
-   private static final String POOL_SELECT = "SELECT poolId, concentration, identificationBarcode, name, alias, creationDate, securityProfile_profileId, platformType, ready, qcPassed "
+   private static final String POOL_SELECT = "SELECT poolId, concentration, identificationBarcode, name, alias, creationDate, securityProfile_profileId, platformType, ready, qcPassed, lastModifier "
          + "FROM " + TABLE_NAME;
 
    public static final String POOL_SELECT_BY_POOL_ID = POOL_SELECT + " WHERE poolId=?";
@@ -90,7 +91,7 @@ public class SQLPoolDAO implements PoolStore {
    public static final String POOL_UPDATE = "UPDATE "
          + TABLE_NAME
          + " "
-         + "SET alias=:alias, concentration=:concentration, identificationBarcode=:identificationBarcode, creationDate=:creationDate, securityProfile_profileId=:securityProfile_profileId, platformType=:platformType, ready=:ready, qcPassed=:qcPassed "
+         + "SET alias=:alias, concentration=:concentration, identificationBarcode=:identificationBarcode, creationDate=:creationDate, securityProfile_profileId=:securityProfile_profileId, platformType=:platformType, ready=:ready, qcPassed=:qcPassed, lastModifier=:lastModifier "
          + "WHERE poolId=:poolId";
 
    public static final String POOL_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE poolId=:poolId";
@@ -171,7 +172,7 @@ public class SQLPoolDAO implements PoolStore {
 
    public static final String ILLUMINA_POOL_SELECT_BY_ID_BARCODE = ILLUMINA_POOL_SELECT + " AND identificationBarcode=?";
 
-   public static final String ILLUMINA_POOL_SELECT_BY_EXPERIMENT_ID = "SELECT ip.poolId, ip.concentration, ip.identificationBarcode, ip.name, ip.alias, ip.creationDate, ip.securityProfile_profileId, ip.platformType, ip.ready, ip.qcPassed "
+   public static final String ILLUMINA_POOL_SELECT_BY_EXPERIMENT_ID = "SELECT ip.poolId, ip.concentration, ip.identificationBarcode, ip.name, ip.alias, ip.creationDate, ip.securityProfile_profileId, ip.platformType, ip.ready, ip.qcPassed, ip.lastModifier "
          + "FROM "
          + TABLE_NAME
          + " ip, Pool_Experiment pe "
@@ -232,6 +233,7 @@ public class SQLPoolDAO implements PoolStore {
    private Store<SecurityProfile> securityProfileDAO;
    private WatcherStore watcherDAO;
    private CascadeType cascadeType;
+   private SecurityStore securityDAO;
 
    @Autowired
    private PoolAlertManager poolAlertManager;
@@ -357,7 +359,8 @@ public class SQLPoolDAO implements PoolStore {
       MapSqlParameterSource params = new MapSqlParameterSource();
       params.addValue("concentration", pool.getConcentration()).addValue("alias", pool.getAlias())
             .addValue("creationDate", pool.getCreationDate()).addValue("securityProfile_profileId", securityProfileId)
-            .addValue("platformType", pool.getPlatformType().getKey()).addValue("ready", pool.getReadyToRun());
+            .addValue("platformType", pool.getPlatformType().getKey()).addValue("ready", pool.getReadyToRun())
+            .addValue("lastModifier", pool.getLastModifier().getUserId());
 
       if (pool.getQcPassed() != null) {
          params.addValue("qcPassed", pool.getQcPassed().toString());
@@ -396,7 +399,8 @@ public class SQLPoolDAO implements PoolStore {
          try {
             if (namingScheme.validateField("name", pool.getName())) {
                params.addValue("poolId", pool.getId()).addValue("name", pool.getName())
-                     .addValue("identificationBarcode", pool.getName() + "::" + pool.getPlatformType().getKey());
+                     .addValue("identificationBarcode", pool.getName() + "::" + pool.getPlatformType().getKey())
+                     .addValue("lastModifier", pool.getLastModifier().getUserId());
                NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
                namedTemplate.update(POOL_UPDATE, params);
             } else {
@@ -617,6 +621,14 @@ public class SQLPoolDAO implements PoolStore {
       return false;
    }
 
+   public SecurityStore getSecurityDAO() {
+      return securityDAO;
+   }
+
+   public void setSecurityDAO(SecurityStore securityDAO) {
+      this.securityDAO = securityDAO;
+   }
+
    public class PoolMapper extends CacheAwareRowMapper<Pool<? extends Poolable>> {
       public PoolMapper() {
          super((Class<Pool<? extends Poolable>>) ((ParameterizedType) new TypeReference<Pool<? extends Poolable>>() {
@@ -673,6 +685,7 @@ public class SQLPoolDAO implements PoolStore {
                p.addWatcher(u);
             }
 
+            p.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
             if (!isLazy()) {
                p.setExperiments(experimentDAO.listByPoolId(id));
 

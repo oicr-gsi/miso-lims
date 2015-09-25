@@ -32,6 +32,9 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 import org.w3c.dom.Document;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
 
 import java.util.Collection;
@@ -45,7 +48,7 @@ import java.util.Collection;
 @JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({ "securityProfile" })
+@JsonIgnoreProperties({ "lastModifier", "securityProfile" })
 public interface Study extends SecurableByProfile, Submittable<Document>, Comparable, Deletable, Nameable {
 
    /** Field PREFIX */
@@ -194,4 +197,14 @@ public interface Study extends SecurableByProfile, Submittable<Document>, Compar
     *           experiments.
     */
    public void setExperiments(Collection<Experiment> experiments);
+
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

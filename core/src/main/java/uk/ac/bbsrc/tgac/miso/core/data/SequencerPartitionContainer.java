@@ -28,6 +28,9 @@ package uk.ac.bbsrc.tgac.miso.core.data;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
@@ -43,7 +46,7 @@ import java.util.List;
 @JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({ "securityProfile", "run" })
+@JsonIgnoreProperties({ "lastModifier", "securityProfile", "run" })
 public interface SequencerPartitionContainer<T extends Partition> extends SecurableByProfile, Deletable, Comparable, Barcodable, Locatable {
    /**
     * Returns the containerId of this Container object.
@@ -159,4 +162,15 @@ public interface SequencerPartitionContainer<T extends Partition> extends Secura
     * 
     */
    public void addNewPartition();
+
+   public Collection<ChangeLog> getChangeLog();
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

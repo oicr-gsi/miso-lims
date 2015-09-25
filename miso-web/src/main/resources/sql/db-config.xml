@@ -117,6 +117,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="projectDAO" ref="sqlProjectDAO"/>
     <property name="experimentDAO" ref="sqlExperimentDAO"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
@@ -169,6 +170,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="studyDAO" ref="sqlStudyDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
     <property name="runDAO" ref="sqlRunDAO"/>
@@ -184,6 +186,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="changeLogDAO" ref="sqlChangeLogDAO"/>
     <property name="noteDAO" ref="sqlNoteDAO"/>
     <property name="libraryDAO" ref="sqlLibraryDAO"/>
@@ -216,6 +219,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="securityManager" ref="securityManager"/>
     <property name="sequencerPartitionContainerDAO" ref="sqlSequencerPartitionContainerDAO"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
@@ -242,6 +246,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="partitionDAO" ref="sqlPartitionDAO"/>
     <property name="runDAO" ref="sqlRunDAO"/>
     <property name="platformDAO" ref="sqlPlatformDAO"/>
@@ -265,6 +270,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="noteDAO" ref="sqlNoteDAO"/>
     <property name="poolDAO" ref="sqlPoolDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
@@ -290,6 +296,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">REMOVE</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="securityManager" ref="securityManager"/>
     <property name="securityProfileDAO" ref="sqlSecurityProfileDAO"/>
     <property name="experimentDAO" ref="sqlExperimentDAO"/>
@@ -372,6 +379,7 @@
     <property name="cascadeType">
       <value type="javax.persistence.CascadeType">PERSIST</value>
     </property>
+    <property name="securityDAO" ref="sqlSecurityDAO"/>
     <property name="libraryDAO" ref="sqlLibraryDAO"/>
     <property name="sampleDAO" ref="sqlSampleDAO"/>
     <property name="dilutionDAO" ref="sqlLibraryDilutionDAO"/>

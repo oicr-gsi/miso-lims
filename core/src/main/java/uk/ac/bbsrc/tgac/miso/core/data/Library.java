@@ -24,6 +24,7 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
 import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.User;
 //import com.fasterxml.jackson.annotation.*;
 //import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.codehaus.jackson.annotate.JsonBackReference;
@@ -58,7 +59,7 @@ import java.util.HashMap;
 // , using = LibrarySerializer.class)
 // @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
-@JsonIgnoreProperties({ "securityProfile" })
+@JsonIgnoreProperties({ "lastModifier", "securityProfile" })
 @PrintableBarcode
 public interface Library extends SecurableByProfile, Comparable, Barcodable, Locatable, Deletable, Plateable {
 
@@ -377,4 +378,14 @@ public interface Library extends SecurableByProfile, Comparable, Barcodable, Loc
    Date getLastUpdated();
 
    void setLastUpdated(Date lastUpdated);
+
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

@@ -31,6 +31,8 @@ import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
 import javax.persistence.*;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -75,6 +77,17 @@ public abstract class AbstractStudy implements Study {
    private String studyType;
    @Column(name = "alias")
    private String alias;
+   private User lastModifier;
+
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
+
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
    @Override
    public Project getProject() {

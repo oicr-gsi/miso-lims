@@ -24,6 +24,8 @@
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
 import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.KeyGenerator;
 import com.googlecode.ehcache.annotations.Property;
@@ -65,7 +67,7 @@ import java.util.regex.Matcher;
 public class SQLExperimentDAO implements ExperimentStore {
    private static final String TABLE_NAME = "Experiment";
 
-   public static final String EXPERIMENTS_SELECT = "SELECT experimentId, name, description, alias, accession, title, platform_platformId, securityProfile_profileId, study_studyId "
+   public static final String EXPERIMENTS_SELECT = "SELECT experimentId, name, description, alias, accession, title, platform_platformId, securityProfile_profileId, study_studyId, lastModifier "
          + "FROM " + TABLE_NAME;
 
    public static final String EXPERIMENTS_SELECT_LIMIT = EXPERIMENTS_SELECT + " ORDER BY experimentId DESC LIMIT ?";
@@ -77,7 +79,7 @@ public class SQLExperimentDAO implements ExperimentStore {
 
    public static final String EXPERIMENT_UPDATE = "UPDATE "
          + TABLE_NAME
-         + " SET name=:name, description=:description, alias=:alias, accession=:accession, title=:title, platform_platformId=:platform_platformId, securityProfile_profileId=:securityProfile_profileId "
+         + " SET name=:name, description=:description, alias=:alias, accession=:accession, title=:title, platform_platformId=:platform_platformId, securityProfile_profileId=:securityProfile_profileId, lastModifier=:lastModifier "
          + "WHERE experimentId=:experimentId";
 
    public static final String EXPERIMENT_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE experimentId=:experimentId";
@@ -85,7 +87,7 @@ public class SQLExperimentDAO implements ExperimentStore {
    public static final String PROFILE_SELECT_BY_EXPERIMENT_ID = "SELECT sp.profileId, sp.allowAllInternal, sp.owner_userId " + "FROM "
          + TABLE_NAME + " e, SecurityProfile sp " + "WHERE sp.profileId = e.SecurityProfile_profileId " + "AND e.experimentId=?";
 
-   public static final String EXPERIMENTS_BY_RELATED_STUDY = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId "
+   public static final String EXPERIMENTS_BY_RELATED_STUDY = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, e.lastModifier "
          + "FROM " + TABLE_NAME + " e, Study s " + "WHERE e.study_studyId=s.studyId " + "AND s.studyId=?";
 
    /*
@@ -93,13 +95,13 @@ public class SQLExperimentDAO implements ExperimentStore {
     * "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, es.samples_sampleId "
     * + "FROM Experiment e, Experiment_Sample es " + "WHERE es.Experiment_experimentId=e.experimentId " + "AND es.samples_sampleId=?";
     */
-   public static final String EXPERIMENTS_BY_RELATED_POOL = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, pe.experiments_experimentId "
+   public static final String EXPERIMENTS_BY_RELATED_POOL = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, pe.experiments_experimentId, e.lastModifier "
          + "FROM " + TABLE_NAME + " e, Pool_Experiment pe " + "WHERE pe.experiments_experimentId=e.experimentId " + "AND pe.pool_poolId=?";
 
    public static final String EXPERIMENT_BY_RELATED_PARTITION = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, er.runs_runId "
          + "FROM " + TABLE_NAME + " e, _Partition l " + "WHERE e.experimentId=l.experiment_experimentId " + "AND l.partitionId=?";
 
-   public static final String EXPERIMENTS_BY_RELATED_SUBMISSION = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId "
+   public static final String EXPERIMENTS_BY_RELATED_SUBMISSION = "SELECT e.experimentId, e.name, e.description, e.alias, e.accession, e.title, e.platform_platformId, e.securityProfile_profileId, e.study_studyId, e.lastModifier "
          + "FROM "
          + TABLE_NAME
          + " e, Submission_Experiment se "
@@ -121,6 +123,7 @@ public class SQLExperimentDAO implements ExperimentStore {
    private KitStore kitDAO;
    private Store<SecurityProfile> securityProfileDAO;
    private CascadeType cascadeType;
+   private SecurityStore securityDAO;
 
    @Autowired
    private MisoNamingScheme<Experiment> namingScheme;
@@ -252,7 +255,8 @@ public class SQLExperimentDAO implements ExperimentStore {
       params.addValue("alias", experiment.getAlias()).addValue("accession", experiment.getAccession())
             .addValue("description", experiment.getDescription()).addValue("title", experiment.getTitle())
             .addValue("platform_platformId", experiment.getPlatform().getPlatformId())
-            .addValue("securityProfile_profileId", securityProfileId).addValue("study_studyId", experiment.getStudy().getId());
+            .addValue("securityProfile_profileId", securityProfileId).addValue("study_studyId", experiment.getStudy().getId())
+            .addValue("lastModifier", experiment.getLastModifier().getUserId());
 
       if (experiment.getId() == AbstractExperiment.UNSAVED_ID) {
          SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("experimentId");
@@ -448,7 +452,16 @@ public class SQLExperimentDAO implements ExperimentStore {
       return false;
    }
 
+   public SecurityStore getSecurityDAO() {
+      return securityDAO;
+   }
+
+   public void setSecurityDAO(SecurityStore securityDAO) {
+      this.securityDAO = securityDAO;
+   }
+
    public class ExperimentMapper extends CacheAwareRowMapper<Experiment> {
+
       public ExperimentMapper() {
          super(Experiment.class);
       }
@@ -477,6 +490,7 @@ public class SQLExperimentDAO implements ExperimentStore {
          e.setTitle(rs.getString("title"));
          try {
             e.setSecurityProfile(securityProfileDAO.get(rs.getLong("securityProfile_profileId")));
+            e.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
             e.setStudy(studyDAO.lazyGet(rs.getLong("study_studyId")));
 
             Platform p = platformDAO.get(rs.getLong("platform_platformId"));

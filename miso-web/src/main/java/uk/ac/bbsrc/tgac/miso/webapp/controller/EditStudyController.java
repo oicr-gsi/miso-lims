@@ -197,6 +197,7 @@ public class EditStudyController {
          if (!study.userCanWrite(user)) {
             throw new SecurityException("Permission denied.");
          }
+         study.setLastModifier(user);
          requestManager.saveStudy(study);
          session.setComplete();
          model.clear();
