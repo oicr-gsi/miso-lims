@@ -57,7 +57,7 @@ import java.util.Date;
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
 @JsonIgnoreProperties({"securityProfile","submissionDocument"})
 @PrintableBarcode
-public interface Sample extends SecurableByProfile, Submittable<Document>, Barcodable, Locatable, Reportable, Comparable, Deletable, Plateable {
+public interface Sample extends SecurableByProfile, Submittable<Document>, Barcodable, Locatable, Reportable, Comparable, Deletable, Plateable, Boxable {
 
   /** Field UNSAVED_ID  */
   public static final Long UNSAVED_ID = 0L;
@@ -238,7 +238,7 @@ public interface Sample extends SecurableByProfile, Submittable<Document>, Barco
    *
    * @return Date receivedDate.
    */
-  public Date getReceivedDate();  
+  public Date getReceivedDate();
 
   /**
    * Sets the receivedDate of this Sample object.

@@ -68,4 +68,10 @@ public class LibraryImpl extends AbstractLibrary implements Serializable {
       setSecurityProfile(new SecurityProfile(user));
     }
   }
+
+  @Override
+  public boolean isEmptied() {
+    //TODO GLT-219
+    return false;
+  }
 }

@@ -61,7 +61,7 @@ import java.util.HashMap;
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
 @JsonIgnoreProperties({"securityProfile"})
 @PrintableBarcode
-public interface Library extends SecurableByProfile, Comparable, Barcodable, Locatable, Deletable, Plateable {
+public interface Library extends SecurableByProfile, Comparable, Barcodable, Locatable, Deletable, Plateable, Boxable {
 
   /** Field PREFIX  */
   public static final String PREFIX = "LIB";
@@ -169,7 +169,7 @@ public interface Library extends SecurableByProfile, Comparable, Barcodable, Loc
    * @throws MalformedLibraryQcException when the LibraryQC being added is not valid
    */
   public void addQc(LibraryQC libraryQC) throws MalformedLibraryQcException;
-  
+
   /**
    * Returns the libraryQCs of this Library object.
    *
