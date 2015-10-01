@@ -75,6 +75,7 @@ public interface RequestManager {
   public <T extends List<S>, S extends Plateable> long savePlate(Plate<T, S> plate) throws IOException;
   public long saveAlert(Alert alert) throws IOException;
   public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup) throws IOException;
+  public long saveBox(Box box) throws IOException;
 
   //GETS
   public SequencerPoolPartition getSequencerPoolPartitionById(long partitionId) throws IOException;
@@ -145,7 +146,10 @@ public interface RequestManager {
   public Alert getAlertById(long alertId) throws IOException;
   public EntityGroup<? extends Nameable, ? extends Nameable> getEntityGroupById(long entityGroupId) throws IOException;
 
-
+  public Box getBoxById(long plateId) throws IOException;
+  public Box getBoxByBarcode(String barcode) throws IOException;
+  public Box getBoxByAlias(String alias) throws IOException;
+  
 //LISTS
   /**
    * Obtain a list of all the projects the user has access to. Access is
@@ -164,6 +168,11 @@ public interface RequestManager {
   public Collection<Experiment> listAllExperiments() throws IOException;
   public Collection<Experiment> listAllExperimentsWithLimit(long limit) throws IOException;
   public Collection<Experiment> listAllExperimentsBySearch(String query) throws IOException;
+
+  public Collection<Box> listAllBoxes() throws IOException;
+  public Collection<Box> listAllBoxesWithLimit(long limit) throws IOException;
+  public Collection<Box> listAllBoxesBySearch(String query) throws IOException;
+  public Collection<Box> listAllBoxesByAlias(String alias) throws IOException;
 
   /**
    * Obtain a list of all the requests the user has access to within this
@@ -325,4 +334,5 @@ public interface RequestManager {
   public void deletePartition(SequencerPoolPartition partition) throws IOException;
   public void deleteContainer(SequencerPartitionContainer container) throws IOException;
   public void deleteNote(Note note) throws IOException;
+  public void deleteBox(Box box) throws IOException;
 }

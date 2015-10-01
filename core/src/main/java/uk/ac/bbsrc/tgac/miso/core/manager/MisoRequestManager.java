@@ -28,7 +28,7 @@ import com.eaglegenomics.simlims.core.SecurityProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.bbsrc.tgac.miso.core.data.Project;
+
 import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.*;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.kit.KitDescriptor;
@@ -100,6 +100,12 @@ public class MisoRequestManager implements RequestManager {
   private StudyStore studyStore;
   @Autowired
   private Store<Submission> submissionStore;
+  @Autowired
+  private BoxStore boxStore;
+
+  public void setBoxStore(BoxStore boxStore) {
+    this.boxStore = boxStore;
+  }
 
   public void setAlertStore(AlertStore alertStore) {
     this.alertStore = alertStore;
@@ -2544,28 +2550,6 @@ public class MisoRequestManager implements RequestManager {
     }
   }
 
-  /*
-  @Override
-  public <T extends List<S>, S extends Plateable> Plate<T, S> getPlateById(long plateId) throws IOException {
-    if (plateStore != null) {
-      return plateStore.get(plateId);
-    }
-    else {
-      throw new IOException("No plateStore available. Check that it has been declared in the Spring config.");
-    }
-  }
-
-  @Override
-  public <T extends List<S>, S extends Plateable> Plate<T, S> getPlateByBarcode(String barcode) throws IOException {
-    if (plateStore != null) {
-      return plateStore.getPlateByIdentificationBarcode(barcode);
-    }
-    else {
-      throw new IOException("No plateStore available. Check that it has been declared in the Spring config.");
-    }
-  }
-*/
-
   @Override
   public Alert getAlertById(long alertId) throws IOException {
     if (alertStore != null) {
@@ -2583,6 +2567,89 @@ public class MisoRequestManager implements RequestManager {
     }
     else {
       throw new IOException("No entityGroupStore available. Check that it has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public long saveBox(Box box) throws IOException {
+    if (boxStore != null) {
+      return boxStore.save(box);
+    } else {
+      throw new IOException("No boxStore available. Check that it has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Box getBoxById(long plateId) throws IOException {
+    if (boxStore != null) {
+      return boxStore.get(plateId);
+    } else {
+      throw new IOException("No boxStore available. Check that it has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Box getBoxByBarcode(String barcode) throws IOException {
+    if (boxStore != null) {
+      return boxStore.getByBarcode(barcode);
+    } else {
+      throw new IOException("No boxStore available. Check that it has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Box getBoxByAlias(String alias) throws IOException {
+    if (boxStore != null) {
+      return boxStore.getBoxByAlias(alias);
+    } else {
+      throw new IOException("No boxStore available. Check that is has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Collection<Box> listAllBoxes() throws IOException {
+    if (boxStore != null) {
+      return boxStore.listAll();
+    } else {
+      throw new IOException("No boxStore available. Check that is has been declared in the Spring config");
+    }
+  }
+
+  @Override
+  public Collection<Box> listAllBoxesWithLimit(long limit) throws IOException {
+    if (boxStore != null) {
+      return boxStore.listWithLimit(limit);
+    } else {
+      throw new IOException("No boxStore available. Check that it has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Collection<Box> listAllBoxesBySearch(String query) throws IOException {
+    if (boxStore != null) {
+      return boxStore.listBySearch(query);
+    } else {
+      throw new IOException("No boxStore available. Check that is has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public Collection<Box> listAllBoxesByAlias(String alias) throws IOException {
+    if (boxStore != null) {
+      return boxStore.listByAlias(alias);
+    } else {
+      throw new IOException("No boxStore available. Check that is has been declared in the Spring config.");
+    }
+  }
+
+  @Override
+  public void deleteBox(Box box) throws IOException {
+    if (boxStore != null) {
+      if (!boxStore.remove(box)) {
+        throw new IOException("Unable to delete box.");
+      }
+    } else {
+      throw new IOException("No boxStore available. Check that it has been declared in the Spring config.");
     }
   }
 }
