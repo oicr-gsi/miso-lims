@@ -46,7 +46,7 @@ import java.util.*;
  * @author Rob Davey
  * @since 0.0.2
  */
-public abstract class AbstractLibrary implements Library {
+public abstract class AbstractLibrary extends AbstractBoxable implements Library {
   public static final Long UNSAVED_ID = 0L;
   public static final String UNITS = "nM";
 
@@ -158,7 +158,7 @@ public abstract class AbstractLibrary implements Library {
 
   public void setLocationBarcode(String locationBarcode) {
     this.locationBarcode = locationBarcode;
-  }  
+  }
 
   public String getLabelText() {
     return getAlias();
@@ -244,7 +244,7 @@ public abstract class AbstractLibrary implements Library {
   public void setLibraryStrategyType(LibraryStrategyType libraryStrategyType) {
     this.libraryStrategyType = libraryStrategyType;
   }
-  
+
   public String getPlatformName() {
     return platformName;
   }
@@ -283,7 +283,7 @@ public abstract class AbstractLibrary implements Library {
 
   public void setNotes(Collection<Note> notes) {
     this.notes = notes;
-  }  
+  }
 
   @Override
   public Set<Plate<? extends LinkedList<Library>, Library>> getPlates() {
