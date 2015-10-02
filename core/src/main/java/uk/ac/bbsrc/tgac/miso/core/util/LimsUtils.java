@@ -116,7 +116,7 @@ public class LimsUtils {
   }
 
   /**
-   * Join a collection, akin to Perl's join(), using a given delimiter to produce a single String 
+   * Join a collection, akin to Perl's join(), using a given delimiter to produce a single String
    *
    * @param s of type Collection
    * @param delimiter of type String
@@ -310,14 +310,14 @@ public class LimsUtils {
      */
     return locationBarcode;
   }
-  
+
   public static void unzipFile(File source) {
     unzipFile(source, null);
   }
 
   public static boolean unzipFile(File source, File destination) {
     final int BUFFER = 2048;
-    
+
     try {
       BufferedOutputStream dest = null;
       FileInputStream fis = new FileInputStream(source);
@@ -418,7 +418,7 @@ public class LimsUtils {
   }
 
   /**
-   * Checks that a directory exists. This method will attempt to create the directory if it doesn't exist and if the attemptMkdir flag is true  
+   * Checks that a directory exists. This method will attempt to create the directory if it doesn't exist and if the attemptMkdir flag is true
    *
    * @param path of type File
    * @param attemptMkdir of type boolean
@@ -441,7 +441,7 @@ public class LimsUtils {
         sb.append(" or is not creatable");
       }
       sb.append(". Please create this directory and ensure that it is writable.");
-      throw new IOException(sb.toString()); 
+      throw new IOException(sb.toString());
     }
     else {
       if (attemptMkdir) {
@@ -471,7 +471,7 @@ public class LimsUtils {
       log.info("File (" + path + ") OK.");
     }
     return storageOk;
-  }  
+  }
 
   /**
    * Helper method to parse and store output from a given process' stdout and stderr
@@ -763,5 +763,16 @@ public class LimsUtils {
   public static String getSimpleCurrentDate() {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
    	return sdf.format(new Date());
+  }
+
+  public static char getCharForNumber(int num) {
+    if (num < 1 || num > 26) throw new IllegalArgumentException("Row number must be between 1 and 26");
+    return (char) ( num + 'A' - 1);
+  }
+
+  public static int getNumberForChar(char letter) {
+    if (letter >= 'a' && letter <= 'z') letter = Character.toUpperCase(letter);
+    if (letter < 'A' || letter > 'Z') throw new IllegalArgumentException("Row letter must be between A and Z");
+    return letter - 'A' + 1;
   }
 }
