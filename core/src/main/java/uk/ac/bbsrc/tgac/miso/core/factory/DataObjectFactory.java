@@ -133,6 +133,8 @@ public abstract class DataObjectFactory {
 
   public abstract Submission getSubmission();
   public abstract Submission getSubmission(User user);
+  
+  public abstract Box getBox();
 
   /*
   public static DataObjectFactory getDataObjectFactory(int whichFactory) {

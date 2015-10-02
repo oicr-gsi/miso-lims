@@ -1,6 +1,7 @@
 package uk.ac.bbsrc.tgac.miso.core.store;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Box;
+import uk.ac.bbsrc.tgac.miso.core.data.BoxType;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.NamingSchemeAware;
 
 import java.io.IOException;
@@ -64,4 +65,6 @@ public interface BoxStore extends Store<Box>, Remover<Box> {
    * @throws IOException
    */
   Collection<Box> listBySearch(String query) throws IOException;
+
+BoxType getTypeById(long id) throws IOException;
 }
