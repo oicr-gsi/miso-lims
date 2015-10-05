@@ -765,14 +765,27 @@ public class LimsUtils {
    	return sdf.format(new Date());
   }
 
+  // Given an int, return the corresponding character representation
+  // 1->A, 2->B, ... , 26->Z
   public static char getCharForNumber(int num) {
     if (num < 1 || num > 26) throw new IllegalArgumentException("Row number must be between 1 and 26");
     return (char) ( num + 'A' - 1);
   }
 
+  // Given a letter, return the corresponding int
+  // A->1, B->2, ... , Z->26
   public static int getNumberForChar(char letter) {
     if (letter >= 'a' && letter <= 'z') letter = Character.toUpperCase(letter);
     if (letter < 'A' || letter > 'Z') throw new IllegalArgumentException("Row letter must be between A and Z");
     return letter - 'A' + 1;
+  }
+
+  // If parse fails, return -1, else return parsed integer
+  public static int tryParseInt(String s) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      return -1;
+    }
   }
 }
