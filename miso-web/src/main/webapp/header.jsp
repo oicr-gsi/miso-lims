@@ -107,6 +107,7 @@
   <script type="text/javascript" src="<c:url value='/scripts/project_validation.js?ts=${timestamp.time}'/>"></script>
   <script type="text/javascript" src="<c:url value='/scripts/sample_validation.js?ts=${timestamp.time}'/>"></script>
   <script type="text/javascript" src="<c:url value='/scripts/study_validation.js?ts=${timestamp.time}'/>"></script>
+  <script type="text/javascript" src="<c:url value='/scripts/box_validation.js?ts=${timestamp.time}'/>"></script>
 
   <!-- give $ back to prototype -->
   <script type="text/javascript">jQuery.noConflict();</script>
