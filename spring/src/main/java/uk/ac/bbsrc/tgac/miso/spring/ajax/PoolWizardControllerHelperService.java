@@ -288,7 +288,7 @@ public class PoolWizardControllerHelperService {
             b.append("</td>");
             b.append("</tr>");
 
-            a.add(JSONObject.fromObject("{'id':" + dl.getId() + ",'name':'" + dl.getName() + "','description':'" + dl.getLibrary().getDescription() + "','library':'" + dl.getLibrary().getAlias() + "','libraryBarcode':'" + barcode.toString() + "'}"));
+            a.add(JSONObject.fromObject("{'id':" + dl.getId() + ",'name':'" + dl.getName() + "','concentration':'" + dl.getConcentration() + "','description':'" + dl.getLibrary().getDescription() + "','library':'" + dl.getLibrary().getAlias() + "','libraryBarcode':'" + barcode.toString() + "'}"));
           }
         }
       }
