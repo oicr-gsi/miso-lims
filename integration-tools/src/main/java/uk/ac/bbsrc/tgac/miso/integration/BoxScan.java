@@ -7,7 +7,7 @@ public interface BoxScan {
   /**
    * Get the barcode from a position in the box
    * 
-   * @param position the box position, specified in a String containing row letter and column number (e.g. "A1" for top-left)
+   * @param position the box position, specified in a String containing row letter and two-digit column number (e.g. "A01" for top-left)
    * @return Null if there is no tube in the position, or an empty String if the barcode could not be read; otherwise, the barcode of 
    * the tube in the specified position
    */
@@ -40,8 +40,8 @@ public interface BoxScan {
   public String[][] getBarcodesArray();
   
   /**
-   * @return a Map containing all of the scanned barcodes. The keys are position names containing the row letter and column number 
-   * (e.g. "A1" for top-left)
+   * @return a Map containing all of the scanned barcodes. The keys are position names containing the row letter and two-digit column 
+   * number (e.g. "A01" for top-left)
    */
   public Map<String,String> getBarcodesMap();
   
