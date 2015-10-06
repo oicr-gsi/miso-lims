@@ -31,244 +31,278 @@ import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
 import javax.persistence.*;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 /**
  * Skeleton implementation of a Study
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 @Entity
 @Table(name = "`Study`")
 public abstract class AbstractStudy implements Study {
-  public static final Long UNSAVED_ID = 0L;
+   public static final Long UNSAVED_ID = 0L;
 
-  private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
 
-  @ManyToOne(cascade = CascadeType.ALL)
-  private Project project = null;
+   @ManyToOne(cascade = CascadeType.ALL)
+   private Project project = null;
 
-  @OneToMany(targetEntity = AbstractExperiment.class, cascade = CascadeType.ALL)
-  private Collection<Experiment> experiments = new HashSet<Experiment>();
+   @OneToMany(targetEntity = AbstractExperiment.class, cascade = CascadeType.ALL)
+   private Collection<Experiment> experiments = new HashSet<Experiment>();
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long studyId = AbstractStudy.UNSAVED_ID;
+   @Id
+   @GeneratedValue(strategy = GenerationType.AUTO)
+   private long studyId = AbstractStudy.UNSAVED_ID;
 
-  @Transient
-  public Document submissionDocument;
+   @Transient
+   public Document submissionDocument;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private SecurityProfile securityProfile = null;
+   @OneToOne(cascade = CascadeType.ALL)
+   private SecurityProfile securityProfile = null;
 
-  @Column(name = "name", nullable = false)
-  private String name;
-  @Column(name = "description", nullable = false)
-  private String description;
-  @Column(name = "accession")
-  private String accession;
-  @Column(name = "abstract")
-  private String abs;
-  @Column(name = "studyType")
-  private String studyType;
-  @Column(name = "alias")
-  private String alias;
+   @Column(name = "name", nullable = false)
+   private String name;
+   @Column(name = "description", nullable = false)
+   private String description;
+   @Column(name = "accession")
+   private String accession;
+   @Column(name = "abstract")
+   private String abs;
+   @Column(name = "studyType")
+   private String studyType;
+   @Column(name = "alias")
+   private String alias;
+   private final Collection<ChangeLog> changeLog = new ArrayList<ChangeLog>();
+   private User lastModifier;
 
-  public Project getProject() {
-    return project;
-  }
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
 
-  public void setProject(Project project) {
-    this.project = project;
-  }
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
-  @Deprecated
-  public Long getStudyId() {
-    return studyId;
-  }
 
-  @Deprecated
-  public void setStudyId(Long studyId) {
-    this.studyId = studyId;
-  }
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
+   }
 
-  @Override
-  public long getId() {
-    return studyId;
-  }
+   @Override
+   public Project getProject() {
+      return project;
+   }
 
-  public void setId(long id) {
-    this.studyId = id;
-  }
+   @Override
+   public void setProject(Project project) {
+      this.project = project;
+   }
 
-  public String getAccession() {
-    return accession;
-  }
+   @Override
+   @Deprecated
+   public Long getStudyId() {
+      return studyId;
+   }
 
-  public void setAccession(String accession) {
-    this.accession = accession;
-  }
+   @Override
+   @Deprecated
+   public void setStudyId(Long studyId) {
+      this.studyId = studyId;
+   }
 
-  public String getName() {
-    return name;
-  }
+   @Override
+   public long getId() {
+      return studyId;
+   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+   @Override
+   public void setId(long id) {
+      this.studyId = id;
+   }
 
-  public String getDescription() {
-    return description;
-  }
+   @Override
+   public String getAccession() {
+      return accession;
+   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+   @Override
+   public void setAccession(String accession) {
+      this.accession = accession;
+   }
 
-  public String getAlias() {
-    return alias;
-  }
+   @Override
+   public String getName() {
+      return name;
+   }
 
-  public void setAlias(String alias) {
-    this.alias = alias;
-  }
+   @Override
+   public void setName(String name) {
+      this.name = name;
+   }
 
-  public String getAbstract() {
-    return abs;
-  }
+   @Override
+   public String getDescription() {
+      return description;
+   }
 
-  public void setAbstract(String abs) {
-    this.abs = abs;
-  }
+   @Override
+   public void setDescription(String description) {
+      this.description = description;
+   }
 
-  public String getStudyType() {
-    return studyType;
-  }
+   @Override
+   public String getAlias() {
+      return alias;
+   }
 
-  public void setStudyType(String studyType) {
-    this.studyType = studyType;
-  }
+   @Override
+   public void setAlias(String alias) {
+      this.alias = alias;
+   }
 
-  public void addExperiment(Experiment e) throws MalformedExperimentException {
-    //do experiment validation
+   @Override
+   public String getAbstract() {
+      return abs;
+   }
 
-    //propagate security profiles down the hierarchy
-    e.setSecurityProfile(this.securityProfile);
+   @Override
+   public void setAbstract(String abs) {
+      this.abs = abs;
+   }
 
-    //add
-    this.experiments.add(e);
-  }
+   @Override
+   public String getStudyType() {
+      return studyType;
+   }
 
-  public Collection<Experiment> getExperiments() {
-    return experiments;
-  }
+   @Override
+   public void setStudyType(String studyType) {
+      this.studyType = studyType;
+   }
 
-  public void setExperiments(Collection<Experiment> experiments) {
-    this.experiments = experiments;
-  }
+   @Override
+   public void addExperiment(Experiment e) throws MalformedExperimentException {
+      // do experiment validation
 
-  public boolean isDeletable() {
-    return getId() != AbstractStudy.UNSAVED_ID &&
-           getExperiments().isEmpty();    
-  }
+      // propagate security profiles down the hierarchy
+      e.setSecurityProfile(this.securityProfile);
 
-  public abstract void buildSubmission();
+      // add
+      this.experiments.add(e);
+   }
 
-  public SecurityProfile getSecurityProfile() {
-    return securityProfile;
-  }
+   @Override
+   public Collection<Experiment> getExperiments() {
+      return experiments;
+   }
 
-  public void setSecurityProfile(SecurityProfile securityProfile) {
-    this.securityProfile = securityProfile;
-  }
+   @Override
+   public void setExperiments(Collection<Experiment> experiments) {
+      this.experiments = experiments;
+   }
 
-  public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-    if (parent.getSecurityProfile().getOwner() != null) {
-      setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
-      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-    }
-  }  
+   @Override
+   public boolean isDeletable() {
+      return getId() != AbstractStudy.UNSAVED_ID && getExperiments().isEmpty();
+   }
 
-  public boolean userCanRead(User user) {
-    return securityProfile.userCanRead(user);
-  }
+   @Override
+   public abstract void buildSubmission();
 
-  public boolean userCanWrite(User user) {
-    return securityProfile.userCanWrite(user);
-  }
-  
-  /**
-   * Equivalency is based on getProjectId() if set, otherwise on name,
-   * description and creation date.
-   */
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof Study))
-      return false;
-    Study them = (Study) obj;
-    // If not saved, then compare resolved actual objects. Otherwise
-    // just compare IDs.
-    if (getId() == AbstractStudy.UNSAVED_ID
-        || them.getId() == AbstractStudy.UNSAVED_ID) {
-      if (getName() != null && them.getName() != null) {
-        return getName().equals(them.getName());
+   @Override
+   public SecurityProfile getSecurityProfile() {
+      return securityProfile;
+   }
+
+   public void setSecurityProfile(SecurityProfile securityProfile) {
+      this.securityProfile = securityProfile;
+   }
+
+   @Override
+   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
+      if (parent.getSecurityProfile().getOwner() != null) {
+         setSecurityProfile(parent.getSecurityProfile());
+      } else {
+         throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
       }
-      else {
-        return getAlias().equals(them.getAlias());
+   }
+
+   public boolean userCanRead(User user) {
+      return securityProfile.userCanRead(user);
+   }
+
+   public boolean userCanWrite(User user) {
+      return securityProfile.userCanWrite(user);
+   }
+
+   /**
+    * Equivalency is based on getProjectId() if set, otherwise on name, description and creation date.
+    */
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (obj == this) return true;
+      if (!(obj instanceof Study)) return false;
+      Study them = (Study) obj;
+      // If not saved, then compare resolved actual objects. Otherwise
+      // just compare IDs.
+      if (getId() == AbstractStudy.UNSAVED_ID || them.getId() == AbstractStudy.UNSAVED_ID) {
+         if (getName() != null && them.getName() != null) {
+            return getName().equals(them.getName());
+         } else {
+            return getAlias().equals(them.getAlias());
+         }
+      } else {
+         return this.getId() == them.getId();
       }
-    }
-    else {
-      return this.getId() == them.getId();
-    }
-  }
+   }
 
-  @Override
-  public int hashCode() {
-    if (this.getId() != AbstractStudy.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
-      final int PRIME = 37;
-      int hashcode = 1;
-      if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
-      if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
-      //if (getDescription() != null) hashcode = 37 * hashcode + getDescription().hashCode();
-      return hashcode;
-    }
-  }
+   @Override
+   public int hashCode() {
+      if (this.getId() != AbstractStudy.UNSAVED_ID) {
+         return (int) getId();
+      } else {
+         final int PRIME = 37;
+         int hashcode = 1;
+         if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
+         if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
+         // if (getDescription() != null) hashcode = 37 * hashcode + getDescription().hashCode();
+         return hashcode;
+      }
+   }
 
-  @Override
-  public int compareTo(Object o) {
-    Study t = (Study)o;
-    if (getId() < t.getId()) return -1;
-    if (getId() > t.getId()) return 1;
-    return 0;
-  }
+   @Override
+   public int compareTo(Object o) {
+      Study t = (Study) o;
+      if (getId() < t.getId()) return -1;
+      if (getId() > t.getId()) return 1;
+      return 0;
+   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getName());
-    sb.append(" : ");
-    sb.append(getAlias());
-    sb.append(" : ");
-    sb.append(getDescription());
-    sb.append(" : ");
-    sb.append(getStudyType());
-    sb.append(" : ");
+   @Override
+   public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(getName());
+      sb.append(" : ");
+      sb.append(getAlias());
+      sb.append(" : ");
+      sb.append(getDescription());
+      sb.append(" : ");
+      sb.append(getStudyType());
+      sb.append(" : ");
 
-    if (getProject() != null) {
-      sb.append(getProject().getAlias());
-      sb.append("("+getProject().getName()+")");
-    }
-    return sb.toString();
-  }
+      if (getProject() != null) {
+         sb.append(getProject().getAlias());
+         sb.append("(" + getProject().getName() + ")");
+      }
+      return sb.toString();
+   }
 }

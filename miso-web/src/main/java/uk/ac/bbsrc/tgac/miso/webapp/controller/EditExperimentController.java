@@ -53,186 +53,184 @@ import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 @RequestMapping("/experiment")
 @SessionAttributes("experiment")
 public class EditExperimentController {
-  protected static final Logger log = LoggerFactory.getLogger(EditExperimentController.class);
+   protected static final Logger log = LoggerFactory.getLogger(EditExperimentController.class);
 
-  @Autowired
-  private SecurityManager securityManager;
+   @Autowired
+   private SecurityManager securityManager;
 
-  @Autowired
-  private RequestManager requestManager;
+   @Autowired
+   private RequestManager requestManager;
 
-  @Autowired
-  private DataObjectFactory dataObjectFactory;
+   @Autowired
+   private DataObjectFactory dataObjectFactory;
 
-  @Autowired
-  private JdbcTemplate interfaceTemplate;
+   @Autowired
+   private JdbcTemplate interfaceTemplate;
 
-  public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
-    this.interfaceTemplate = interfaceTemplate;
-  }
+   public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
+      this.interfaceTemplate = interfaceTemplate;
+   }
 
-  public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
-    this.dataObjectFactory = dataObjectFactory;
-  }
+   public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
+      this.dataObjectFactory = dataObjectFactory;
+   }
 
-  public void setRequestManager(RequestManager requestManager) {
-    this.requestManager = requestManager;
-  }
+   public void setRequestManager(RequestManager requestManager) {
+      this.requestManager = requestManager;
+   }
 
-  public void setSecurityManager(SecurityManager securityManager) {
-    this.securityManager = securityManager;
-  }
+   public void setSecurityManager(SecurityManager securityManager) {
+      this.securityManager = securityManager;
+   }
 
-  @ModelAttribute("maxLengths")
-  public Map<String, Integer> maxLengths() throws IOException {
-    return DbUtils.getColumnSizes(interfaceTemplate, "Experiment");
-  }
+   @ModelAttribute("maxLengths")
+   public Map<String, Integer> maxLengths() throws IOException {
+      return DbUtils.getColumnSizes(interfaceTemplate, "Experiment");
+   }
 
-  @ModelAttribute("platforms")
-  public Collection<Platform> populatePlatforms() throws IOException {
-    return requestManager.listAllPlatforms();
-  }
+   @ModelAttribute("platforms")
+   public Collection<Platform> populatePlatforms() throws IOException {
+      return requestManager.listAllPlatforms();
+   }
 
-  public Collection<? extends Pool> populateAvailablePools(User user, Experiment experiment) throws IOException {
-    if (experiment.getPlatform() != null) {
-      List<Pool> pools = new ArrayList<Pool>();
-      for (Pool p : requestManager.listAllPoolsByPlatform(experiment.getPlatform().getPlatformType())) {
-        if (experiment.getPool() == null || !experiment.getPool().equals(p)) {
-          pools.add(p);
-        }
-        Collections.sort(pools);
+   public Collection<? extends Pool> populateAvailablePools(User user, Experiment experiment) throws IOException {
+      if (experiment.getPlatform() != null) {
+         List<Pool> pools = new ArrayList<Pool>();
+         for (Pool p : requestManager.listAllPoolsByPlatform(experiment.getPlatform().getPlatformType())) {
+            if (experiment.getPool() == null || !experiment.getPool().equals(p)) {
+               pools.add(p);
+            }
+            Collections.sort(pools);
+         }
+         return pools;
       }
-      return pools;
-    }
-    return Collections.emptyList();
-  }
+      return Collections.emptyList();
+   }
 
-  @RequestMapping(value = "/new/{studyId}", method = RequestMethod.GET)
-  public ModelAndView newAssignedExperiment(@PathVariable Long studyId,
-                                            ModelMap model) throws IOException {
-    return setupForm(AbstractExperiment.UNSAVED_ID, studyId, model);
-  }
+   @RequestMapping(value = "/new/{studyId}", method = RequestMethod.GET)
+   public ModelAndView newAssignedExperiment(@PathVariable Long studyId, ModelMap model) throws IOException {
+      return setupForm(AbstractExperiment.UNSAVED_ID, studyId, model);
+   }
 
-  @RequestMapping(value = "/rest/{experimentId}", method = RequestMethod.GET)
-  public @ResponseBody Experiment jsonRest(@PathVariable Long experimentId) throws IOException {
-    return requestManager.getExperimentById(experimentId);
-  }
+   @RequestMapping(value = "/rest/{experimentId}", method = RequestMethod.GET)
+   public @ResponseBody
+   Experiment jsonRest(@PathVariable Long experimentId) throws IOException {
+      return requestManager.getExperimentById(experimentId);
+   }
 
-  @RequestMapping(value = "/{experimentId}", method = RequestMethod.GET)
-  public ModelAndView setupForm(@PathVariable Long experimentId,
-                                ModelMap model) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      Experiment experiment = requestManager.getExperimentById(experimentId);
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("Experiment");
+   }
 
-      if (experiment == null) {
-        throw new SecurityException("No such Experiment");
-      }
-      if (!experiment.userCanRead(user)) {
-        throw new SecurityException("Permission denied.");
-      }
+   @RequestMapping(value = "/{experimentId}", method = RequestMethod.GET)
+   public ModelAndView setupForm(@PathVariable Long experimentId, ModelMap model) throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         Experiment experiment = requestManager.getExperimentById(experimentId);
 
-      model.put("formObj", experiment);
-      model.put("experiment", experiment);
-      model.put("libraryKits", experiment.getKitsByKitType(KitType.LIBRARY));
-      model.put("emPcrKits", experiment.getKitsByKitType(KitType.EMPCR));
-      model.put("clusteringKits", experiment.getKitsByKitType(KitType.CLUSTERING));
-      model.put("sequencingKits", experiment.getKitsByKitType(KitType.SEQUENCING));
-      model.put("multiplexingKits", experiment.getKitsByKitType(KitType.MULTIPLEXING));
-      model.put("availablePools", populateAvailablePools(user, experiment));
-      model.put("owners", LimsSecurityUtils.getPotentialOwners(user, experiment, securityManager.listAllUsers()));
-      model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, experiment, securityManager.listAllUsers()));
-      model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, experiment, securityManager.listAllGroups()));
-      model.put("title", "Experiment " + experimentId);
-      return new ModelAndView("/pages/editExperiment.jsp", model);
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to show experiment", ex);
-      }
-      throw ex;
-    }
-  }
+         if (experiment == null) {
+            throw new SecurityException("No such Experiment");
+         }
+         if (!experiment.userCanRead(user)) {
+            throw new SecurityException("Permission denied.");
+         }
 
-  @RequestMapping(value = "/{experimentId}/study/{studyId}", method = RequestMethod.GET)
-  public ModelAndView setupForm(@PathVariable Long experimentId,
-                                @PathVariable Long studyId,
-                                ModelMap model) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      Experiment experiment = null;
-      if (experimentId == AbstractExperiment.UNSAVED_ID) {
-        experiment = dataObjectFactory.getExperiment();
-        model.put("title", "New Experiment");
+         model.put("formObj", experiment);
+         model.put("experiment", experiment);
+         model.put("libraryKits", experiment.getKitsByKitType(KitType.LIBRARY));
+         model.put("emPcrKits", experiment.getKitsByKitType(KitType.EMPCR));
+         model.put("clusteringKits", experiment.getKitsByKitType(KitType.CLUSTERING));
+         model.put("sequencingKits", experiment.getKitsByKitType(KitType.SEQUENCING));
+         model.put("multiplexingKits", experiment.getKitsByKitType(KitType.MULTIPLEXING));
+         model.put("availablePools", populateAvailablePools(user, experiment));
+         model.put("owners", LimsSecurityUtils.getPotentialOwners(user, experiment, securityManager.listAllUsers()));
+         model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, experiment, securityManager.listAllUsers()));
+         model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, experiment, securityManager.listAllGroups()));
+         model.put("title", "Experiment " + experimentId);
+         return new ModelAndView("/pages/editExperiment.jsp", model);
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to show experiment", ex);
+         }
+         throw ex;
       }
-      else {
-        experiment = requestManager.getExperimentById(experimentId);
-        model.put("title", "Experiment " + experimentId);
-      }
+   }
 
-      if (experiment == null) {
-        throw new SecurityException("No such Experiment");
-      }
+   @RequestMapping(value = "/{experimentId}/study/{studyId}", method = RequestMethod.GET)
+   public ModelAndView setupForm(@PathVariable Long experimentId, @PathVariable Long studyId, ModelMap model) throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         Experiment experiment = null;
+         if (experimentId == AbstractExperiment.UNSAVED_ID) {
+            experiment = dataObjectFactory.getExperiment();
+            model.put("title", "New Experiment");
+         } else {
+            experiment = requestManager.getExperimentById(experimentId);
+            model.put("title", "Experiment " + experimentId);
+         }
 
-      if (!experiment.userCanRead(user)) {
-        throw new SecurityException("Permission denied.");
-      }
+         if (experiment == null) {
+            throw new SecurityException("No such Experiment");
+         }
 
-      if (studyId != null) {
-        Study study = requestManager.getStudyById(studyId);
-        model.addAttribute("study", study);
-        experiment.setStudy(study);
-        if (Arrays.asList(user.getRoles()).contains("ROLE_TECH")) {
-          SecurityProfile sp = new SecurityProfile(user);
-          LimsUtils.inheritUsersAndGroups(experiment, study.getSecurityProfile());
-          sp.setOwner(user);
-          experiment.setSecurityProfile(sp);
-        }
-        else {
-          experiment.inheritPermissions(study);
-        }
-      }
+         if (!experiment.userCanRead(user)) {
+            throw new SecurityException("Permission denied.");
+         }
 
-      model.put("formObj", experiment);
-      model.put("experiment", experiment);
-      model.put("libraryKits", experiment.getKitsByKitType(KitType.LIBRARY));
-      model.put("emPcrKits", experiment.getKitsByKitType(KitType.EMPCR));
-      model.put("clusteringKits", experiment.getKitsByKitType(KitType.CLUSTERING));
-      model.put("sequencingKits", experiment.getKitsByKitType(KitType.SEQUENCING));
-      model.put("multiplexingKits", experiment.getKitsByKitType(KitType.MULTIPLEXING));
-      model.put("availablePools", populateAvailablePools(user, experiment));
-      model.put("owners", LimsSecurityUtils.getPotentialOwners(user, experiment, securityManager.listAllUsers()));
-      model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, experiment, securityManager.listAllUsers()));
-      model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, experiment, securityManager.listAllGroups()));
-      return new ModelAndView("/pages/editExperiment.jsp", model);
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to show experiment", ex);
-      }
-      throw ex;
-    }
-  }
+         if (studyId != null) {
+            Study study = requestManager.getStudyById(studyId);
+            model.addAttribute("study", study);
+            experiment.setStudy(study);
+            if (Arrays.asList(user.getRoles()).contains("ROLE_TECH")) {
+               SecurityProfile sp = new SecurityProfile(user);
+               LimsUtils.inheritUsersAndGroups(experiment, study.getSecurityProfile());
+               sp.setOwner(user);
+               experiment.setSecurityProfile(sp);
+            } else {
+               experiment.inheritPermissions(study);
+            }
+         }
 
-  @RequestMapping(method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("experiment") Experiment experiment,
-                              ModelMap model,
-                              SessionStatus session) throws IOException, MalformedExperimentException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      if (!experiment.userCanWrite(user)) {
-        throw new SecurityException("Permission denied.");
+         model.put("formObj", experiment);
+         model.put("experiment", experiment);
+         model.put("libraryKits", experiment.getKitsByKitType(KitType.LIBRARY));
+         model.put("emPcrKits", experiment.getKitsByKitType(KitType.EMPCR));
+         model.put("clusteringKits", experiment.getKitsByKitType(KitType.CLUSTERING));
+         model.put("sequencingKits", experiment.getKitsByKitType(KitType.SEQUENCING));
+         model.put("multiplexingKits", experiment.getKitsByKitType(KitType.MULTIPLEXING));
+         model.put("availablePools", populateAvailablePools(user, experiment));
+         model.put("owners", LimsSecurityUtils.getPotentialOwners(user, experiment, securityManager.listAllUsers()));
+         model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, experiment, securityManager.listAllUsers()));
+         model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, experiment, securityManager.listAllGroups()));
+         return new ModelAndView("/pages/editExperiment.jsp", model);
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to show experiment", ex);
+         }
+         throw ex;
       }
-      requestManager.saveExperiment(experiment);
-      session.setComplete();
-      model.clear();
-      return "redirect:/miso/experiment/" + experiment.getId();
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to save Experiment", ex);
+   }
+
+   @RequestMapping(method = RequestMethod.POST)
+   public String processSubmit(@ModelAttribute("experiment") Experiment experiment, ModelMap model, SessionStatus session)
+         throws IOException, MalformedExperimentException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         if (!experiment.userCanWrite(user)) {
+            throw new SecurityException("Permission denied.");
+         }
+         experiment.setLastModifier(user);
+         requestManager.saveExperiment(experiment);
+         session.setComplete();
+         model.clear();
+         return "redirect:/miso/experiment/" + experiment.getId();
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to save Experiment", ex);
+         }
+         throw ex;
       }
-      throw ex;
-    }
-  }
+   }
 }

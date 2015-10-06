@@ -28,195 +28,228 @@ import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
 import javax.persistence.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Skeleton implementation of a SequencerPartitionContainer
- *
+ * 
  * @author Rob Davey
  * @since 0.1.6
  */
 public abstract class AbstractSequencerPartitionContainer<T extends Partition> implements SequencerPartitionContainer<T> {
-  public static final Long UNSAVED_ID = 0L;
+   public static final Long UNSAVED_ID = 0L;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long containerId = AbstractSequencerPartitionContainer.UNSAVED_ID;
+   @Id
+   @GeneratedValue(strategy = GenerationType.AUTO)
+   private long containerId = AbstractSequencerPartitionContainer.UNSAVED_ID;
 
-  private String identificationBarcode;
-  private String locationBarcode;
-  private Boolean paired = false;
-  private String name;
-  private Run run = null;
+   private String identificationBarcode;
+   private String locationBarcode;
+   private Boolean paired = false;
+   private String name;
+   private Run run = null;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private SecurityProfile securityProfile;
-  private Platform platform;
-  private String validationBarcode;
+   @OneToOne(cascade = CascadeType.ALL)
+   private SecurityProfile securityProfile;
+   private Platform platform;
+   private String validationBarcode;
+   private final Collection<ChangeLog> changeLog = new ArrayList<ChangeLog>();
+   private User lastModifier;
 
-  @Deprecated
-  public Long getContainerId() {
-    return containerId;
-  }
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
 
-  @Deprecated
-  public void setContainerId(Long containerId) {
-    this.containerId = containerId;
-  }
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
-  @Override
-  public long getId() {
-    return containerId;
-  }
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
+   }
 
-  public void setId(long id) {
-    this.containerId = id;
-  }
+   @Override
+   @Deprecated
+   public Long getContainerId() {
+      return containerId;
+   }
 
-  public String getIdentificationBarcode() {
-    return identificationBarcode;
-  }
+   @Override
+   @Deprecated
+   public void setContainerId(Long containerId) {
+      this.containerId = containerId;
+   }
 
-  public void setIdentificationBarcode(String identificationBarcode) {
-    this.identificationBarcode = identificationBarcode;
-  }
+   @Override
+   public long getId() {
+      return containerId;
+   }
 
-  public String getLocationBarcode() {
-    return locationBarcode;
-  }
+   @Override
+   public void setId(long id) {
+      this.containerId = id;
+   }
 
-  public void setLocationBarcode(String locationBarcode) {
-    this.locationBarcode = locationBarcode;
-  }
+   @Override
+   public String getIdentificationBarcode() {
+      return identificationBarcode;
+   }
 
-  public String getName() {
-    return name;
-  }
+   @Override
+   public void setIdentificationBarcode(String identificationBarcode) {
+      this.identificationBarcode = identificationBarcode;
+   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+   @Override
+   public String getLocationBarcode() {
+      return locationBarcode;
+   }
 
-  public String getLabelText() {
-    return getPlatform().getPlatformType().name()+" " + getValidationBarcode();
-  }
+   @Override
+   public void setLocationBarcode(String locationBarcode) {
+      this.locationBarcode = locationBarcode;
+   }
 
-  public boolean isDeletable() {
-    return getId() != AbstractSequencerPartitionContainer.UNSAVED_ID;
-  }
+   @Override
+   public String getName() {
+      return name;
+   }
 
-  public String getValidationBarcode() {
-    return validationBarcode;
-  }
+   @Override
+   public void setName(String name) {
+      this.name = name;
+   }
 
-  public void setValidationBarcode(String validationBarcode) {
-    this.validationBarcode = validationBarcode;
-  }
+   @Override
+   public String getLabelText() {
+      return getPlatform().getPlatformType().name() + " " + getValidationBarcode();
+   }
 
-  public Boolean getPaired() {
-    return paired;
-  }
+   @Override
+   public boolean isDeletable() {
+      return getId() != AbstractSequencerPartitionContainer.UNSAVED_ID;
+   }
 
-  public void setPaired(Boolean paired) {
-    this.paired = paired;
-  }
+   @Override
+   public String getValidationBarcode() {
+      return validationBarcode;
+   }
 
-  public abstract List<T> getPartitions();
+   @Override
+   public void setValidationBarcode(String validationBarcode) {
+      this.validationBarcode = validationBarcode;
+   }
 
-  public abstract void setPartitions(List<T> partitions);
+   public Boolean getPaired() {
+      return paired;
+   }
 
-  public abstract T getPartitionAt(int partitionNumber);
+   public void setPaired(Boolean paired) {
+      this.paired = paired;
+   }
 
-  public Run getRun() {
-    return run;
-  }
+   @Override
+   public abstract List<T> getPartitions();
 
-  public void setRun(Run run) {
-    this.run = run;
-  }
+   @Override
+   public abstract void setPartitions(List<T> partitions);
 
-  @Override
-  public Platform getPlatform() {
-    return platform;
-  }
+   @Override
+   public abstract T getPartitionAt(int partitionNumber);
 
-  @Override
-  public void setPlatform(Platform platform) {
-    this.platform = platform;
-  }
+   @Override
+   public Run getRun() {
+      return run;
+   }
 
-  public boolean userCanRead(User user) {
-    return securityProfile.userCanRead(user);
-  }
+   @Override
+   public void setRun(Run run) {
+      this.run = run;
+   }
 
-  public boolean userCanWrite(User user) {
-    return securityProfile.userCanWrite(user);
-  }
+   @Override
+   public Platform getPlatform() {
+      return platform;
+   }
 
-  public void setSecurityProfile(SecurityProfile securityProfile) {
-    this.securityProfile = securityProfile;
-  }
+   @Override
+   public void setPlatform(Platform platform) {
+      this.platform = platform;
+   }
 
-  public SecurityProfile getSecurityProfile() {
-    return securityProfile;
-  }
+   public boolean userCanRead(User user) {
+      return securityProfile.userCanRead(user);
+   }
 
-  public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-    if (parent.getSecurityProfile().getOwner() != null) {
-      setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
-      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-    }
-  }  
+   public boolean userCanWrite(User user) {
+      return securityProfile.userCanWrite(user);
+   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof SequencerPartitionContainer))
-      return false;
-    SequencerPartitionContainer them = (SequencerPartitionContainer) obj;
-    // If not saved, then compare resolved actual objects. Otherwise just compare IDs.
-    if (getId() == AbstractSequencerPartitionContainer.UNSAVED_ID
-        || them.getId() == AbstractSequencerPartitionContainer.UNSAVED_ID) {
-      return getIdentificationBarcode().equals(them.getIdentificationBarcode());
-    }
-    else {
-      return getId() == them.getId();
-    }
-  }
+   public void setSecurityProfile(SecurityProfile securityProfile) {
+      this.securityProfile = securityProfile;
+   }
 
-  @Override
-  public int hashCode() {
-    if (getId() != AbstractSequencerPartitionContainer.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
-      int hashcode = -1;
-      if (getIdentificationBarcode() != null) hashcode = 37 * hashcode + getIdentificationBarcode().hashCode();
-      return hashcode;      
-    }
-  }
+   @Override
+   public SecurityProfile getSecurityProfile() {
+      return securityProfile;
+   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getId());
-    sb.append(" : ");
-    sb.append(getIdentificationBarcode());
-    sb.append(" : ");
-    sb.append(getLocationBarcode());
-    return sb.toString();
-  }
+   @Override
+   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
+      if (parent.getSecurityProfile().getOwner() != null) {
+         setSecurityProfile(parent.getSecurityProfile());
+      } else {
+         throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
+      }
+   }
 
-  @Override
-  public int compareTo(Object o) {
-    SequencerPartitionContainer t = (SequencerPartitionContainer)o;
-    if (getId() < t.getId()) return -1;
-    if (getId() > t.getId()) return 1;
-    return 0;
-  }
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (obj == this) return true;
+      if (!(obj instanceof SequencerPartitionContainer)) return false;
+      SequencerPartitionContainer them = (SequencerPartitionContainer) obj;
+      // If not saved, then compare resolved actual objects. Otherwise just compare IDs.
+      if (getId() == AbstractSequencerPartitionContainer.UNSAVED_ID || them.getId() == AbstractSequencerPartitionContainer.UNSAVED_ID) {
+         return getIdentificationBarcode().equals(them.getIdentificationBarcode());
+      } else {
+         return getId() == them.getId();
+      }
+   }
+
+   @Override
+   public int hashCode() {
+      if (getId() != AbstractSequencerPartitionContainer.UNSAVED_ID) {
+         return (int) getId();
+      } else {
+         int hashcode = -1;
+         if (getIdentificationBarcode() != null) hashcode = 37 * hashcode + getIdentificationBarcode().hashCode();
+         return hashcode;
+      }
+   }
+
+   @Override
+   public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(getId());
+      sb.append(" : ");
+      sb.append(getIdentificationBarcode());
+      sb.append(" : ");
+      sb.append(getLocationBarcode());
+      return sb.toString();
+   }
+
+   @Override
+   public int compareTo(Object o) {
+      SequencerPartitionContainer t = (SequencerPartitionContainer) o;
+      if (getId() < t.getId()) return -1;
+      if (getId() > t.getId()) return 1;
+      return 0;
+   }
 }

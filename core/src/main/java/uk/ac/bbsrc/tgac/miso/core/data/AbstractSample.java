@@ -23,369 +23,431 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data;
 
-import com.eaglegenomics.simlims.core.Note;
-import com.eaglegenomics.simlims.core.SecurityProfile;
-import com.eaglegenomics.simlims.core.User;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.w3c.dom.Document;
+
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleQcException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
-import javax.persistence.*;
-import java.util.*;
+import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
 
 /**
  * Skeleton implementation of a Sample
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 @Entity
 @Table(name = "`Sample`")
 public abstract class AbstractSample implements Sample {
-  public static final Long UNSAVED_ID = 0L;
-  private static final long serialVersionUID = 1L;
+   public static final Long UNSAVED_ID = 0L;
+   private static final long serialVersionUID = 1L;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long sampleId = AbstractSample.UNSAVED_ID;
+   @Id
+   @GeneratedValue(strategy = GenerationType.AUTO)
+   private long sampleId = AbstractSample.UNSAVED_ID;
 
-  private Project project;
+   private Project project;
 
-  @ManyToMany(targetEntity = AbstractExperiment.class, mappedBy = "samples")
-  private Collection<Experiment> experiments = new HashSet<Experiment>();
+   @ManyToMany(targetEntity = AbstractExperiment.class, mappedBy = "samples")
+   private Collection<Experiment> experiments = new HashSet<Experiment>();
 
-  private Collection<Library> libraries = new HashSet<Library>();
+   private Collection<Library> libraries = new HashSet<Library>();
 
-  private Collection<SampleQC> sampleQCs = new TreeSet<SampleQC>();
+   private Collection<SampleQC> sampleQCs = new TreeSet<SampleQC>();
 
-  private Collection<Note> notes = new HashSet<Note>();
+   private Collection<Note> notes = new HashSet<Note>();
 
-  private Set<Plate<? extends LinkedList<Sample>, Sample>> plates = new HashSet<Plate<? extends LinkedList<Sample>, Sample>>();
+   private final Collection<ChangeLog> changeLog = new ArrayList<>();
 
-  @Transient
-  public Document submissionDocument;
+   private Set<Plate<? extends LinkedList<Sample>, Sample>> plates = new HashSet<Plate<? extends LinkedList<Sample>, Sample>>();
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private SecurityProfile securityProfile = null;
+   @Transient
+   public Document submissionDocument;
 
-  private String accession;
-  private String name;
-  private String description;
-  private String scientificName;
-  private String taxonIdentifier;
-  private String sampleType;
-  private Date receivedDate;
-  private Boolean qcPassed;
-  private String identificationBarcode;
-  private String locationBarcode;
-  private String alias;
-  private Date lastUpdated;
+   @OneToOne(cascade = CascadeType.ALL)
+   private SecurityProfile securityProfile = null;
 
-  public Project getProject() {
-    return project;
-  }
+   private String accession;
+   private String name;
+   private String description;
+   private String scientificName;
+   private String taxonIdentifier;
+   private String sampleType;
+   private Date receivedDate;
+   private Boolean qcPassed;
+   private String identificationBarcode;
+   private String locationBarcode;
+   private String alias;
+   private Date lastUpdated;
+   private User lastModifier;
 
-  public void setProject(Project project) {
-    this.project = project;
-  }
-  @Deprecated
-  public Long getSampleId() {
-    return sampleId;
-  }
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
 
-  @Deprecated
-  public void setSampleId(Long sampleId) {
-    this.sampleId = sampleId;
-  }
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
-  @Override
-  public long getId() {
-    return sampleId;
-  }
+   @Override
+   public Project getProject() {
+      return project;
+   }
 
-  @Override
-  public void setId(long id) {
-    this.sampleId = id;
-  }
+   @Override
+   public void setProject(Project project) {
+      this.project = project;
+   }
 
-  public String getAccession() {
-    return accession;
-  }
+   @Override
+   @Deprecated
+   public Long getSampleId() {
+      return sampleId;
+   }
 
-  public void setAccession(String accession) {
-    this.accession = accession;
-  }
+   @Override
+   @Deprecated
+   public void setSampleId(Long sampleId) {
+      this.sampleId = sampleId;
+   }
 
-  public String getName() {
-    return name;
-  }
+   @Override
+   public long getId() {
+      return sampleId;
+   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+   @Override
+   public void setId(long id) {
+      this.sampleId = id;
+   }
 
-  public String getDescription() {
-    return description;
-  }
+   @Override
+   public String getAccession() {
+      return accession;
+   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+   @Override
+   public void setAccession(String accession) {
+      this.accession = accession;
+   }
 
-  public String getScientificName() {
-    return scientificName;
-  }
+   @Override
+   public String getName() {
+      return name;
+   }
 
-  public void setScientificName(String scientificName) {
-    this.scientificName = scientificName;
-  }
+   @Override
+   public void setName(String name) {
+      this.name = name;
+   }
 
-  public String getTaxonIdentifier() {
-    return taxonIdentifier;
-  }
+   @Override
+   public String getDescription() {
+      return description;
+   }
 
-  public void setTaxonIdentifier(String taxonIdentifier) {
-    this.taxonIdentifier = taxonIdentifier;
-  }
+   @Override
+   public void setDescription(String description) {
+      this.description = description;
+   }
 
-  public String getAlias() {
-    return alias;
-  }
+   @Override
+   public String getScientificName() {
+      return scientificName;
+   }
 
-  public void setAlias(String alias) {
-    this.alias = alias;
-  }
+   @Override
+   public void setScientificName(String scientificName) {
+      this.scientificName = scientificName;
+   }
 
-  public String getIdentificationBarcode() {
-    return identificationBarcode;
-  }
+   @Override
+   public String getTaxonIdentifier() {
+      return taxonIdentifier;
+   }
 
-  public void setIdentificationBarcode(String identificationBarcode) {
-    this.identificationBarcode = identificationBarcode;
-  }
+   @Override
+   public void setTaxonIdentifier(String taxonIdentifier) {
+      this.taxonIdentifier = taxonIdentifier;
+   }
 
-  public String getLocationBarcode() {
-    return locationBarcode;
-  }
+   @Override
+   public String getAlias() {
+      return alias;
+   }
 
-  public void setLocationBarcode(String locationBarcode) {
-    this.locationBarcode = locationBarcode;
-  }
+   @Override
+   public void setAlias(String alias) {
+      this.alias = alias;
+   }
 
-  public String getLabelText() {
-    return getAlias();
-  }
+   @Override
+   public String getIdentificationBarcode() {
+      return identificationBarcode;
+   }
 
-  public void addLibrary(Library l) throws MalformedLibraryException {
-    this.libraries.add(l);
-  }
+   @Override
+   public void setIdentificationBarcode(String identificationBarcode) {
+      this.identificationBarcode = identificationBarcode;
+   }
 
-  public Collection<Library> getLibraries() {
-    return libraries;
-  }  
+   @Override
+   public String getLocationBarcode() {
+      return locationBarcode;
+   }
 
-  public void addQc(SampleQC sampleQc) throws MalformedSampleQcException {
-    this.sampleQCs.add(sampleQc);
-    try {
-      sampleQc.setSample(this);
-    }
-    catch (MalformedSampleException e) {
-      e.printStackTrace();
-    }
-  }
+   @Override
+   public void setLocationBarcode(String locationBarcode) {
+      this.locationBarcode = locationBarcode;
+   }
 
-  public Collection<SampleQC> getSampleQCs() {
-    return sampleQCs;
-  }
+   @Override
+   public String getLabelText() {
+      return getAlias();
+   }
 
-  public void setQCs(Collection<SampleQC> qcs) {
-    this.sampleQCs = qcs;
-  }
+   @Override
+   public void addLibrary(Library l) throws MalformedLibraryException {
+      this.libraries.add(l);
+   }
 
-  public String getSampleType() {
-    return sampleType;
-  }
+   @Override
+   public Collection<Library> getLibraries() {
+      return libraries;
+   }
 
-  public Date getReceivedDate() {
-    return receivedDate;
-  }
-
-  public Boolean getQcPassed() {
-    return qcPassed;
-  }
-
-  public void setSampleType(String sampleType) {
-    this.sampleType = sampleType;
-  }
-
-  public void setReceivedDate(Date receivedDate) {
-    this.receivedDate = receivedDate;
-  }
-
-  public void setQcPassed(Boolean qcPassed) {
-    this.qcPassed = qcPassed;
-  }
-
-  /*
-  public Document getSubmissionData() {
-    return submissionDocument;
-  }
-
-  public void accept(SubmittableVisitor v) {
-    v.visit(this);
-  }    
-*/
-
-  public Collection<Note> getNotes() {
-    return notes;
-  }
-
-  public void addNote(Note note) {
-    this.notes.add(note);
-  }   
-
-  public void setNotes(Collection<Note> notes) {
-    this.notes = notes;
-  }  
-
-  @Override
-  public Set<Plate<? extends LinkedList<Sample>, Sample>> getPlates() {
-    return plates;
-  }
-
-  public void addPlate(Plate<? extends LinkedList<Sample>, Sample> plate) {
-    this.plates.add(plate);
-  }
-
-  public void setPlates(Set<Plate<? extends LinkedList<Sample>, Sample>> plates) {
-    this.plates = plates;
-  }
-
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  public boolean isDeletable() {
-    return getId() != AbstractSample.UNSAVED_ID &&
-           getLibraries().isEmpty() &&
-           getNotes().isEmpty() &&
-           getSampleQCs().isEmpty();    
-  }
-
-  public SecurityProfile getSecurityProfile() {
-    return securityProfile;
-  }
-
-  public void setSecurityProfile(SecurityProfile securityProfile) {
-    this.securityProfile = securityProfile;
-  }
-
-  public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-    if (parent.getSecurityProfile().getOwner() != null) {
-      setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
-      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-    }
-  }  
-
-  public boolean userCanRead(User user) {
-    return securityProfile.userCanRead(user);
-  }
-
-  public boolean userCanWrite(User user) {
-    return securityProfile.userCanWrite(user);
-  }
-
-  public abstract void buildSubmission();
-
-
-  public abstract void buildReport();
-  
-
-  /**
-   * Equivalency is based on getSampleId() if set, otherwise on name, otherwise on alias
-   */
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof Sample))
-      return false;
-    Sample them = (Sample) obj;
-    // If not saved, then compare resolved actual objects. Otherwise
-    // just compare IDs.
-    if (getId() == AbstractSample.UNSAVED_ID || them.getId() == AbstractSample.UNSAVED_ID) {
-      if (getName() != null && them.getName() != null) {
-        return getName().equals(them.getName());
+   @Override
+   public void addQc(SampleQC sampleQc) throws MalformedSampleQcException {
+      this.sampleQCs.add(sampleQc);
+      try {
+         sampleQc.setSample(this);
+      } catch (MalformedSampleException e) {
+         e.printStackTrace();
       }
-      else if (getAlias() != null && them.getAlias() != null) {
-        return getAlias().equals(them.getAlias());
+   }
+
+   @Override
+   public Collection<SampleQC> getSampleQCs() {
+      return sampleQCs;
+   }
+
+   @Override
+   public void setQCs(Collection<SampleQC> qcs) {
+      this.sampleQCs = qcs;
+   }
+
+   @Override
+   public String getSampleType() {
+      return sampleType;
+   }
+
+   @Override
+   public Date getReceivedDate() {
+      return receivedDate;
+   }
+
+   @Override
+   public Boolean getQcPassed() {
+      return qcPassed;
+   }
+
+   @Override
+   public void setSampleType(String sampleType) {
+      this.sampleType = sampleType;
+   }
+
+   @Override
+   public void setReceivedDate(Date receivedDate) {
+      this.receivedDate = receivedDate;
+   }
+
+   @Override
+   public void setQcPassed(Boolean qcPassed) {
+      this.qcPassed = qcPassed;
+   }
+
+   /*
+    * public Document getSubmissionData() { return submissionDocument; }
+    * 
+    * public void accept(SubmittableVisitor v) { v.visit(this); }
+    */
+
+   @Override
+   public Collection<Note> getNotes() {
+      return notes;
+   }
+
+   @Override
+   public void addNote(Note note) {
+      this.notes.add(note);
+   }
+
+   @Override
+   public void setNotes(Collection<Note> notes) {
+      this.notes = notes;
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
+   }
+
+   @Override
+   public Set<Plate<? extends LinkedList<Sample>, Sample>> getPlates() {
+      return plates;
+   }
+
+   public void addPlate(Plate<? extends LinkedList<Sample>, Sample> plate) {
+      this.plates.add(plate);
+   }
+
+   public void setPlates(Set<Plate<? extends LinkedList<Sample>, Sample>> plates) {
+      this.plates = plates;
+   }
+
+   @Override
+   public Date getLastUpdated() {
+      return lastUpdated;
+   }
+
+   @Override
+   public void setLastUpdated(Date lastUpdated) {
+      this.lastUpdated = lastUpdated;
+   }
+
+   @Override
+   public boolean isDeletable() {
+      return getId() != AbstractSample.UNSAVED_ID && getLibraries().isEmpty() && getNotes().isEmpty() && getSampleQCs().isEmpty();
+   }
+
+   @Override
+   public SecurityProfile getSecurityProfile() {
+      return securityProfile;
+   }
+
+   @Override
+   public void setSecurityProfile(SecurityProfile securityProfile) {
+      this.securityProfile = securityProfile;
+   }
+
+   @Override
+   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
+      if (parent.getSecurityProfile().getOwner() != null) {
+         setSecurityProfile(parent.getSecurityProfile());
+      } else {
+         throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
       }
-      else {
-        return false;
+   }
+
+   @Override
+   public boolean userCanRead(User user) {
+      return securityProfile.userCanRead(user);
+   }
+
+   @Override
+   public boolean userCanWrite(User user) {
+      return securityProfile.userCanWrite(user);
+   }
+
+   @Override
+   public abstract void buildSubmission();
+
+   @Override
+   public abstract void buildReport();
+
+   /**
+    * Equivalency is based on getSampleId() if set, otherwise on name, otherwise on alias
+    */
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (obj == this) return true;
+      if (!(obj instanceof Sample)) return false;
+      Sample them = (Sample) obj;
+      // If not saved, then compare resolved actual objects. Otherwise
+      // just compare IDs.
+      if (getId() == AbstractSample.UNSAVED_ID || them.getId() == AbstractSample.UNSAVED_ID) {
+         if (getName() != null && them.getName() != null) {
+            return getName().equals(them.getName());
+         } else if (getAlias() != null && them.getAlias() != null) {
+            return getAlias().equals(them.getAlias());
+         } else {
+            return false;
+         }
+      } else {
+         return getId() == them.getId();
       }
-    }
-    else {
-      return getId() == them.getId();
-    }
-  }
+   }
 
-  @Override
-  public int hashCode() {
-    if (getId() != 0L && getId() != AbstractSample.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
-      final int PRIME = 37;
-      int hashcode = 1;
-      if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
-//      if (getDescription() != null) hashcode = 37 * hashcode + getDescription().hashCode();
-//      if (getLibraries() != null && !getLibraries().isEmpty()) hashcode = 37 * hashcode + getLibraries().hashCode();
-//      if (getSampleQCs() != null && !getSampleQCs().isEmpty()) hashcode = 37 * hashcode + getSampleQCs().hashCode();
-      if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
-      return hashcode;
-    }
-  }  
+   @Override
+   public int hashCode() {
+      if (getId() != 0L && getId() != AbstractSample.UNSAVED_ID) {
+         return (int) getId();
+      } else {
+         final int PRIME = 37;
+         int hashcode = 1;
+         if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
+         // if (getDescription() != null) hashcode = 37 * hashcode + getDescription().hashCode();
+         // if (getLibraries() != null && !getLibraries().isEmpty()) hashcode = 37 * hashcode + getLibraries().hashCode();
+         // if (getSampleQCs() != null && !getSampleQCs().isEmpty()) hashcode = 37 * hashcode + getSampleQCs().hashCode();
+         if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
+         return hashcode;
+      }
+   }
 
-  @Override
-  public int compareTo(Object o) {
-    Sample s = (Sample)o;
-    if (getId() != 0L && s.getId() != 0L) {
-      if (getId() < s.getId()) return -1;
-      if (getId() > s.getId()) return 1;
-    }
-    else if (getAlias() != null && s.getAlias() != null) {
-      return getAlias().compareTo(s.getAlias());
-    }
-    return 0;
-  }
+   @Override
+   public int compareTo(Object o) {
+      Sample s = (Sample) o;
+      if (getId() != 0L && s.getId() != 0L) {
+         if (getId() < s.getId()) return -1;
+         if (getId() > s.getId()) return 1;
+      } else if (getAlias() != null && s.getAlias() != null) {
+         return getAlias().compareTo(s.getAlias());
+      }
+      return 0;
+   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getId());
-    sb.append(" : ");
-    sb.append(getName());
-    sb.append(" : ");
-    sb.append(getAlias());
-    sb.append(" : ");
-    sb.append(getIdentificationBarcode());
-    sb.append(" : ");
-    sb.append(getDescription());
-    sb.append(" : ");
-    sb.append(getScientificName());
-    sb.append(" : ");
-    sb.append(getSampleType());
+   @Override
+   public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(getId());
+      sb.append(" : ");
+      sb.append(getName());
+      sb.append(" : ");
+      sb.append(getAlias());
+      sb.append(" : ");
+      sb.append(getIdentificationBarcode());
+      sb.append(" : ");
+      sb.append(getDescription());
+      sb.append(" : ");
+      sb.append(getScientificName());
+      sb.append(" : ");
+      sb.append(getSampleType());
 
-    return sb.toString();
-  }
+      return sb.toString();
+   }
 }

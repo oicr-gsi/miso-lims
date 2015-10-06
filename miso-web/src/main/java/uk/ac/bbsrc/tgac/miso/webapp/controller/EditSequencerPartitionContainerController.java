@@ -50,102 +50,104 @@ import java.util.Map;
 @RequestMapping("/container")
 @SessionAttributes("container")
 public class EditSequencerPartitionContainerController {
-  protected static final Logger log = LoggerFactory.getLogger(EditSequencerPartitionContainerController.class);
+   protected static final Logger log = LoggerFactory.getLogger(EditSequencerPartitionContainerController.class);
 
-  @Autowired
-  private SecurityManager securityManager;
+   @Autowired
+   private SecurityManager securityManager;
 
-  @Autowired
-  private RequestManager requestManager;
+   @Autowired
+   private RequestManager requestManager;
 
-  @Autowired
-  private DataObjectFactory dataObjectFactory;
+   @Autowired
+   private DataObjectFactory dataObjectFactory;
 
-  @Autowired
-  private JdbcTemplate interfaceTemplate;
+   @Autowired
+   private JdbcTemplate interfaceTemplate;
 
-  public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
-    this.interfaceTemplate = interfaceTemplate;
-  }
+   public void setInterfaceTemplate(JdbcTemplate interfaceTemplate) {
+      this.interfaceTemplate = interfaceTemplate;
+   }
 
-  public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
-    this.dataObjectFactory = dataObjectFactory;
-  }
+   public void setDataObjectFactory(DataObjectFactory dataObjectFactory) {
+      this.dataObjectFactory = dataObjectFactory;
+   }
 
-  public void setRequestManager(RequestManager requestManager) {
-    this.requestManager = requestManager;
-  }
+   public void setRequestManager(RequestManager requestManager) {
+      this.requestManager = requestManager;
+   }
 
-  public void setSecurityManager(SecurityManager securityManager) {
-    this.securityManager = securityManager;
-  }
+   public void setSecurityManager(SecurityManager securityManager) {
+      this.securityManager = securityManager;
+   }
 
-  @ModelAttribute("maxLengths")
-  public Map<String, Integer> maxLengths() throws IOException {
-    return DbUtils.getColumnSizes(interfaceTemplate, "Flowcell");
-  }
+   @RequestMapping(value = "/rest/changes", method = RequestMethod.GET)
+   public @ResponseBody
+   Collection<ChangeLog> jsonRestChanges() throws IOException {
+      return requestManager.listAllChanges("SequencerPartitionContainer");
+   }
 
-  @ModelAttribute("platformTypes")
-  public Collection<String> populatePlatformTypes() {
-    return PlatformType.getKeys();
-  }
+   @ModelAttribute("maxLengths")
+   public Map<String, Integer> maxLengths() throws IOException {
+      return DbUtils.getColumnSizes(interfaceTemplate, "Flowcell");
+   }
 
-  @ModelAttribute("platforms")
-  public Collection<Platform> populatePlatforms() throws IOException {
-    return requestManager.listAllPlatforms();
-  }
+   @ModelAttribute("platformTypes")
+   public Collection<String> populatePlatformTypes() {
+      return PlatformType.getKeys();
+   }
 
-  @RequestMapping(value = "/new", method = RequestMethod.GET)
-  public ModelAndView setupForm(ModelMap model) throws IOException {
-    return setupForm(AbstractSequencerPartitionContainer.UNSAVED_ID, model);
-  }
+   @ModelAttribute("platforms")
+   public Collection<Platform> populatePlatforms() throws IOException {
+      return requestManager.listAllPlatforms();
+   }
 
-  @RequestMapping(value = "/{containerId}", method = RequestMethod.GET)
-  public ModelAndView setupForm(@PathVariable Long containerId,
-                                ModelMap model) throws IOException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      SequencerPartitionContainer<SequencerPoolPartition> container = null;
-      if (containerId == AbstractSequencerPartitionContainer.UNSAVED_ID) {
-        container = dataObjectFactory.getSequencerPartitionContainer(user);
-        model.put("title", "New Container");
+   @RequestMapping(value = "/new", method = RequestMethod.GET)
+   public ModelAndView setupForm(ModelMap model) throws IOException {
+      return setupForm(AbstractSequencerPartitionContainer.UNSAVED_ID, model);
+   }
+
+   @RequestMapping(value = "/{containerId}", method = RequestMethod.GET)
+   public ModelAndView setupForm(@PathVariable Long containerId, ModelMap model) throws IOException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         SequencerPartitionContainer<SequencerPoolPartition> container = null;
+         if (containerId == AbstractSequencerPartitionContainer.UNSAVED_ID) {
+            container = dataObjectFactory.getSequencerPartitionContainer(user);
+            model.put("title", "New Container");
+         } else {
+            container = requestManager.getSequencerPartitionContainerById(containerId);
+            model.put("title", "Container " + containerId);
+         }
+
+         model.put("formObj", container);
+         model.put("container", container);
+         return new ModelAndView("/pages/editSequencerPartitionContainer.jsp", model);
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to show container", ex);
+         }
+         throw ex;
       }
-      else {
-        container = requestManager.getSequencerPartitionContainerById(containerId);
-        model.put("title", "Container " + containerId);
-      }
+   }
 
-      model.put("formObj", container);
-      model.put("container", container);
-      return new ModelAndView("/pages/editSequencerPartitionContainer.jsp", model);
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to show container", ex);
+   @RequestMapping(method = RequestMethod.POST)
+   public String processSubmit(@ModelAttribute("container") SequencerPartitionContainer container, ModelMap model, SessionStatus session)
+         throws IOException, MalformedRunException {
+      try {
+         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+         if (!container.userCanWrite(user)) {
+            throw new SecurityException("Permission denied.");
+         }
+         container.setLastModifier(user);
+         long containerId = requestManager.saveSequencerPartitionContainer(container);
+         session.setComplete();
+         model.clear();
+         return "redirect:/miso/container/" + containerId;
+      } catch (IOException ex) {
+         if (log.isDebugEnabled()) {
+            log.debug("Failed to save container", ex);
+         }
+         throw ex;
       }
-      throw ex;
-    }
-  }
-
-  @RequestMapping(method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("container") SequencerPartitionContainer container,
-                              ModelMap model, SessionStatus session) throws IOException, MalformedRunException {
-    try {
-      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-      if (!container.userCanWrite(user)) {
-        throw new SecurityException("Permission denied.");
-      }
-
-      long containerId = requestManager.saveSequencerPartitionContainer(container);
-      session.setComplete();
-      model.clear();
-      return "redirect:/miso/container/"+containerId;
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to save container", ex);
-      }
-      throw ex;
-    }
-  }
+   }
 }

@@ -24,6 +24,7 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
 import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.User;
 //import com.fasterxml.jackson.annotation.*;
 //import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.codehaus.jackson.annotate.JsonBackReference;
@@ -44,315 +45,349 @@ import java.util.Date;
 import java.util.HashMap;
 
 /**
- * A Library is the first step in constructing sequenceable material from an initial {@link Sample}.
- * A Library is then diluted down to a {@link Dilution}, and put in a {@link Pool}, which is then
- * sequenced.
+ * A Library is the first step in constructing sequenceable material from an initial {@link Sample}. A Library is then diluted down to a
+ * {@link Dilution}, and put in a {@link Pool}, which is then sequenced.
  * <p/>
- * Library properties are specified mainly by the SRA schema requirements, i.e. they have a
- * {@link LibraryType}, a {@link LibraryStrategyType} and a {@link LibrarySelectionType} which
- * are SRA enumerations. Libraries also have a target {@link Platform} and can be barcoded via
- * {@link TagBarcode} objects for multiplexing purposes.
- *
+ * Library properties are specified mainly by the SRA schema requirements, i.e. they have a {@link LibraryType}, a
+ * {@link LibraryStrategyType} and a {@link LibrarySelectionType} which are SRA enumerations. Libraries also have a target {@link Platform}
+ * and can be barcoded via {@link TagBarcode} objects for multiplexing purposes.
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
-@JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)//, using = LibrarySerializer.class)
-//@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
-@JsonIgnoreProperties({"securityProfile"})
+@JsonSerialize(typing = JsonSerialize.Typing.STATIC, include = JsonSerialize.Inclusion.NON_NULL)
+// , using = LibrarySerializer.class)
+// @JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonIgnoreProperties({ "lastModifier", "securityProfile" })
 @PrintableBarcode
 public interface Library extends SecurableByProfile, Comparable, Barcodable, Locatable, Deletable, Plateable {
 
-  /** Field PREFIX  */
-  public static final String PREFIX = "LIB";
+   /** Field PREFIX */
+   public static final String PREFIX = "LIB";
 
-  /**
-   * Returns the libraryId of this Library object.
-   *
-   * @return Long libraryId.
-   */
-  @Deprecated
-  public Long getLibraryId();
+   /**
+    * Returns the libraryId of this Library object.
+    * 
+    * @return Long libraryId.
+    */
+   @Deprecated
+   public Long getLibraryId();
 
-  /**
-   * Sets the libraryId of this Library object.
-   *
-   * @param libraryId libraryId.
-   */
-  @Deprecated
-  public void setLibraryId(Long libraryId);
+   /**
+    * Sets the libraryId of this Library object.
+    * 
+    * @param libraryId
+    *           libraryId.
+    */
+   @Deprecated
+   public void setLibraryId(Long libraryId);
 
-  public void setId(long id);
+   public void setId(long id);
 
-  /**
-   * Sets the name of this Library object.
-   *
-   * @param name name.
-   */
-  public void setName(String name);
+   /**
+    * Sets the name of this Library object.
+    * 
+    * @param name
+    *           name.
+    */
+   public void setName(String name);
 
-  /**
-   * Returns the description of this Library object.
-   *
-   * @return String description.
-   */
-  public String getDescription();
+   /**
+    * Returns the description of this Library object.
+    * 
+    * @return String description.
+    */
+   public String getDescription();
 
-  /**
-   * Sets the description of this Library object.
-   *
-   * @param description description.
-   */
-  public void setDescription(String description);
+   /**
+    * Sets the description of this Library object.
+    * 
+    * @param description
+    *           description.
+    */
+   public void setDescription(String description);
 
-  /**
-   * Returns the alias of this Library object.
-   *
-   * @return String alias.
-   */
-  public String getAlias();
+   /**
+    * Returns the alias of this Library object.
+    * 
+    * @return String alias.
+    */
+   public String getAlias();
 
-  /**
-   * Sets the alias of this Library object.
-   *
-   * @param alias alias.
-   */
-  public void setAlias(String alias);
+   /**
+    * Sets the alias of this Library object.
+    * 
+    * @param alias
+    *           alias.
+    */
+   public void setAlias(String alias);
 
-  /**
-   * Returns the accession of this Library object.
-   *
-   * @return String accession.
-   */
-  public String getAccession();
+   /**
+    * Returns the accession of this Library object.
+    * 
+    * @return String accession.
+    */
+   public String getAccession();
 
-  /**
-   * Sets the accession of this Library object.
-   *
-   * @param accession accession.
-   */
-  public void setAccession(String accession);
+   /**
+    * Sets the accession of this Library object.
+    * 
+    * @param accession
+    *           accession.
+    */
+   public void setAccession(String accession);
 
-  /**
-   * Returns the sample of this Library object.
-   *
-   * @return Sample sample.
-   */
-  //@JsonBackReference
-  public Sample getSample();
+   /**
+    * Returns the sample of this Library object.
+    * 
+    * @return Sample sample.
+    */
+   // @JsonBackReference
+   public Sample getSample();
 
-  /**
-   * Sets the sample of this Library object.
-   *
-   * @param sample sample.
-   */
-  public void setSample(Sample sample);
+   /**
+    * Sets the sample of this Library object.
+    * 
+    * @param sample
+    *           sample.
+    */
+   public void setSample(Sample sample);
 
-  /**
-   * Sets the notes of this Library object.
-   *
-   * @param notes notes.
-   */
-  public void setNotes(Collection<Note> notes);
+   /**
+    * Sets the notes of this Library object.
+    * 
+    * @param notes
+    *           notes.
+    */
+   public void setNotes(Collection<Note> notes);
 
-  /**
-   * Returns the notes of this Library object.
-   *
-   * @return Collection<Note> notes.
-   */
-  public Collection<Note> getNotes();
+   /**
+    * Returns the notes of this Library object.
+    * 
+    * @return Collection<Note> notes.
+    */
+   public Collection<Note> getNotes();
 
-  /**
-   * Registers that a LibraryQC has been carried out on this Library
-   *
-   * @param libraryQC of type LibraryQC
-   * @throws MalformedLibraryQcException when the LibraryQC being added is not valid
-   */
-  public void addQc(LibraryQC libraryQC) throws MalformedLibraryQcException;
-  
-  /**
-   * Returns the libraryQCs of this Library object.
-   *
-   * @return Collection<LibraryQC> libraryQCs.
-   */
-  //@JsonManagedReference(value = "libraryqcs")
-  public Collection<LibraryQC> getLibraryQCs();
+   /**
+    * Registers that a LibraryQC has been carried out on this Library
+    * 
+    * @param libraryQC
+    *           of type LibraryQC
+    * @throws MalformedLibraryQcException
+    *            when the LibraryQC being added is not valid
+    */
+   public void addQc(LibraryQC libraryQC) throws MalformedLibraryQcException;
 
-  /**
-   * Registers that a LibraryDilution has been carried out using this Library
-   *
-   * @param libraryDilution of type LibraryDilution
-   * @throws MalformedDilutionException when the LibraryDilution being added is not valid
-   */
-  public void addDilution(LibraryDilution libraryDilution) throws MalformedDilutionException;
+   /**
+    * Returns the libraryQCs of this Library object.
+    * 
+    * @return Collection<LibraryQC> libraryQCs.
+    */
+   // @JsonManagedReference(value = "libraryqcs")
+   public Collection<LibraryQC> getLibraryQCs();
 
-  /**
-   * Returns the libraryDilutions of this Library object.
-   *
-   * @return Collection<LibraryDilution> libraryDilutions.
-   */
-  //@JsonManagedReference(value = "librarydilutions")
-  public Collection<LibraryDilution> getLibraryDilutions();
+   /**
+    * Registers that a LibraryDilution has been carried out using this Library
+    * 
+    * @param libraryDilution
+    *           of type LibraryDilution
+    * @throws MalformedDilutionException
+    *            when the LibraryDilution being added is not valid
+    */
+   public void addDilution(LibraryDilution libraryDilution) throws MalformedDilutionException;
 
-  /**
-   * Returns the paired attribute of this Library object.
-   *
-   * @return Boolean paired.
-   */
-  Boolean getPaired();
+   /**
+    * Returns the libraryDilutions of this Library object.
+    * 
+    * @return Collection<LibraryDilution> libraryDilutions.
+    */
+   // @JsonManagedReference(value = "librarydilutions")
+   public Collection<LibraryDilution> getLibraryDilutions();
 
-  /**
-   * Sets the paired attribute of this Library object, i.e. true is paired, false is single.
-   *
-   * @param paired paired.
-   */
-  void setPaired(Boolean paired);
+   /**
+    * Returns the paired attribute of this Library object.
+    * 
+    * @return Boolean paired.
+    */
+   Boolean getPaired();
 
-  /**
-   * Returns the libraryType of this Library object.
-   *
-   * @return LibraryType libraryType.
-   */
-  public LibraryType getLibraryType();
+   /**
+    * Sets the paired attribute of this Library object, i.e. true is paired, false is single.
+    * 
+    * @param paired
+    *           paired.
+    */
+   void setPaired(Boolean paired);
 
-  /**
-   * Sets the libraryType of this Library object.
-   *
-   * @param libraryType libraryType.
-   */
-  public void setLibraryType(LibraryType libraryType);
+   /**
+    * Returns the libraryType of this Library object.
+    * 
+    * @return LibraryType libraryType.
+    */
+   public LibraryType getLibraryType();
 
-  /**
-   * Returns the librarySelectionType of this Library object.
-   *
-   * @return LibrarySelectionType librarySelectionType.
-   */
-  public LibrarySelectionType getLibrarySelectionType();
+   /**
+    * Sets the libraryType of this Library object.
+    * 
+    * @param libraryType
+    *           libraryType.
+    */
+   public void setLibraryType(LibraryType libraryType);
 
-  /**
-   * Sets the librarySelectionType of this Library object.
-   *
-   * @param librarySelectionType LibrarySelectionType.
-   */
-  public void setLibrarySelectionType(LibrarySelectionType librarySelectionType);
+   /**
+    * Returns the librarySelectionType of this Library object.
+    * 
+    * @return LibrarySelectionType librarySelectionType.
+    */
+   public LibrarySelectionType getLibrarySelectionType();
 
-  /**
-   * Returns the libraryStrategyType of this Library object.
-   *
-   * @return LibraryStrategyType libraryStrategyType.
-   */
-  public LibraryStrategyType getLibraryStrategyType();
+   /**
+    * Sets the librarySelectionType of this Library object.
+    * 
+    * @param librarySelectionType
+    *           LibrarySelectionType.
+    */
+   public void setLibrarySelectionType(LibrarySelectionType librarySelectionType);
 
-  /**
-   * Sets the libraryStrategyType of this Library object.
-   *
-   * @param libraryStrategyType LibraryStrategyType.
-   */
-  public void setLibraryStrategyType(LibraryStrategyType libraryStrategyType);
+   /**
+    * Returns the libraryStrategyType of this Library object.
+    * 
+    * @return LibraryStrategyType libraryStrategyType.
+    */
+   public LibraryStrategyType getLibraryStrategyType();
 
-  /**
-   * Returns the position-indexed map of TagBarcodes for this Library object.
-   *
-   * @return Map<Integer, TagBarcode> tagBarcodes
-   */
-  public HashMap<Integer, TagBarcode> getTagBarcodes();
+   /**
+    * Sets the libraryStrategyType of this Library object.
+    * 
+    * @param libraryStrategyType
+    *           LibraryStrategyType.
+    */
+   public void setLibraryStrategyType(LibraryStrategyType libraryStrategyType);
 
-  /**
-   * Sets the position-indexed map of TagBarcodes for this Library object.
-   *
-   * @param tagBarcodes Map<Integer, TagBarcode>.
-   */
-  public void setTagBarcodes(HashMap<Integer, TagBarcode> tagBarcodes);
+   /**
+    * Returns the position-indexed map of TagBarcodes for this Library object.
+    * 
+    * @return Map<Integer, TagBarcode> tagBarcodes
+    */
+   public HashMap<Integer, TagBarcode> getTagBarcodes();
 
-  /**
-   * Returns the TagBarcode of this Library object, if this Library is multiplexed
-   *
-   * @return TagBarcode tagBarcode.
-   */
-  @Deprecated
-  public TagBarcode getTagBarcode();
+   /**
+    * Sets the position-indexed map of TagBarcodes for this Library object.
+    * 
+    * @param tagBarcodes
+    *           Map<Integer, TagBarcode>.
+    */
+   public void setTagBarcodes(HashMap<Integer, TagBarcode> tagBarcodes);
 
-  /**
-   * Sets the TagBarcode of this Library object.
-   *
-   * @param tagBarcode TagBarcode.
-   */
-  @Deprecated
-  public void setTagBarcode(TagBarcode tagBarcode);
+   /**
+    * Returns the TagBarcode of this Library object, if this Library is multiplexed
+    * 
+    * @return TagBarcode tagBarcode.
+    */
+   @Deprecated
+   public TagBarcode getTagBarcode();
 
-  /**
-   * Returns the platformName of this Library object.
-   *
-   * @return String platformName.
-   */
-  public String getPlatformName();
+   /**
+    * Sets the TagBarcode of this Library object.
+    * 
+    * @param tagBarcode
+    *           TagBarcode.
+    */
+   @Deprecated
+   public void setTagBarcode(TagBarcode tagBarcode);
 
-  /**
-   * Sets the platformName of this Library object.
-   *
-   * @param platformName platformName.
-   *
-   */
-  public void setPlatformName(String platformName);
+   /**
+    * Returns the platformName of this Library object.
+    * 
+    * @return String platformName.
+    */
+   public String getPlatformName();
 
-  /**
-   * Returns the initialConcentration of this Library object.
-   *
-   * @return Double initialConcentration.
-   */
-  public Double getInitialConcentration();
+   /**
+    * Sets the platformName of this Library object.
+    * 
+    * @param platformName
+    *           platformName.
+    * 
+    */
+   public void setPlatformName(String platformName);
 
-  /**
-   * Sets the initialConcentration of this Library object.
-   *
-   * @param initialConcentration initialConcentration.
-   */
-  public void setInitialConcentration(Double initialConcentration);
+   /**
+    * Returns the initialConcentration of this Library object.
+    * 
+    * @return Double initialConcentration.
+    */
+   public Double getInitialConcentration();
 
-  /**
-   * Returns the creationDate of this Library object.
-   *
-   * @return Date creationDate.
-   */
-  public Date getCreationDate();
+   /**
+    * Sets the initialConcentration of this Library object.
+    * 
+    * @param initialConcentration
+    *           initialConcentration.
+    */
+   public void setInitialConcentration(Double initialConcentration);
 
-  /**
-   * Sets the creationDate of this Library object.
-   *
-   * @param date creationDate.
-   */
-  public void setCreationDate(Date date);
+   /**
+    * Returns the creationDate of this Library object.
+    * 
+    * @return Date creationDate.
+    */
+   public Date getCreationDate();
 
-  /**
-   * Returns the libraryQuant of this Library object.
-   *
-   * @return Integer libraryQuant.
-   */
-  public Integer getLibraryQuant();
+   /**
+    * Sets the creationDate of this Library object.
+    * 
+    * @param date
+    *           creationDate.
+    */
+   public void setCreationDate(Date date);
 
-  /**
-   * Sets the libraryQuant of this Library object.
-   *
-   * @param libraryQuant libraryQuant.
-   *
-   */
-  public void setLibraryQuant(Integer libraryQuant);
+   /**
+    * Returns the libraryQuant of this Library object.
+    * 
+    * @return Integer libraryQuant.
+    */
+   public Integer getLibraryQuant();
 
-  /**
-   * Returns the qcPassed of this Library object.
-   *
-   * @return Boolean qcPassed.
-   */
-  public Boolean getQcPassed();
+   /**
+    * Sets the libraryQuant of this Library object.
+    * 
+    * @param libraryQuant
+    *           libraryQuant.
+    * 
+    */
+   public void setLibraryQuant(Integer libraryQuant);
 
-  /**
-   * Sets the qcPassed attribute of this Library object. This should be true when a suitable QC has been carried out that passes a given result.
-   *
-   * @param qcPassed qcPassed.
-   */
-  public void setQcPassed(Boolean qcPassed);
+   /**
+    * Returns the qcPassed of this Library object.
+    * 
+    * @return Boolean qcPassed.
+    */
+   public Boolean getQcPassed();
 
-  Date getLastUpdated();
+   /**
+    * Sets the qcPassed attribute of this Library object. This should be true when a suitable QC has been carried out that passes a given
+    * result.
+    * 
+    * @param qcPassed
+    *           qcPassed.
+    */
+   public void setQcPassed(Boolean qcPassed);
 
-  void setLastUpdated(Date lastUpdated);
+   Date getLastUpdated();
+
+   void setLastUpdated(Date lastUpdated);
+
+   public Collection<ChangeLog> getChangeLog();
+
+   /**
+    * Returns the user who last modified this item.
+    */
+   public User getLastModifier();
+
+   /**
+    * Sets the user who last modified this item. It should always be set to the current user on save.
+    */
+   public void setLastModifier(User user);
 }

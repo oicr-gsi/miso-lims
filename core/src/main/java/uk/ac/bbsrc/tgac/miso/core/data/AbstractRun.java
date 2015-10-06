@@ -48,419 +48,427 @@ import java.util.*;
 
 /**
  * Skeleton implementation of a Run
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 @Entity
 @Table(name = "`Run`")
 public abstract class AbstractRun implements Run {
-  protected static final Logger log = LoggerFactory.getLogger(AbstractRun.class);
+   protected static final Logger log = LoggerFactory.getLogger(AbstractRun.class);
 
-  public static final Long UNSAVED_ID = 0L;
+   public static final Long UNSAVED_ID = 0L;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long runId = AbstractRun.UNSAVED_ID;
+   @Id
+   @GeneratedValue(strategy = GenerationType.AUTO)
+   private long runId = AbstractRun.UNSAVED_ID;
 
-  @Transient
-  public Document submissionDocument;
+   @Transient
+   public Document submissionDocument;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private SecurityProfile securityProfile;
+   @OneToOne(cascade = CascadeType.ALL)
+   private SecurityProfile securityProfile;
 
-  private String name;
-  private String alias;
-  private String description;
-  private String accession;
-  private Integer platformRunId;
-  private Boolean pairedEnd;
-  private Integer cycles;
-  private String filePath;
+   private String name;
+   private String alias;
+   private String description;
+   private String accession;
+   private Integer platformRunId;
+   private Boolean pairedEnd;
+   private Integer cycles;
+   private String filePath;
 
-  private Date lastUpdated;
+   private Date lastUpdated;
 
-  @OneToOne(targetEntity = StatusImpl.class, cascade = CascadeType.ALL)
-  private Status status;
+   @OneToOne(targetEntity = StatusImpl.class, cascade = CascadeType.ALL)
+   private Status status;
 
-  private Collection<RunQC> runQCs = new TreeSet<RunQC>();
+   private Collection<RunQC> runQCs = new TreeSet<RunQC>();
 
-  private Collection<Note> notes = new HashSet<Note>();
+   private Collection<Note> notes = new HashSet<Note>();
 
-  @Transient
-  @Enumerated(EnumType.STRING)
-  private PlatformType platformType;
-  private SequencerReference sequencerReference;
+   @Transient
+   @Enumerated(EnumType.STRING)
+   private PlatformType platformType;
+   private SequencerReference sequencerReference;
 
-  // listeners
-  private Set<MisoListener> listeners = new HashSet<MisoListener>();
-  private Set<User> watchers = new HashSet<User>();
+   // listeners
+   private Set<MisoListener> listeners = new HashSet<MisoListener>();
+   private Set<User> watchers = new HashSet<User>();
 
-  @Deprecated
-  public Long getRunId() {
-    return runId;
-  }
+   private User lastModifier;
 
-  @Deprecated
-  public void setRunId(Long runId) {
-    this.runId = runId;
-  }
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
 
-  @Override
-  public long getId() {
-    return runId;
-  }
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
-  public void setId(long id) {
-    this.runId = id;
-  }
+   private final Collection<ChangeLog> changeLog = new ArrayList<>();
 
-  public SequencerReference getSequencerReference() {
-    return sequencerReference;
-  }
+   @Deprecated
+   public Long getRunId() {
+      return runId;
+   }
 
-  public void setSequencerReference(SequencerReference sequencerReference) {
-    this.sequencerReference = sequencerReference;
-  }
+   @Deprecated
+   public void setRunId(Long runId) {
+      this.runId = runId;
+   }
 
-  @Override
-  public abstract List<SequencerPartitionContainer<SequencerPoolPartition>> getSequencerPartitionContainers();
+   @Override
+   public long getId() {
+      return runId;
+   }
 
-  @Override
-  public abstract void setSequencerPartitionContainers(List<SequencerPartitionContainer<SequencerPoolPartition>> containers);
+   public void setId(long id) {
+      this.runId = id;
+   }
 
-  @Override
-  public abstract void addSequencerPartitionContainer(SequencerPartitionContainer<SequencerPoolPartition> sequencerPartitionContainer);
+   public SequencerReference getSequencerReference() {
+      return sequencerReference;
+   }
 
-  public PlatformType getPlatformType() {
-    return platformType;
-  }
+   public void setSequencerReference(SequencerReference sequencerReference) {
+      this.sequencerReference = sequencerReference;
+   }
 
-  public void setPlatformType(PlatformType platformType) {
-    this.platformType = platformType;
-  }
+   @Override
+   public abstract List<SequencerPartitionContainer<SequencerPoolPartition>> getSequencerPartitionContainers();
 
-  public String getAccession() {
-    return accession;
-  }
+   @Override
+   public abstract void setSequencerPartitionContainers(List<SequencerPartitionContainer<SequencerPoolPartition>> containers);
 
-  public void setAccession(String accession) {
-    this.accession = accession;
-  }
+   @Override
+   public abstract void addSequencerPartitionContainer(SequencerPartitionContainer<SequencerPoolPartition> sequencerPartitionContainer);
 
-  public String getName() {
-    return name;
-  }
+   public PlatformType getPlatformType() {
+      return platformType;
+   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+   public void setPlatformType(PlatformType platformType) {
+      this.platformType = platformType;
+   }
 
-  public String getAlias() {
-    return alias;
-  }
+   public String getAccession() {
+      return accession;
+   }
 
-  public void setAlias(String alias) {
-    this.alias = alias;
-  }
+   public void setAccession(String accession) {
+      this.accession = accession;
+   }
 
-  public String getDescription() {
-    return description;
-  }
+   public String getName() {
+      return name;
+   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+   public void setName(String name) {
+      this.name = name;
+   }
 
-  public Integer getPlatformRunId() {
-    return platformRunId;
-  }
+   public String getAlias() {
+      return alias;
+   }
 
-  public void setPlatformRunId(Integer platformRunId) {
-    this.platformRunId = platformRunId;
-  }
+   public void setAlias(String alias) {
+      this.alias = alias;
+   }
 
-  public Integer getCycles() {
-    return cycles;
-  }
+   public String getDescription() {
+      return description;
+   }
 
-  public void setCycles(Integer cycles) {
-    this.cycles = cycles;
-  }
+   public void setDescription(String description) {
+      this.description = description;
+   }
 
-  public Boolean getPairedEnd() {
-    return pairedEnd;
-  }
+   public Integer getPlatformRunId() {
+      return platformRunId;
+   }
 
-  public void setPairedEnd(Boolean pairedEnd) {
-    this.pairedEnd = pairedEnd;
-  }
+   public void setPlatformRunId(Integer platformRunId) {
+      this.platformRunId = platformRunId;
+   }
 
-  public String getFilePath() {
-    return filePath;
-  }
+   public Integer getCycles() {
+      return cycles;
+   }
 
-  public void setFilePath(String filePath) {
-    this.filePath = filePath;
-  }
+   public void setCycles(Integer cycles) {
+      this.cycles = cycles;
+   }
 
-  public Status getStatus() {
-    return status;
-  }
+   public Boolean getPairedEnd() {
+      return pairedEnd;
+   }
 
-  public void setStatus(Status status) {
-    if (this.status != null && status != null) {
-      if (!status.getHealth().equals(this.status.getHealth())) {
-        this.status = status;
+   public void setPairedEnd(Boolean pairedEnd) {
+      this.pairedEnd = pairedEnd;
+   }
 
-        if (status.getHealth().equals(HealthType.Started)) {
-          fireRunStartedEvent();
-        }
-        else if (status.getHealth().equals(HealthType.Completed)) {
-          fireRunCompletedEvent();
-        }
-        else if (status.getHealth().equals(HealthType.Failed)) {
-//          if (status.getCompletionDate() == null) {
-//            status.setCompletionDate(new Date());
-//          }
-          fireRunFailedEvent();
-        }
-        else {
-          fireStatusChangedEvent();
-        }
+   public String getFilePath() {
+      return filePath;
+   }
+
+   public void setFilePath(String filePath) {
+      this.filePath = filePath;
+   }
+
+   public Status getStatus() {
+      return status;
+   }
+
+   public void setStatus(Status status) {
+      if (this.status != null && status != null) {
+         if (!status.getHealth().equals(this.status.getHealth())) {
+            this.status = status;
+
+            if (status.getHealth().equals(HealthType.Started)) {
+               fireRunStartedEvent();
+            } else if (status.getHealth().equals(HealthType.Completed)) {
+               fireRunCompletedEvent();
+            } else if (status.getHealth().equals(HealthType.Failed)) {
+               // if (status.getCompletionDate() == null) {
+               // status.setCompletionDate(new Date());
+               // }
+               fireRunFailedEvent();
+            } else {
+               fireStatusChangedEvent();
+            }
+         }
       }
-    }
-    this.status = status;
-  }
+      this.status = status;
+   }
 
-  public void addQc(RunQC runQC) throws MalformedRunQcException {
-    fireRunQcAddedEvent();
+   public void addQc(RunQC runQC) throws MalformedRunQcException {
+      fireRunQcAddedEvent();
 
-    this.runQCs.add(runQC);
-    try {
-      runQC.setRun(this);
-    }
-    catch (MalformedRunException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public Collection<RunQC> getRunQCs() {
-    return runQCs;
-  }
-
-  public void setQCs(Collection<RunQC> qcs) {
-    this.runQCs = qcs;
-  }
-
-  public Collection<Note> getNotes() {
-    return notes;
-  }
-
-  public void addNote(Note note) {
-    this.notes.add(note);
-  }
-
-  public void setNotes(Collection<Note> notes) {
-    this.notes = notes;
-  }
-
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  public Document getSubmissionData() {
-    return submissionDocument;
-  }
-
-  public void accept(SubmittableVisitor v) {
-    v.visit(this);
-  }   
-
-  public boolean userCanRead(User user) {
-    return securityProfile.userCanRead(user);
-  }
-
-  public boolean userCanWrite(User user) {
-    return securityProfile.userCanWrite(user);
-  }
-
-  public void setSecurityProfile(SecurityProfile securityProfile) {
-    this.securityProfile = securityProfile;
-  }
-
-  public SecurityProfile getSecurityProfile() {
-    return securityProfile;
-  }
-
-  public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-    if (parent.getSecurityProfile().getOwner() != null) {
-      setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
-      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-    }
-  }  
-
-  public abstract void buildReport();
-
-  @Override
-  public Set<MisoListener> getListeners() {
-    return this.listeners;
-  }
-
-  @Override
-  public boolean addListener(MisoListener listener) {
-    return listeners.add(listener);
-  }
-
-  @Override
-  public boolean removeListener(MisoListener listener) {
-    return listeners.remove(listener);
-  }
-
-  protected void fireRunStartedEvent() {
-    if (this.getId() != 0L) {
-      RunEvent re = new RunEvent(this, MisoEventType.RUN_STARTED, "Run started");
-      for (MisoListener listener : getListeners()) {
-        listener.stateChanged(re);
+      this.runQCs.add(runQC);
+      try {
+         runQC.setRun(this);
+      } catch (MalformedRunException e) {
+         e.printStackTrace();
       }
-    }
-  }
+   }
 
-  protected void fireRunCompletedEvent() {
-    if (this.getId() != 0L) {
-      RunEvent re = new RunEvent(this, MisoEventType.RUN_COMPLETED, "Run completed");
-      for (MisoListener listener : getListeners()) {
-        listener.stateChanged(re);
+   public Collection<RunQC> getRunQCs() {
+      return runQCs;
+   }
+
+   public void setQCs(Collection<RunQC> qcs) {
+      this.runQCs = qcs;
+   }
+
+   public Collection<Note> getNotes() {
+      return notes;
+   }
+
+   public void addNote(Note note) {
+      this.notes.add(note);
+   }
+
+   public void setNotes(Collection<Note> notes) {
+      this.notes = notes;
+   }
+
+   public Date getLastUpdated() {
+      return lastUpdated;
+   }
+
+   public void setLastUpdated(Date lastUpdated) {
+      this.lastUpdated = lastUpdated;
+   }
+
+   public Document getSubmissionData() {
+      return submissionDocument;
+   }
+
+   public void accept(SubmittableVisitor v) {
+      v.visit(this);
+   }
+
+   public boolean userCanRead(User user) {
+      return securityProfile.userCanRead(user);
+   }
+
+   public boolean userCanWrite(User user) {
+      return securityProfile.userCanWrite(user);
+   }
+
+   public void setSecurityProfile(SecurityProfile securityProfile) {
+      this.securityProfile = securityProfile;
+   }
+
+   public SecurityProfile getSecurityProfile() {
+      return securityProfile;
+   }
+
+   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
+      if (parent.getSecurityProfile().getOwner() != null) {
+         setSecurityProfile(parent.getSecurityProfile());
+      } else {
+         throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
       }
-    }
-  }
+   }
 
-  protected void fireRunFailedEvent() {
-    if (this.getId() != 0L) {
-      RunEvent re = new RunEvent(this, MisoEventType.RUN_FAILED, "Run failed");
-      for (MisoListener listener : getListeners()) {
-        listener.stateChanged(re);
+   public abstract void buildReport();
+
+   @Override
+   public Set<MisoListener> getListeners() {
+      return this.listeners;
+   }
+
+   @Override
+   public boolean addListener(MisoListener listener) {
+      return listeners.add(listener);
+   }
+
+   @Override
+   public boolean removeListener(MisoListener listener) {
+      return listeners.remove(listener);
+   }
+
+   protected void fireRunStartedEvent() {
+      if (this.getId() != 0L) {
+         RunEvent re = new RunEvent(this, MisoEventType.RUN_STARTED, "Run started");
+         for (MisoListener listener : getListeners()) {
+            listener.stateChanged(re);
+         }
       }
-    }
-  }
+   }
 
-  protected void fireStatusChangedEvent() {
-    if (this.getId() != 0L) {
-      StatusChangedEvent<Run> event = new StatusChangedEvent<Run>(this, getStatus());
-      for (MisoListener listener : getListeners()) {
-        listener.stateChanged(event);
+   protected void fireRunCompletedEvent() {
+      if (this.getId() != 0L) {
+         RunEvent re = new RunEvent(this, MisoEventType.RUN_COMPLETED, "Run completed");
+         for (MisoListener listener : getListeners()) {
+            listener.stateChanged(re);
+         }
       }
-    }
-  }
+   }
 
-  protected void fireRunQcAddedEvent() {
-    if (this.getId() != 0L) {
-      RunEvent re = new RunEvent(this, MisoEventType.RUN_QC_ADDED, "Run QC added");
-      for (MisoListener listener : getListeners()) {
-        listener.stateChanged(re);
+   protected void fireRunFailedEvent() {
+      if (this.getId() != 0L) {
+         RunEvent re = new RunEvent(this, MisoEventType.RUN_FAILED, "Run failed");
+         for (MisoListener listener : getListeners()) {
+            listener.stateChanged(re);
+         }
       }
-    }
-  }
+   }
 
-  @Override
-  public Set<User> getWatchers() {
-    return watchers;
-  }
+   protected void fireStatusChangedEvent() {
+      if (this.getId() != 0L) {
+         StatusChangedEvent<Run> event = new StatusChangedEvent<Run>(this, getStatus());
+         for (MisoListener listener : getListeners()) {
+            listener.stateChanged(event);
+         }
+      }
+   }
 
-  @Override
-  public void setWatchers(Set<User> watchers) {
-    this.watchers = watchers;
-  }
+   protected void fireRunQcAddedEvent() {
+      if (this.getId() != 0L) {
+         RunEvent re = new RunEvent(this, MisoEventType.RUN_QC_ADDED, "Run QC added");
+         for (MisoListener listener : getListeners()) {
+            listener.stateChanged(re);
+         }
+      }
+   }
 
-  @Override
-  public void addWatcher(User user) {
-    watchers.add(user);
-  }
+   @Override
+   public Set<User> getWatchers() {
+      return watchers;
+   }
 
-  @Override
-  public void removeWatcher(User user) {
-    watchers.remove(user);
-  }
+   @Override
+   public void setWatchers(Set<User> watchers) {
+      this.watchers = watchers;
+   }
 
-  @Override
-  public String getWatchableIdentifier() {
-    return getName();
-  }
+   @Override
+   public void addWatcher(User user) {
+      watchers.add(user);
+   }
 
-  public boolean isDeletable() {
-    return getId() != AbstractQC.UNSAVED_ID;
-  }
+   @Override
+   public void removeWatcher(User user) {
+      watchers.remove(user);
+   }
 
-  /**
-   * Equivalency is based on getRunId() if set, otherwise on name
-   */
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof AbstractRun))
-      return false;
-    Run them = (Run) obj;
-    // If not saved, then compare resolved actual objects. Otherwise
-    // just compare IDs.
-    if (getId() == AbstractRun.UNSAVED_ID
-        || them.getId() == AbstractRun.UNSAVED_ID) {
-      return getAlias().equals(them.getAlias()); //&& this.getDescription().equals(them.getDescription());
-    }
-    else {
-      return getId() == them.getId();
-    }
-  }
+   @Override
+   public String getWatchableIdentifier() {
+      return getName();
+   }
 
-  @Override
-  public int hashCode() {
-    if (getId() != AbstractRun.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
-      final int PRIME = 37;
-      int hashcode = 1;
-      if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
-      //if (getDescription() != null) hashcode = PRIME * hashcode + getDescription().hashCode();
-      //if (getExperiment() != null) hashcode = 37 * hashcode + getExperiment().hashCode();
-      return hashcode;
-    }
-  }
+   public boolean isDeletable() {
+      return getId() != AbstractQC.UNSAVED_ID;
+   }
 
-  @Override
-  public int compareTo(Object o) {
-    Run t = (Run)o;
-    if (getId() < t.getId()) return -1;
-    if (getId() > t.getId()) return 1;
-    return 0;
-  }
+   /**
+    * Equivalency is based on getRunId() if set, otherwise on name
+    */
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (obj == this) return true;
+      if (!(obj instanceof AbstractRun)) return false;
+      Run them = (Run) obj;
+      // If not saved, then compare resolved actual objects. Otherwise
+      // just compare IDs.
+      if (getId() == AbstractRun.UNSAVED_ID || them.getId() == AbstractRun.UNSAVED_ID) {
+         return getAlias().equals(them.getAlias()); // && this.getDescription().equals(them.getDescription());
+      } else {
+         return getId() == them.getId();
+      }
+   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getAccession());
-    sb.append(" : ");
-    sb.append(getPlatformType());
-    sb.append(" : ");
-    sb.append(getName());
-    sb.append(" : ");
-    sb.append(getDescription());
-    sb.append(" : ");
-    sb.append(getFilePath());
-    sb.append(" : ");
+   @Override
+   public int hashCode() {
+      if (getId() != AbstractRun.UNSAVED_ID) {
+         return (int) getId();
+      } else {
+         final int PRIME = 37;
+         int hashcode = 1;
+         if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
+         // if (getDescription() != null) hashcode = PRIME * hashcode + getDescription().hashCode();
+         // if (getExperiment() != null) hashcode = 37 * hashcode + getExperiment().hashCode();
+         return hashcode;
+      }
+   }
 
-    if (getStatus() != null) {
-      sb.append(getStatus().getHealth());
-      sb.append("("+getStatus().getStatusId()+")");
-    }
-    return sb.toString();
-  }
+   @Override
+   public int compareTo(Object o) {
+      Run t = (Run) o;
+      if (getId() < t.getId()) return -1;
+      if (getId() > t.getId()) return 1;
+      return 0;
+   }
+
+   @Override
+   public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(getAccession());
+      sb.append(" : ");
+      sb.append(getPlatformType());
+      sb.append(" : ");
+      sb.append(getName());
+      sb.append(" : ");
+      sb.append(getDescription());
+      sb.append(" : ");
+      sb.append(getFilePath());
+      sb.append(" : ");
+
+      if (getStatus() != null) {
+         sb.append(getStatus().getHealth());
+         sb.append("(" + getStatus().getStatusId() + ")");
+      }
+      return sb.toString();
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
+   }
 }

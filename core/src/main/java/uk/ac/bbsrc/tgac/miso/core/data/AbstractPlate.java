@@ -35,245 +35,257 @@ import java.util.*;
 
 /**
  * Skeleton implementation of a Plate
- *
+ * 
  * @author Rob Davey
  * @date 05-Sep-2011
  * @since 0.1.1
  */
 public abstract class AbstractPlate<T extends List<S>, S extends Plateable> implements Plate<T, S> {
-  protected static final Logger log = LoggerFactory.getLogger(AbstractPlate.class);
-  public static final Long UNSAVED_ID = 0L;
+   protected static final Logger log = LoggerFactory.getLogger(AbstractPlate.class);
+   public static final Long UNSAVED_ID = 0L;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long plateId = AbstractPlate.UNSAVED_ID;
+   @Id
+   @GeneratedValue(strategy = GenerationType.AUTO)
+   private long plateId = AbstractPlate.UNSAVED_ID;
 
-  private SecurityProfile securityProfile;
-  private String name;
-  private String description;
-  private Date creationDate;
+   private SecurityProfile securityProfile;
+   private String name;
+   private String description;
+   private Date creationDate;
 
-  @Enumerated(EnumType.STRING)
-  private PlateMaterialType plateMaterialType;
+   @Enumerated(EnumType.STRING)
+   private PlateMaterialType plateMaterialType;
 
-  private TagBarcode tagBarcode;
-  private String identificationBarcode;
-  private String locationBarcode;
+   private TagBarcode tagBarcode;
+   private String identificationBarcode;
+   private String locationBarcode;
 
-  private Date lastUpdated;
+   private Date lastUpdated;
+   private final List<ChangeLog> changeLog = new ArrayList<ChangeLog>();
+   private User lastModifier;
 
-  @Override
-  @Deprecated
-  public Long getPlateId() {
-    return plateId;
-  }
+   @Override
+   public User getLastModifier() {
+      return lastModifier;
+   }
 
-  @Override
-  @Deprecated
-  public void setPlateId(Long plateId) {
-    this.plateId = plateId;
-  }
+   @Override
+   public void setLastModifier(User lastModifier) {
+      this.lastModifier = lastModifier;
+   }
 
-  @Override
-  public long getId() {
-    return plateId;
-  }
+   @Override
+   @Deprecated
+   public Long getPlateId() {
+      return plateId;
+   }
 
-  public void setId(long id) {
-    this.plateId = id;
-  }
+   @Override
+   @Deprecated
+   public void setPlateId(Long plateId) {
+      this.plateId = plateId;
+   }
 
-  @Override
-  public String getName() {
-    return name;
-  }
+   @Override
+   public long getId() {
+      return plateId;
+   }
 
-  @Override
-  public void setName(String name) {
-    this.name = name;
-  }
+   @Override
+   public void setId(long id) {
+      this.plateId = id;
+   }
 
-  @Override
-  public String getDescription() {
-    return description;
-  }
+   @Override
+   public String getName() {
+      return name;
+   }
 
-  @Override
-  public void setDescription(String description) {
-    this.description = description;
-  }
+   @Override
+   public void setName(String name) {
+      this.name = name;
+   }
 
-  @Override
-  public Date getCreationDate() {
-    return creationDate;
-  }
+   @Override
+   public String getDescription() {
+      return description;
+   }
 
-  @Override
-  public void setCreationDate(Date creationDate) {
-    this.creationDate = creationDate;
-  }
+   @Override
+   public void setDescription(String description) {
+      this.description = description;
+   }
 
-  @Override
-  public PlateMaterialType getPlateMaterialType() {
-    return plateMaterialType;
-  }
+   @Override
+   public Date getCreationDate() {
+      return creationDate;
+   }
 
-  @Override
-  public void setPlateMaterialType(PlateMaterialType plateMaterialType) {
-    this.plateMaterialType = plateMaterialType;
-  }
+   @Override
+   public void setCreationDate(Date creationDate) {
+      this.creationDate = creationDate;
+   }
 
-  @Override
-  public TagBarcode getTagBarcode() {
-    return tagBarcode;
-  }
+   @Override
+   public PlateMaterialType getPlateMaterialType() {
+      return plateMaterialType;
+   }
 
-  @Override
-  public void setTagBarcode(TagBarcode tagBarcode) {
-    this.tagBarcode = tagBarcode;
-  }
+   @Override
+   public void setPlateMaterialType(PlateMaterialType plateMaterialType) {
+      this.plateMaterialType = plateMaterialType;
+   }
 
-  @Override
-  public abstract int getSize();
+   @Override
+   public TagBarcode getTagBarcode() {
+      return tagBarcode;
+   }
 
-  @Override
-  public abstract T getElements();
+   @Override
+   public void setTagBarcode(TagBarcode tagBarcode) {
+      this.tagBarcode = tagBarcode;
+   }
 
-  @Override
-  public abstract void setElements(T elements);
+   @Override
+   public abstract int getSize();
 
-  @Override
-  public abstract void addElement(S s);
+   @Override
+   public abstract T getElements();
 
-  @Override
-  public abstract Class getElementType();
+   @Override
+   public abstract void setElements(T elements);
 
-  public abstract Collection<S> getInternalPoolableElements();
+   @Override
+   public abstract void addElement(S s);
 
-  @Override
-  public String getIdentificationBarcode() {
-    return identificationBarcode;
-  }
+   @Override
+   public abstract Class getElementType();
 
-  @Override
-  public void setIdentificationBarcode(String identificationBarcode) {
-    this.identificationBarcode = identificationBarcode;
-  }
+   @Override
+   public abstract Collection<S> getInternalPoolableElements();
 
-  @Override
-  public String getLocationBarcode() {
-    return locationBarcode;
-  }
+   @Override
+   public String getIdentificationBarcode() {
+      return identificationBarcode;
+   }
 
-  @Override
-  public void setLocationBarcode(String locationBarcode) {
-    this.locationBarcode = locationBarcode;
-  }
+   @Override
+   public void setIdentificationBarcode(String identificationBarcode) {
+      this.identificationBarcode = identificationBarcode;
+   }
 
-  public String getLabelText() {
-    return getTagBarcode().getSequence() + "("+getElementType().getSimpleName() + " " + getPlateMaterialType().getKey()+")";
-  }
+   @Override
+   public String getLocationBarcode() {
+      return locationBarcode;
+   }
 
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
+   @Override
+   public void setLocationBarcode(String locationBarcode) {
+      this.locationBarcode = locationBarcode;
+   }
 
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
+   @Override
+   public String getLabelText() {
+      return getTagBarcode().getSequence() + "(" + getElementType().getSimpleName() + " " + getPlateMaterialType().getKey() + ")";
+   }
 
-  @Override
-  public boolean isDeletable() {
-    return getId() != AbstractPlate.UNSAVED_ID &&
-           (getElements() == null || getElements().isEmpty());
-  }
-  
-  @Override
-  public boolean userCanRead(User user) {
-    return securityProfile.userCanRead(user);
-  }
+   @Override
+   public Date getLastUpdated() {
+      return lastUpdated;
+   }
 
-  @Override
-  public boolean userCanWrite(User user) {
-    return securityProfile.userCanWrite(user);
-  }
+   @Override
+   public void setLastUpdated(Date lastUpdated) {
+      this.lastUpdated = lastUpdated;
+   }
 
-  @Override
-  public void setSecurityProfile(SecurityProfile securityProfile) {
-    this.securityProfile = securityProfile;
-  }
+   @Override
+   public boolean isDeletable() {
+      return getId() != AbstractPlate.UNSAVED_ID && (getElements() == null || getElements().isEmpty());
+   }
 
-  @Override
-  public SecurityProfile getSecurityProfile() {
-    return securityProfile;
-  }
+   @Override
+   public boolean userCanRead(User user) {
+      return securityProfile.userCanRead(user);
+   }
 
-  @Override
-  public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-    if (parent.getSecurityProfile().getOwner() != null) {
-      setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
-      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-    }
-  }
+   @Override
+   public boolean userCanWrite(User user) {
+      return securityProfile.userCanWrite(user);
+   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof AbstractPlate))
-      return false;
-    AbstractPlate them = (AbstractPlate) obj;
-    // If not saved, then compare resolved actual objects. Otherwise
-    // just compare IDs.
-    if (getId() == AbstractPlate.UNSAVED_ID
-        || them.getId() == AbstractPlate.UNSAVED_ID) {
-      return getName().equals(them.getName()) &&
-             getPlateMaterialType().equals(them.getPlateMaterialType());
-    }
-    else {
-      return this.getId() == them.getId();
-    }
-  }
+   @Override
+   public void setSecurityProfile(SecurityProfile securityProfile) {
+      this.securityProfile = securityProfile;
+   }
 
-  @Override
-  public int hashCode() {
-    if (getId() != AbstractPlate.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
-      final int PRIME = 37;
-      int hashcode = -1;
-      if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
-      if (getPlateMaterialType() != null) hashcode = PRIME * hashcode + getPlateMaterialType().hashCode();
-      return hashcode;
-    }
-  }
+   @Override
+   public SecurityProfile getSecurityProfile() {
+      return securityProfile;
+   }
 
-  @Override
-  public int compareTo(Object o) {
-    Plate t = (Plate)o;
-    if (getId() != 0L && t.getId() != 0L) {
-      if (getId() < t.getId()) return -1;
-      if (getId() > t.getId()) return 1;
-    }
-    else if (getName() != null && t.getName() != null) {
-      return getName().compareTo(t.getName());
-    }
-    return 0;
-  }
+   @Override
+   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
+      if (parent.getSecurityProfile().getOwner() != null) {
+         setSecurityProfile(parent.getSecurityProfile());
+      } else {
+         throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
+      }
+   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(getId());
-    sb.append(" : ");
-    sb.append(getName());
-    sb.append(" : ");
-    sb.append(getDescription());
-    return sb.toString();
-  }  
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (obj == this) return true;
+      if (!(obj instanceof AbstractPlate)) return false;
+      AbstractPlate them = (AbstractPlate) obj;
+      // If not saved, then compare resolved actual objects. Otherwise
+      // just compare IDs.
+      if (getId() == AbstractPlate.UNSAVED_ID || them.getId() == AbstractPlate.UNSAVED_ID) {
+         return getName().equals(them.getName()) && getPlateMaterialType().equals(them.getPlateMaterialType());
+      } else {
+         return this.getId() == them.getId();
+      }
+   }
+
+   @Override
+   public int hashCode() {
+      if (getId() != AbstractPlate.UNSAVED_ID) {
+         return (int) getId();
+      } else {
+         final int PRIME = 37;
+         int hashcode = -1;
+         if (getName() != null) hashcode = PRIME * hashcode + getName().hashCode();
+         if (getPlateMaterialType() != null) hashcode = PRIME * hashcode + getPlateMaterialType().hashCode();
+         return hashcode;
+      }
+   }
+
+   @Override
+   public int compareTo(Object o) {
+      Plate t = (Plate) o;
+      if (getId() != 0L && t.getId() != 0L) {
+         if (getId() < t.getId()) return -1;
+         if (getId() > t.getId()) return 1;
+      } else if (getName() != null && t.getName() != null) {
+         return getName().compareTo(t.getName());
+      }
+      return 0;
+   }
+
+   @Override
+   public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append(getId());
+      sb.append(" : ");
+      sb.append(getName());
+      sb.append(" : ");
+      sb.append(getDescription());
+      return sb.toString();
+   }
+
+   @Override
+   public Collection<ChangeLog> getChangeLog() {
+      return changeLog;
+   }
 }
