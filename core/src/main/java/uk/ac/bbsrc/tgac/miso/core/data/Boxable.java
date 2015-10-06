@@ -5,7 +5,7 @@ package uk.ac.bbsrc.tgac.miso.core.data;
  * box. i.e. Sample, Library
  *
  */
-public interface Boxable {
+public interface Boxable extends Nameable, Locatable {
   /**
    * Set the Box of this Boxable item
    *

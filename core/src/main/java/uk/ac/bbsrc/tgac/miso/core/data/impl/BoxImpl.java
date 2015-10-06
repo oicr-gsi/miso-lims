@@ -1,6 +1,8 @@
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
-//import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractBox;
@@ -12,7 +14,6 @@ import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import java.util.Map;
 import java.util.HashMap;
 
-
 public class BoxImpl extends AbstractBox {
   protected static final Logger log = LoggerFactory.getLogger(BoxImpl.class);
 
@@ -22,30 +23,62 @@ public class BoxImpl extends AbstractBox {
   // The contents of the Box
   private Map<String, Boxable> boxableItems = new HashMap<String, Boxable>();
 
+  /*
+   * Construct new Box with defaults, and an empty SecurityProfile
+   *
+   */
   public BoxImpl() {
     setNumRows(DEFAULT_ROWS);
     setNumColumns(DEFAULT_COLUMNS);
+    setSecurityProfile(new SecurityProfile());
   }
 
+  /*
+   * Construct new Box using Security Profile owned by a given User
+   * @param User user
+   */
+  public BoxImpl(User user) {
+    setNumRows(DEFAULT_ROWS);
+    setNumColumns(DEFAULT_COLUMNS);
+    setSecurityProfile(new SecurityProfile(user));
+  }
+
+  /*
+   * Construct new Box of given dimensions and empty SecurityProfile
+   *
+   * @param int rows, int columns
+   */
   public BoxImpl(int rows, int cols) {
     setNumRows(rows);
     setNumColumns(cols);
+    setSecurityProfile(new SecurityProfile());
   }
 
-  // If parse fails, return -1, else return parsed integer
-  private int tryParseInt(String s) {
-    try {
-      return Integer.parseInt(s);
-    } catch (NumberFormatException e) {
-      return -1;
-    }
+  /*
+   * Construct new Box of given dimensions and existing SecurityProfile
+   *
+   * @param int rows, int columns, User user
+   */
+  public BoxImpl(int rows, int cols, User user) {
+    setNumRows(rows);
+    setNumColumns(cols);
+    setSecurityProfile(new SecurityProfile(user));
   }
 
-  // Determines if there is a Boxable object at position or not
-  private boolean isFreePosition(String position) {
+  @Override
+  public boolean isFreePosition(String position) {
     if (boxableItems.get(position) == null)
       return true;
     return false;
+  }
+
+  @Override
+  public boolean isValidPosition(String position) {
+    if (!position.matches("[A-Z][0-9][0-9]")) return false;
+    if (LimsUtils.getNumberForChar(position.charAt(0)) > getNumRows()) return false;
+    int col = LimsUtils.tryParseInt(position.substring(1,3));
+    if (col <= 0 || col > getNumColumns()) return false;
+    return true;
   }
 
   @Override
@@ -60,48 +93,50 @@ public class BoxImpl extends AbstractBox {
   }
 
   @Override
-  public void setBoxItems(Map<String, Boxable> items) throws InvalidBoxPositionException {
+  public void setBoxables(Map<String, Boxable> items) throws InvalidBoxPositionException {
     this.boxableItems = items;
   }
 
   @Override
-  public Map<String, Boxable> getBoxItems() {
+  public Map<String, Boxable> getBoxables() {
   	return boxableItems;
   }
 
-  // Returns true/false depending if item is in boxableItems
-  private boolean itemExists(Boxable item) {
-    return boxableItems.values().contains(item);
+  @Override
+  public boolean boxableExists(Boxable boxable) {
+    return boxableItems.values().contains(boxable);
   }
 
   @Override
-  public void setBoxItem(String position, Boxable item) throws InvalidBoxPositionException {
-    if (isFreePosition(position) && itemExists(item)) {  // We want to swap the location
-      boxableItems.values().remove(item);
-      boxableItems.put(position, item);
-    } else if (isFreePosition(position) && !itemExists(item)) { // Safe to place item at location
-      boxableItems.put(position, item);
-    } else {
-      // Position is taken, throw exception?
+  public void setBoxable(String position, Boxable item) throws InvalidBoxPositionException {
+    if (!isFreePosition(position)) {
+      throw new InvalidBoxPositionException(position + " is already occupied!");
     }
-      // TODO
-      // - Is efficiency necessary here? Save booleans!
-      // Alert the user that this position is taken
-      // Need overwrite flag?
-      // boxableItems.replace(position, item);
+    else {
+      boxableItems.put(position, item);
+    }
   }
 
   @Override
-  public Boxable getBoxItem(String position) throws InvalidBoxPositionException {
+  public Boxable getBoxable(String position) {
     return boxableItems.get(position);
   }
 
   @Override
-  public void removeBoxItem(String position) throws InvalidBoxPositionException {
-    if (isFreePosition(position))
-      throw new InvalidBoxPositionException("Cannot remove: No item at position.");
-    else {
-      boxableItems.values().remove(boxableItems.get(position));
+  public void removeBoxable(String position) {
+    removeBoxable(getBoxable(position));
+  }
+
+  @Override
+  public void removeBoxable(Boxable boxable) {
+    boxable.setLocationBarcode(""); //TODO: GLT-219
+    boxableItems.values().remove(boxable);
+  }
+
+  @Override
+  public void removeAllBoxables() {
+    for (Boxable boxable : boxableItems.values()) {
+      removeBoxable(boxable);
     }
   }
 
@@ -114,16 +149,12 @@ public class BoxImpl extends AbstractBox {
   }
 
   @Override
-  public void setBoxItemEmpty(String position) throws InvalidBoxPositionException {
-    if (isFreePosition(position))
-      throw new InvalidBoxPositionException("Cannot set empty: There is no item at position.");
-    else {
-      boxableItems.get(position).setEmptied(true);
-    }
+  public void setBoxableEmpty(String position) {
+    boxableItems.get(position).setEmptied(true);
   }
 
   @Override
-  public void setAllBoxItemsEmpty() {
+  public void setAllBoxablesEmpty() {
     for (Boxable item : boxableItems.values()) {
       item.setEmptied(true);
     }
