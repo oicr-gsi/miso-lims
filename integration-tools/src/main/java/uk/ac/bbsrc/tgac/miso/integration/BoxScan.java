@@ -1,11 +1,18 @@
 package uk.ac.bbsrc.tgac.miso.integration;
 
+import java.util.List;
 import java.util.Map;
 
+import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
+
+/**
+ * Immutable object class to encapsulate barcode data for a scanned box of tubes
+ */
 public interface BoxScan {
   
   /**
-   * Get the barcode from a position in the box
+   * Get the barcode from a position in the box. Implementors should use methods in {@link LimsUtils} to convert between position 
+   * reference representations if necessary
    * 
    * @param position the box position, specified in a String containing row letter and two-digit column number (e.g. "A01" for top-left)
    * @return Null if there is no tube in the position, or an empty String if the barcode could not be read; otherwise, the barcode of 
@@ -14,7 +21,8 @@ public interface BoxScan {
   public String getBarcode(String position);
   
   /**
-   * Get the barcode from a position in the box
+   * Get the barcode from a position in the box. Implementors should use methods in {@link LimsUtils} to convert between position 
+   * reference representations if necessary
    * 
    * @param row row letter of the position to examine, where 'A' is the first row
    * @param column column number of the position to examine, where 1 is the first row
@@ -24,7 +32,8 @@ public interface BoxScan {
   public String getBarcode(char row, int column);
   
   /**
-   * Get the barcode from a position in the box
+   * Get the barcode from a position in the box. Implementors should use methods in {@link LimsUtils} to convert between position 
+   * reference representations if necessary
    * 
    * @param row row number of the position to examine, where 1 is the first row
    * @param column column number of the position to examine, where 1 is the first row
@@ -34,14 +43,19 @@ public interface BoxScan {
   public String getBarcode(int row, int column);
   
   /**
+   * Gets all of the barcodes in array form. Implementors should return defensive copies if necessary to enforce immutability
+   * 
    * @return a 2D array containing all of the scanned barcodes. The outer array contains the rows, and the inner array contains columns 
    * (e.g. position "B10" = result[1,9])
    */
   public String[][] getBarcodesArray();
   
   /**
+   * Gets all of the barcodes in map form. Implementors should return defensive copies if necessary to enforce immutability
+   * 
    * @return a Map containing all of the scanned barcodes. The keys are position names containing the row letter and two-digit column 
-   * number (e.g. "A01" for top-left)
+   * number (e.g. "A01" for top-left). Methods in {@link LimsUtils} may be used to convert to this position reference representations 
+   * if necessary
    */
   public Map<String,String> getBarcodesMap();
   
@@ -59,7 +73,7 @@ public interface BoxScan {
   /**
    * @return the maximum number of tubes that this box can accommodate
    */
-  public int getPositionCount();
+  public int getMaximumTubeCount();
   
   /**
    * @return the number of tubes currently in the box. This count may include tubes with barcodes that were successfully read, as well 
@@ -72,5 +86,21 @@ public interface BoxScan {
    * not count as a read error; there must actually be a tube in the position to have a read error
    */
   public boolean hasReadErrors();
+  
+  /**
+   * @return a list of each position where there is a tube, but the scanner failed to read its barcode. Positions are represented by 
+   * row letter and two-digit column number (e.g. "A01" for top-left)
+   */
+  public List<String> getReadErrorPositions();
+  
+  /**
+   * @return the number of rows in the scanned box
+   */
+  public int getRowCount();
+  
+  /**
+   * @return the number of columns in the scanned box
+   */
+  public int getColumnCount();
   
 }
