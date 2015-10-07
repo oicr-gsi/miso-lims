@@ -7,18 +7,18 @@ package uk.ac.bbsrc.tgac.miso.core.data;
  */
 public interface Boxable extends Nameable, Locatable {
   /**
-   * Set the Box of this Boxable item
+   * Set the BoxId of this Boxable item
    *
    * @param Box box to add
    */
-  public void setBox(Box box);
+  public void setBoxId(Long boxId);
 
   /**
-   * Return the current Box object of this Boxable item
+   * Return the current BoxId of this Boxable item
    *
    * @return Box current box
    */
-  public Box getBox();
+  public Long getBoxId();
 
   /**
    * Sets the 'emptied' attribute for the Implementor

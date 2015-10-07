@@ -6,16 +6,16 @@ package uk.ac.bbsrc.tgac.miso.core.data;
 public abstract class AbstractBoxable implements Boxable {
   private boolean emptied;
   private double volume;
-  private Box box;
+  private Long boxId;
 
   @Override
-  public void setBox(Box box) {
-    this.box = box;
+  public void setBoxId(Long boxId) {
+    this.boxId = boxId;
   }
 
   @Override
-  public Box getBox() {
-    return box;
+  public Long getBoxId() {
+    return boxId;
   }
 
   @Override
