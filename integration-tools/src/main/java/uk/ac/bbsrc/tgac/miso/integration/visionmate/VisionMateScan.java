@@ -5,20 +5,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ca.on.oicr.gsi.visionmate.Scan;
 import uk.ac.bbsrc.tgac.miso.integration.BoxScan;
+import ca.on.oicr.gsi.visionmate.Scan;
 
+/**
+ * This class is an implementation of BoxScan that wraps (already immutable) scan data retrieved using a {@link VisionMateScanner}
+ */
 public class VisionMateScan implements BoxScan {
   
   private final Scan scan;
   
+  /**
+   * Constructs a new VisionMateScan to wrap scan data from a VisionMateScanner
+   * 
+   * @param scan scan data retrieved using a {@link VisionMateScanner}
+   */
   public VisionMateScan(Scan scan) {
     this.scan = scan;
   }
 
   @Override
   public String getBarcode(String position) {
-    // TODO Auto-generated method stub
+    // TODO use BoxUtils
     return null;
   }
 
@@ -34,6 +42,7 @@ public class VisionMateScan implements BoxScan {
 
   @Override
   public String[][] getBarcodesArray() {
+    // scan is immutable and already returns a defensive copy, so returning this does not break immutability
     return scan.getBarcodes();
   }
 
