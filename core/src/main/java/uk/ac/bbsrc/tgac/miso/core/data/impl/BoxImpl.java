@@ -9,7 +9,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.AbstractBox;
 import uk.ac.bbsrc.tgac.miso.core.data.Boxable;
 import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
 
-import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
+import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -75,8 +75,8 @@ public class BoxImpl extends AbstractBox {
   @Override
   public boolean isValidPosition(String position) {
     if (!position.matches("[A-Z][0-9][0-9]")) return false;
-    if (LimsUtils.getNumberForChar(position.charAt(0)) > getNumRows()) return false;
-    int col = LimsUtils.tryParseInt(position.substring(1,3));
+    if (BoxUtils.getNumberForChar(position.charAt(0)) > getNumRows()) return false;
+    int col = BoxUtils.tryParseInt(position.substring(1,3));
     if (col <= 0 || col > getNumColumns()) return false;
     return true;
   }
@@ -142,7 +142,7 @@ public class BoxImpl extends AbstractBox {
 
   // Return the position of the item, given row and column
   private String toPosition(int row, int col) {
-    char letter = LimsUtils.getCharForNumber(row);
+    char letter = BoxUtils.getCharForNumber(row);
     String position = String.format("%02d", col); // pad col with zeros
     position = letter + position;
     return position;

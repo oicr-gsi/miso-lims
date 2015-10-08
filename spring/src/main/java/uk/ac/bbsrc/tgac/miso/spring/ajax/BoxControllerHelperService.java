@@ -20,7 +20,7 @@ import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.RequestManagerAware;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
-import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
+import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.eaglegenomics.simlims.core.User;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
@@ -166,8 +166,8 @@ public class BoxControllerHelperService implements RequestManagerAware {
   public JSONObject validateBoxInput(HttpSession session, JSONObject json) {
     if (json.has("alias") && json.has("rows") && json.has("columns")) {
         String alias = json.getString("alias");
-        Integer rows = LimsUtils.tryParseInt(json.getString("rows"));
-        Integer columns = LimsUtils.tryParseInt(json.getString("columns"));
+        Integer rows = BoxUtils.tryParseInt(json.getString("rows"));
+        Integer columns = BoxUtils.tryParseInt(json.getString("columns"));
         if (rows > 26 || rows < 1) {
           log.error("Row out of bounds: " + rows.toString());
           return JSONUtils.SimpleJSONError("The Row value is out of bounds!");
