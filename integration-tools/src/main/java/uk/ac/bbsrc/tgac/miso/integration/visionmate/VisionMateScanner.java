@@ -29,6 +29,7 @@ public class VisionMateScanner implements BoxScanner {
   }
 
   @Override
+<<<<<<< HEAD
   public synchronized void prepareScan(int expectedRows, int expectedColumns) throws IntegrationException {
     try {
       client.connect();
