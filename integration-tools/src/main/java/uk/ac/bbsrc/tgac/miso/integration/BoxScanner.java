@@ -24,9 +24,11 @@ public interface BoxScanner {
    * Failing to call this method before {@link #getScan()} may have undesirable consequences such as scan failure or returning of 
    * old data. This is a blocking call and returns when the scanner is confirmed ready to scan
    * 
+   * @param expectedRows number of rows to expect in the rack to be scanned
+   * @param expectedColumns number of columns to expect in the rack being scanned
    * @throws IntegrationException if the scanner cannot be accessed or any hardware-specific error occurs
    */
-  public void prepareScan() throws IntegrationException;
+  public void prepareScan(int expectedRows, int expectedColumns) throws IntegrationException;
   
   /**
    * Retrieves scanned barcode data from the scanner. {@link #prepareScan()} must be called before this method to initialize the 
