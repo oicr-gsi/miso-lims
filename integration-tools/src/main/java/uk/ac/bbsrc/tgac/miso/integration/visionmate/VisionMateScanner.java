@@ -6,6 +6,8 @@ import java.net.UnknownHostException;
 import uk.ac.bbsrc.tgac.miso.integration.BoxScan;
 import uk.ac.bbsrc.tgac.miso.integration.BoxScanner;
 import uk.ac.bbsrc.tgac.miso.integration.util.IntegrationException;
+import ca.on.oicr.gsi.visionmate.RackType;
+import ca.on.oicr.gsi.visionmate.RackType.Manufacturer;
 import ca.on.oicr.gsi.visionmate.Scan;
 import ca.on.oicr.gsi.visionmate.ScannerException;
 import ca.on.oicr.gsi.visionmate.ServerConfig;
@@ -27,11 +29,16 @@ public class VisionMateScanner implements BoxScanner {
   }
 
   @Override
-  public synchronized void prepareScan() throws IntegrationException {
+  public synchronized void prepareScan(int expectedRows, int expectedColumns) throws IntegrationException {
     try {
       client.connect();
-      // TODO: set expected rack type
-      if (!client.resetStatus()) throw new IntegrationException("Scanner failed to execute preparation instruction");
+      // Note: VisionMate documentation recommends setting Matrix as the manufacturer if the rack manufacturer is unknown. 
+      // The row and column configuration is the important part of this.
+      RackType rack = new RackType(Manufacturer.MATRIX, expectedRows, expectedColumns);
+      
+      if (!client.setCurrentProduct(rack) || !client.resetStatus()) {
+        throw new IntegrationException("Scanner failed to execute preparation instructions");
+      }
     } catch (IOException e) {
       throw new IntegrationException("Error communicating with the scanner", e);
     } finally {
