@@ -72,7 +72,6 @@ public class BoxImplTest {
     assertTrue(box.getBoxable("H01") == lib1);
     assertTrue(box.getBoxable("H12") == lib2);
     assertTrue(!(box.getBoxable("H10") == lib2));
-    assertTrue(!(box.getBoxable("A1") == sam1));
   }
 
   @Test
