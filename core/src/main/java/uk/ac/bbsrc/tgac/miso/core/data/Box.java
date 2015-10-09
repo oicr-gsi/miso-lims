@@ -1,7 +1,6 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
 import java.util.Map;
-import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 import uk.ac.bbsrc.tgac.miso.core.data.BoxType;
 /**
@@ -90,21 +89,27 @@ public interface Box extends SecurableByProfile, Barcodable, Locatable, Deletabl
    * @param Map<String, Boxable> items
    * @throws InvalidBoxPositionException
    */
-  public void setBoxables(Map<String, Boxable> items) throws InvalidBoxPositionException;
+  public void setBoxables(Map<String, Boxable> items);
 
   /**
    * Adds a BoxItem to the Box object at the given position.
    *
+   * Note: this method is not responsible for any Boxable stored at the given position, it will be replaced by the
+   *       given item.
+   *
    * @param BoxItem item, String position.
-   * @throws InvalidBoxPositionException
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
-  public void setBoxable(String position, Boxable item) throws InvalidBoxPositionException;
+  public void setBoxable(String position, Boxable item);
 
   /**
    * Returns the Boxable at position given.
    *
    * @param String position
    * @return BoxItem at position
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
   public Boxable getBoxable(String position);
 
@@ -112,6 +117,8 @@ public interface Box extends SecurableByProfile, Barcodable, Locatable, Deletabl
    * Removes a Boxable item from the given position
    *
    * @param String position
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
   public void removeBoxable(String position);
 
@@ -139,6 +146,8 @@ public interface Box extends SecurableByProfile, Barcodable, Locatable, Deletabl
    * Returns true/false is the position is free or not
    *
    * @return true/false if position is taken by another Boxable item or not
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
   public boolean isFreePosition(String position);
 
@@ -146,6 +155,8 @@ public interface Box extends SecurableByProfile, Barcodable, Locatable, Deletabl
    * Returns whether or not the given String is a valid position or not
    *
    * @return validity of the position string
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
   public boolean isValidPosition(String position);
 
@@ -165,7 +176,10 @@ public interface Box extends SecurableByProfile, Barcodable, Locatable, Deletabl
   /**
    * Set Boxable Item at position to empty and removes the location for the Boxable
    *
+   *
    * @param String position
+   * @throws IllegalArgumentException if the given position is not in the correct format
+   *         IndexOutOfBoundsException if the given Row letter or column value is too big for the Box
    */
   public void setBoxableEmpty(String position);
 

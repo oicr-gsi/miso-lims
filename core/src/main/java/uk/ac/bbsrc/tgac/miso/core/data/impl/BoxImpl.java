@@ -7,12 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractBox;
 import uk.ac.bbsrc.tgac.miso.core.data.Boxable;
-import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
 
 import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class BoxImpl extends AbstractBox {
   protected static final Logger log = LoggerFactory.getLogger(BoxImpl.class);
@@ -81,6 +81,16 @@ public class BoxImpl extends AbstractBox {
     return true;
   }
 
+  private void validate(String position) {
+    if (!position.matches("[A-Z][0-9][0-9]"))
+      throw new IllegalArgumentException("Position must match [A-Z][0-9][0-9]");
+    if (BoxUtils.getNumberForChar(position.charAt(0)) > getNumRows())
+      throw new IndexOutOfBoundsException("Row letter too large!");
+    int col = BoxUtils.tryParseInt(position.substring(1, 3));
+    if (col <= 0 || col > getNumColumns())
+      throw new IndexOutOfBoundsException("Column value too large!");
+  }
+
   @Override
   public int getFree() {
     return getSize() - boxableItems.values().size();
@@ -93,7 +103,7 @@ public class BoxImpl extends AbstractBox {
   }
 
   @Override
-  public void setBoxables(Map<String, Boxable> items) throws InvalidBoxPositionException {
+  public void setBoxables(Map<String, Boxable> items) {
     this.boxableItems = items;
   }
 
@@ -108,22 +118,20 @@ public class BoxImpl extends AbstractBox {
   }
 
   @Override
-  public void setBoxable(String position, Boxable item) throws InvalidBoxPositionException {
-    if (!isFreePosition(position)) {
-      throw new InvalidBoxPositionException(position + " is already occupied!");
-    }
-    else {
-      boxableItems.put(position, item);
-    }
+  public void setBoxable(String position, Boxable item) {
+    validate(position);
+    boxableItems.put(position, item);
   }
 
   @Override
   public Boxable getBoxable(String position) {
+    validate(position);
     return boxableItems.get(position);
   }
 
   @Override
   public void removeBoxable(String position) {
+    validate(position);
     removeBoxable(getBoxable(position));
   }
 
@@ -135,28 +143,24 @@ public class BoxImpl extends AbstractBox {
 
   @Override
   public void removeAllBoxables() {
-    for (Boxable boxable : boxableItems.values()) {
-      removeBoxable(boxable);
+    Iterator<Boxable> i = boxableItems.values().iterator();
+    while (i.hasNext()) {
+      Boxable box = (Boxable)i.next();
+      box.setLocationBarcode(""); //TODO: GLT-219
+      i.remove();
     }
-  }
-
-  // Return the position of the item, given row and column
-  private String toPosition(int row, int col) {
-    char letter = BoxUtils.getCharForNumber(row);
-    String position = String.format("%02d", col); // pad col with zeros
-    position = letter + position;
-    return position;
   }
 
   @Override
   public void setBoxableEmpty(String position) {
-    boxableItems.get(position).setEmptied(true);
+    validate(position);
+    boxableItems.get(position).setEmpty(true);
   }
 
   @Override
   public void setAllBoxablesEmpty() {
     for (Boxable item : boxableItems.values()) {
-      item.setEmptied(true);
+      item.setEmpty(true);
     }
   }
 
@@ -165,7 +169,7 @@ public class BoxImpl extends AbstractBox {
     Boxable[][] arr = new Boxable[getNumRows()][getNumColumns()];
     for (int i = 0; i < getNumRows(); i++) {
       for (int j = 0; j < getNumColumns(); j++) {
-        arr[i][j] = boxableItems.get(toPosition(i+1, j+1));
+        arr[i][j] = boxableItems.get(BoxUtils.getPositionString(i+1, j+1));
       }
     }
     return arr;

@@ -1,7 +1,5 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
-import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
-import java.util.Map;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
@@ -102,12 +100,12 @@ public abstract class AbstractBox implements Box {
 
   @Override
   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
-      if (parent.getSecurityProfile().getOwner() != null) {
-        setSecurityProfile(parent.getSecurityProfile());
-      }
-      else {
-        throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
-      }
+    if (parent.getSecurityProfile().getOwner() != null) {
+      setSecurityProfile(parent.getSecurityProfile());
+    }
+    else {
+      throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
+    }
   }
 
   public boolean userCanRead(User user) {

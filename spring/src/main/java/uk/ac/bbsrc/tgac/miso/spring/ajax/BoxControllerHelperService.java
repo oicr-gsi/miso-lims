@@ -5,17 +5,13 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.dao.DuplicateKeyException;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sourceforge.fluxion.ajax.util.JSONUtils;
 import net.sourceforge.fluxion.ajax.Ajaxified;
-import uk.ac.bbsrc.tgac.miso.core.data.Box;
-import uk.ac.bbsrc.tgac.miso.core.data.Boxable;
-import uk.ac.bbsrc.tgac.miso.core.data.Library;
-import uk.ac.bbsrc.tgac.miso.core.data.Sample;
-import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
+import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.RequestManagerAware;
@@ -208,9 +204,9 @@ public class BoxControllerHelperService implements RequestManagerAware {
    *  c) if the spot is taken: do nothing and warn the user
    *
    * Note: json must contain the following entries:
-   *       "boxId"    : boxId
-   *       "barcode"  : barcode
-   *       "position" : position
+   *   "boxId"    : boxId
+   *   "barcode"  : barcode
+   *   "position" : position
    * where position is a String representing the rows/columns. eg. A01, H12
    *
    * @param HttpSession session, JSONObject json
@@ -244,25 +240,42 @@ public class BoxControllerHelperService implements RequestManagerAware {
           if (!box.isValidPosition(position))
             return JSONUtils.SimpleJSONError("Invalid position given!");
 
-          Boxable boxable = getBoxableByBarcode(barcode);
+          // if item exists at position already, remove it
+          if (box.getBoxable(position) != null) {
+        	  box.removeBoxable(position);
+          }
 
-          if (boxable == null)
-            return JSONUtils.SimpleJSONError("Could not find item for barcode" + barcode + "!");
-
+          // get the Sample/Library
+          Boxable boxable = null;
           try {
-            if (box.boxableExists(boxable)) {
-              box.removeBoxable(boxable);
-              box.setBoxable(position, boxable);
-              return JSONUtils.SimpleJSONResponse(boxable.getName() + " succesfully moved to position " + position);
-            }
-            else {
-              box.setBoxable(position, boxable);
-              return JSONUtils.SimpleJSONResponse(boxable.getName() + " successfully added to position " + position);
-            }
+            boxable = getBoxableByBarcode(barcode);
+            if (boxable == null)
+              return JSONUtils.SimpleJSONError("Could not find item for barcode: " + barcode + "!");
           }
-          catch (InvalidBoxPositionException e) {
-            return JSONUtils.SimpleJSONError("Position is already occupied!");
+          catch (DuplicateKeyException e) {
+            return JSONUtils.SimpleJSONError("ERROR: A Sample and a Library both exist for barcode: " + barcode);
           }
+
+          String response = "";
+
+          // try to find item already at position (if one exists) and remove it
+          Boxable oldBoxable = box.getBoxable(position);
+          if (oldBoxable != null) {
+            box.removeBoxable(position);
+            response += oldBoxable.getName() + " has been removed from the box.\n";
+          }
+
+          // move the item if it exists in the box, else add it to the box
+          if (box.boxableExists(boxable)) {
+            box.removeBoxable(boxable);
+            box.setBoxable(position, boxable);
+            response += boxable.getName() + " successfully moved to position " + position;
+          }
+          else {
+            box.setBoxable(position, boxable);
+            response += boxable.getName() + " successfully added to position " + position;
+          }
+          return JSONUtils.SimpleJSONResponse(response);
         }
         else {
           return JSONUtils.SimpleJSONError("Invalid box, barcode or position given.");
@@ -315,8 +328,12 @@ public class BoxControllerHelperService implements RequestManagerAware {
 
   /*
    * Empties a single Boxable item at a given position and then removes it from the given box
+   * Note: json must contain the key-value pairs:
+   *  boxId : <boxId>
+   *  position : <position>
    *
-   *
+   * @param HttpSession session, JSONObject json containing the above key-value pairs
+   * @return JSONObject containing the result of the individual empty
    */
   public JSONObject individualEmpty(HttpSession session, JSONObject json) {
     User user;
@@ -339,13 +356,17 @@ public class BoxControllerHelperService implements RequestManagerAware {
         catch (IOException e) {
           return JSONUtils.SimpleJSONError("Cannot get Box: " + e.toString());
         }
+
+        if (box.isFreePosition(position))
+          return JSONUtils.SimpleJSONError("No item to delete at position " + position + "!");
+
         if (!box.isValidPosition(position))
           return JSONUtils.SimpleJSONError("Invalid position given!");
 
-        String boxName = box.getBoxable(position).getName();
+        String itemName = box.getBoxable(position).getName();
         box.setBoxableEmpty(position);
         box.removeBoxable(position);
-        return JSONUtils.SimpleJSONResponse(boxName + " succesfully removed from position " + position);
+        return JSONUtils.SimpleJSONResponse(itemName + " succesfully removed from position " + position);
       }
       else {
         return JSONUtils.SimpleJSONError("Box or position not provided.");
