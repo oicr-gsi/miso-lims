@@ -38,7 +38,7 @@ import java.util.LinkedList;
 /**
  * uk.ac.bbsrc.tgac.miso.core.factory
  * <p/>
- * TODO Info
+ * Provides the basis of an Object Factory needed by MISO
  *
  * @author Rob Davey
  * @since 0.0.2
@@ -133,17 +133,9 @@ public abstract class DataObjectFactory {
 
   public abstract Submission getSubmission();
   public abstract Submission getSubmission(User user);
-  
-  public abstract Box getBox();
 
-  /*
-  public static DataObjectFactory getDataObjectFactory(int whichFactory) {
-    switch (whichFactory) {
-      case TGAC:
-          return new TgacDataObjectFactory();
-      default :
-          return null;
-    }
-  }
-  */
+  public abstract Box getBox();
+  public abstract Box getBox(User user);
+  public abstract Box getBoxOfSize(int rows, int columns);
+  public abstract Box getBoxOfSize(int rows, int columns, User user);
 }

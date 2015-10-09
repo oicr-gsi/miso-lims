@@ -1,31 +1,50 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
-
 /**
  * This interface simply describes an object that can be placed into a
- * Matrix box. i.e. Sample, Library
+ * box. i.e. Sample, Library
  *
  */
-public interface Boxable {
-
+public interface Boxable extends Nameable, Locatable {
   /**
-   * Set the Box of this Boxable item
+   * Set the BoxId of this Boxable item
    *
    * @param Box box to add
    */
-  //public void setBox(Box box);
+  public void setBoxId(Long boxId);
 
   /**
-   * Return the current Box object of this Boxable item
+   * Return the current BoxId of this Boxable item
    *
    * @return Box current box
    */
-  //public Box getBox();
+  public Long getBoxId();
 
   /**
-   * Returns whether or not the Implementor has been dumped from the Box
+   * Sets the 'emptied' attribute for the Implementor
    *
-   * @return dumped
+   * @param boolean emptied
    */
-   public boolean isEmptied();
+   public void setEmpty(boolean emptied);
+
+  /**
+   * Returns whether or not the Implementor has been emptied
+   *
+   * @return emptied
+   */
+   public boolean isEmpty();
+
+   /**
+   * Returns the volume of the Implementor
+   *
+   * @return volume
+   */
+   public double getVolume();
+
+   /**
+   * Sets the volume of the Implementor
+   *
+   * @param double volume
+   */
+   public void setVolume(double volume);
 }

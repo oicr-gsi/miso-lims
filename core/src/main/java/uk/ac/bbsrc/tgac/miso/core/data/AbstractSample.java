@@ -43,7 +43,7 @@ import java.util.*;
  */
 @Entity
 @Table(name = "`Sample`")
-public abstract class AbstractSample implements Sample {
+public abstract class AbstractSample extends AbstractBoxable implements Sample {
   public static final Long UNSAVED_ID = 0L;
   private static final long serialVersionUID = 1L;
 
@@ -82,6 +82,7 @@ public abstract class AbstractSample implements Sample {
   private String locationBarcode;
   private String alias;
   private Date lastUpdated;
+  private boolean empty;
 
   public Project getProject() {
     return project;
@@ -184,7 +185,7 @@ public abstract class AbstractSample implements Sample {
 
   public Collection<Library> getLibraries() {
     return libraries;
-  }  
+  }
 
   public void addQc(SampleQC sampleQc) throws MalformedSampleQcException {
     this.sampleQCs.add(sampleQc);
@@ -235,7 +236,7 @@ public abstract class AbstractSample implements Sample {
 
   public void accept(SubmittableVisitor v) {
     v.visit(this);
-  }    
+  }
 */
 
   public Collection<Note> getNotes() {
@@ -244,11 +245,11 @@ public abstract class AbstractSample implements Sample {
 
   public void addNote(Note note) {
     this.notes.add(note);
-  }   
+  }
 
   public void setNotes(Collection<Note> notes) {
     this.notes = notes;
-  }  
+  }
 
   @Override
   public Set<Plate<? extends LinkedList<Sample>, Sample>> getPlates() {
@@ -275,7 +276,7 @@ public abstract class AbstractSample implements Sample {
     return getId() != AbstractSample.UNSAVED_ID &&
            getLibraries().isEmpty() &&
            getNotes().isEmpty() &&
-           getSampleQCs().isEmpty();    
+           getSampleQCs().isEmpty();
   }
 
   public SecurityProfile getSecurityProfile() {
@@ -293,7 +294,7 @@ public abstract class AbstractSample implements Sample {
     else {
       throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
     }
-  }  
+  }
 
   public boolean userCanRead(User user) {
     return securityProfile.userCanRead(user);
@@ -307,7 +308,7 @@ public abstract class AbstractSample implements Sample {
 
 
   public abstract void buildReport();
-  
+
 
   /**
    * Equivalency is based on getSampleId() if set, otherwise on name, otherwise on alias
@@ -354,7 +355,7 @@ public abstract class AbstractSample implements Sample {
       if (getAlias() != null) hashcode = PRIME * hashcode + getAlias().hashCode();
       return hashcode;
     }
-  }  
+  }
 
   @Override
   public int compareTo(Object o) {

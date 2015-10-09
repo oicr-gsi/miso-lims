@@ -102,10 +102,4 @@ public class SampleImpl extends AbstractSample implements Serializable {
   public void buildReport() {
 
   }
-
-  @Override
-  public boolean isEmptied() {
-    //TODO GLT-219
-    return false;
-  }
 }

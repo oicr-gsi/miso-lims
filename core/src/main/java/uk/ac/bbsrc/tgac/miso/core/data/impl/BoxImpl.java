@@ -1,14 +1,18 @@
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
-//import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractBox;
 import uk.ac.bbsrc.tgac.miso.core.data.Boxable;
-import uk.ac.bbsrc.tgac.miso.core.exception.InvalidBoxPositionException;
+
+import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class BoxImpl extends AbstractBox {
   protected static final Logger log = LoggerFactory.getLogger(BoxImpl.class);
@@ -16,66 +20,75 @@ public class BoxImpl extends AbstractBox {
   private static final int DEFAULT_ROWS = 8;     // A-H
   private static final int DEFAULT_COLUMNS = 12; // 1-12
 
-  // Map 'A' to 1, 'B' to 2, ... 'Z' to 26
-  private Map<Character, Integer> charNumMap = new HashMap<Character, Integer>();
-  // Map 1 to 'A', 2 to 'B', ... 26 to 'Z'
-  private Map<Integer, Character> numCharMap = new HashMap<Integer, Character>();
-
   // The contents of the Box
   private Map<String, Boxable> boxableItems = new HashMap<String, Boxable>();
 
+  /*
+   * Construct new Box with defaults, and an empty SecurityProfile
+   *
+   */
   public BoxImpl() {
     setNumRows(DEFAULT_ROWS);
     setNumColumns(DEFAULT_COLUMNS);
-    populateMaps();
+    setSecurityProfile(new SecurityProfile());
   }
 
+  /*
+   * Construct new Box using Security Profile owned by a given User
+   * @param User user
+   */
+  public BoxImpl(User user) {
+    setNumRows(DEFAULT_ROWS);
+    setNumColumns(DEFAULT_COLUMNS);
+    setSecurityProfile(new SecurityProfile(user));
+  }
+
+  /*
+   * Construct new Box of given dimensions and empty SecurityProfile
+   *
+   * @param int rows, int columns
+   */
   public BoxImpl(int rows, int cols) {
     setNumRows(rows);
     setNumColumns(cols);
+    setSecurityProfile(new SecurityProfile());
   }
 
-  // Populate maps with A-Z, 1-26 matchings
-  private void populateMaps() {
-    int A = (int)'A';
-    int AZ = (int)('Z'-'A');
-    for(int i = A; i <= A+AZ; i++) {
-      charNumMap.put((char)i, i-A + 1);
-      numCharMap.put(i-A + 1, (char)i);
-    }
-  }
-
-  // If parse fails, return -1, else return parsed integer
-  private int tryParseInt(String s) {
-    try {
-      return Integer.parseInt(s);
-    } catch(NumberFormatException e) {
-      return -1;
-    }
-  }
-
-
-  /**
-   * Returns true if a given String representing a Box position is valid
-   * and false otherwise.
+  /*
+   * Construct new Box of given dimensions and existing SecurityProfile
    *
-   * @param String position
-   * @return boolean representing the validity
+   * @param int rows, int columns, User user
    */
-  private boolean isValidPosition(String position) {
-    if(!position.matches("[A-Z][0-9][0-9]")) return false;
-    if(charNumMap.get(position.charAt(0)) == null)  return false;
-    if(charNumMap.get(position.charAt(0)) > getNumRows()) return false;
-    int col = tryParseInt(position.substring(1,3));
-    if(col <= 0 || col > getNumColumns()) return false;
+  public BoxImpl(int rows, int cols, User user) {
+    setNumRows(rows);
+    setNumColumns(cols);
+    setSecurityProfile(new SecurityProfile(user));
+  }
+
+  @Override
+  public boolean isFreePosition(String position) {
+    if (boxableItems.get(position) == null)
+      return true;
+    return false;
+  }
+
+  @Override
+  public boolean isValidPosition(String position) {
+    if (!position.matches("[A-Z][0-9][0-9]")) return false;
+    if (BoxUtils.getNumberForChar(position.charAt(0)) > getNumRows()) return false;
+    int col = BoxUtils.tryParseInt(position.substring(1,3));
+    if (col <= 0 || col > getNumColumns()) return false;
     return true;
   }
 
-  // Determines if there is a Boxable object at position or not
-  private boolean isFreePosition(String position) {
-    if(boxableItems.get(position) == null)
-      return true;
-    return false;
+  private void validate(String position) {
+    if (!position.matches("[A-Z][0-9][0-9]"))
+      throw new IllegalArgumentException("Position must match [A-Z][0-9][0-9]");
+    if (BoxUtils.getNumberForChar(position.charAt(0)) > getNumRows())
+      throw new IndexOutOfBoundsException("Row letter too large!");
+    int col = BoxUtils.tryParseInt(position.substring(1, 3));
+    if (col <= 0 || col > getNumColumns())
+      throw new IndexOutOfBoundsException("Column value too large!");
   }
 
   @Override
@@ -90,61 +103,73 @@ public class BoxImpl extends AbstractBox {
   }
 
   @Override
-  public void setBoxItems(Map<String, Boxable> items) throws InvalidBoxPositionException {
+  public void setBoxables(Map<String, Boxable> items) {
     this.boxableItems = items;
   }
 
   @Override
-  public Map<String, Boxable> getBoxItems() {
+  public Map<String, Boxable> getBoxables() {
   	return boxableItems;
   }
 
-  // Returns true/false depending if Item is in boxableItems
-  private boolean itemExists(Boxable item) {
-    return boxableItems.values().contains(item);
+  @Override
+  public boolean boxableExists(Boxable boxable) {
+    return boxableItems.values().contains(boxable);
   }
 
   @Override
-  public void setBoxItem(String position, Boxable item) throws InvalidBoxPositionException {
-    if(!isValidPosition(position)) {
-      throw new InvalidBoxPositionException("Not a valid position.");
-    } else if(isFreePosition(position) && itemExists(item)) {  // We want to swap the location
-      boxableItems.values().remove(item);
-      boxableItems.put(position, item);
-    } else if(isFreePosition(position) && !itemExists(item)) { // Safe to place item at location
-      boxableItems.put(position, item);
-    } else {
-      // Position is taken, throw exception?
-    }
-      // TODO
-      // - Is efficiency necessary here? Save booleans!
-      // Alert the user that this position is taken
-      // Need overwrite flag?
-      // boxableItems.replace(position, item);
+  public void setBoxable(String position, Boxable item) {
+    validate(position);
+    boxableItems.put(position, item);
   }
 
   @Override
-  public Boxable getBoxItem(String position) throws InvalidBoxPositionException {
-    if(!isValidPosition(position)) {
-      throw new InvalidBoxPositionException("Not a valid position.");
-    }
+  public Boxable getBoxable(String position) {
+    validate(position);
     return boxableItems.get(position);
   }
 
-  // Return the position of the item, given row and column
-  private String toPosition(int row, int col) {
-    char letter = numCharMap.get(row);
-    String position = String.format("%02d", col); // pad col with zeros
-    position = letter + position;
-    return position;
+  @Override
+  public void removeBoxable(String position) {
+    validate(position);
+    removeBoxable(getBoxable(position));
   }
 
   @Override
-  public Boxable[][] toArray() {
+  public void removeBoxable(Boxable boxable) {
+    boxable.setLocationBarcode(""); //TODO: GLT-219
+    boxableItems.values().remove(boxable);
+  }
+
+  @Override
+  public void removeAllBoxables() {
+    Iterator<Boxable> i = boxableItems.values().iterator();
+    while (i.hasNext()) {
+      Boxable box = (Boxable)i.next();
+      box.setLocationBarcode(""); //TODO: GLT-219
+      i.remove();
+    }
+  }
+
+  @Override
+  public void setBoxableEmpty(String position) {
+    validate(position);
+    boxableItems.get(position).setEmpty(true);
+  }
+
+  @Override
+  public void setAllBoxablesEmpty() {
+    for (Boxable item : boxableItems.values()) {
+      item.setEmpty(true);
+    }
+  }
+
+  @Override
+  public Boxable[][] to2DArray() {
     Boxable[][] arr = new Boxable[getNumRows()][getNumColumns()];
-    for(int i = 0; i < getNumRows(); i++) {
-      for(int j = 0; j < getNumColumns(); j++) {
-        arr[i][j] = boxableItems.get(toPosition(i+1, j+1));
+    for (int i = 0; i < getNumRows(); i++) {
+      for (int j = 0; j < getNumColumns(); j++) {
+        arr[i][j] = boxableItems.get(BoxUtils.getPositionString(i+1, j+1));
       }
     }
     return arr;
@@ -152,7 +177,6 @@ public class BoxImpl extends AbstractBox {
 
   @Override
   public boolean isDeletable() {
-    //TODO
     return true;
   }
 }
