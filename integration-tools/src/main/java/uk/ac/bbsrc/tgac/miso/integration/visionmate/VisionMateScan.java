@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
 import uk.ac.bbsrc.tgac.miso.integration.BoxScan;
 import ca.on.oicr.gsi.visionmate.Scan;
 
@@ -26,8 +27,7 @@ public class VisionMateScan implements BoxScan {
 
   @Override
   public String getBarcode(String position) {
-    // TODO use BoxUtils
-    return null;
+    return getBarcode(BoxUtils.getRowNumber(position), BoxUtils.getColumnNumber(position));
   }
 
   @Override
@@ -52,15 +52,10 @@ public class VisionMateScan implements BoxScan {
     Map<String, String> map = new HashMap<>();
     for (int row = 0; row < array.length; row++) {
       for (int col = 0; col < array[row].length; col++) {
-        map.put(getPosString(row+1, col+1), array[row][col]);
+        map.put(BoxUtils.getPositionString(row+1, col+1), array[row][col]);
       }
     }
     return map;
-  }
-  
-  private String getPosString(int row, int col) {
-    // TODO: use BoxUtils
-    return null;
   }
 
   @Override
@@ -96,7 +91,7 @@ public class VisionMateScan implements BoxScan {
     
     for (int row = 0; row < barcodes.length; row++) {
       for (int col = 0; col < barcodes[row].length; col++) {
-        if (noRead.equals(barcodes[row][col])) positions.add(getPosString(row+1, col+1));
+        if (noRead.equals(barcodes[row][col])) positions.add(BoxUtils.getPositionString(row+1, col+1));
       }
     }
     
