@@ -1,10 +1,11 @@
 package uk.ac.bbsrc.tgac.miso.core.test.util;
 
-import static org.junit.Assert.*;
-import org.junit.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 import uk.ac.bbsrc.tgac.miso.core.util.BoxUtils;
-import java.lang.IllegalArgumentException;
 
 public class BoxUtilsTest {
   @Test
@@ -99,5 +100,50 @@ public class BoxUtilsTest {
     assertTrue(BoxUtils.tryParseInt("-1000") == -1000);
     assertTrue(BoxUtils.tryParseInt("-1") == -1);
     assertTrue(BoxUtils.tryParseInt("frog") == -1);
+  }
+  
+  @Test
+  public void testColumnNumberFromString() {
+    assertEquals(BoxUtils.getColumnNumber("A01"), 1);
+    assertEquals(BoxUtils.getColumnNumber("Z22"), 22);
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void testColumnFromNumberStringBadFormat() {
+    BoxUtils.getColumnNumber("123");
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void testColumnFromNumberStringOutOfBounds() {
+    BoxUtils.getColumnNumber("A27");
+  }
+  
+  @Test
+  public void testRowNumberFromString() {
+    assertEquals(BoxUtils.getRowNumber("A01"), 1);
+    assertEquals(BoxUtils.getRowNumber("a01"), 1);
+    assertEquals(BoxUtils.getRowNumber("Z22"), 26);
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void testRowFromNumberStringBadFormat() {
+    BoxUtils.getRowNumber("123");
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void testRowFromNumberStringColumnOutOfBounds() {
+    BoxUtils.getRowNumber("A27");
+  }
+  
+  @Test(expected=IllegalArgumentException.class)
+  public void testRowFromNumberStringRowOutOfBounds() {
+    BoxUtils.getRowNumber((char) 1 + "01");
+  }
+  
+  @Test
+  public void testrowCharFromString() {
+    assertEquals(BoxUtils.getRowChar("A01"), 'A');
+    assertEquals(BoxUtils.getRowChar("a01"), 'A');
+    assertEquals(BoxUtils.getRowChar("Z22"), 'Z');
   }
 }

@@ -38,8 +38,7 @@ public class BoxUtils {
    * @throws IllegalArgumentException if the given character is not in the Alphabet
    */
   public static int getNumberForChar(char letter) {
-    if (letter >= 'a' && letter <= 'z') letter = Character.toUpperCase(letter);
-    if (letter < 'A' || letter > 'Z') throw new IllegalArgumentException("Row letter must be between A and Z");
+    letter = normalizeLetter(letter);
     return letter - 'A' + 1;
   }
 
@@ -94,5 +93,67 @@ public class BoxUtils {
   public static String getPositionString(char row, int column) {
     if (row < 'A' || row > 'Z') throw new IllegalArgumentException("Row letter must be between A and Z");
     return getPositionString(getNumberForChar(row), column);
+  }
+  
+  /**
+   * Extracts the column number from a box position reference in String form ("A01")
+   * 
+   * @param position the position reference
+   * @return the column number, between 1 and 26 inclusive
+   * @throws IllegalArgumentException if this is not a valid String reference to a box position
+   */
+  public static int getColumnNumber(String position) {
+    validateReference(position);
+    return Integer.parseInt(position.substring(1, position.length()));
+  }
+  
+  /**
+   * Extracts the row number from a box position reference in String form ("A01")
+   * 
+   * @param position the position reference
+   * @return the row number, between 1 and 26 inclusive
+   * @throws IllegalArgumentException if this is not a valid String reference to a box position
+   */
+  public static int getRowNumber(String position) {
+    validateReference(position);
+    return getRowNum(position.charAt(0));
+  }
+  
+  /**
+   * Extracts the row character from a box position reference in String form ("A01")
+   * 
+   * @param position the position reference
+   * @return an alphabetic letter, taken from the first character of the position reference, and made uppercase if neccessary
+   * @throws IllegalArgumentException if this is not a valid String reference to a box position
+   */
+  public static char getRowChar(String position) {
+    validateReference(position);
+    return normalizeLetter(position.charAt(0));
+  }
+  
+  /**
+   * Ensures that a box position reference is in proper form ("A01") and throws an IllegalArgumentException if it is not
+   * 
+   * @param position the position reference
+   * @throws IllegalArgumentException if position doesn't consist of exactly one alphabetic character followed by 1-2 digits, or if the 
+   * row digits form a number greater than 26
+   */
+  private static void validateReference(String position) {
+    if (!position.matches("[a-zA-Z]\\d{1,2}") || Integer.parseInt(position.substring(1, position.length())) > 26) {
+      throw new IllegalArgumentException(position + " is not a valid box position reference");
+    }
+  }
+  
+  /**
+   * Converts a letter to uppercase if necessary
+   * 
+   * @param letter
+   * @return uppercase form of letter, regardless of its initial case
+   * @throws IllegalArgumentException if letter is not in the alphabet
+   */
+  private static char normalizeLetter(char letter) {
+    if (letter >= 'a' && letter <= 'z') letter = Character.toUpperCase(letter);
+    if (letter < 'A' || letter > 'Z') throw new IllegalArgumentException("Row letter must be between A and Z");
+    return letter;
   }
 }
