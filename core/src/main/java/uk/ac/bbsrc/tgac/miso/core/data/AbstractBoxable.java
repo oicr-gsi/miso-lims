@@ -4,7 +4,7 @@ package uk.ac.bbsrc.tgac.miso.core.data;
  * Skeleton implementation of a Boxable item
  */
 public abstract class AbstractBoxable implements Boxable {
-  private boolean emptied;
+  private boolean empty;
   private double volume;
   private Long boxId;
 
@@ -29,13 +29,13 @@ public abstract class AbstractBoxable implements Boxable {
   }
 
   @Override
-  public boolean getEmptied() {
-    return emptied;
+  public boolean isEmpty() {
+    return empty;
   }
 
   @Override
-  public void setEmptied(boolean emptied) {
-    if (emptied) volume = 0;
-    this.emptied = emptied;
+  public void setEmpty(boolean empty) {
+    if (empty) volume = 0;
+    this.empty = empty;
   }
 }

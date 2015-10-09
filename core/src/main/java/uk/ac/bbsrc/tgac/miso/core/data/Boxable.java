@@ -25,14 +25,14 @@ public interface Boxable extends Nameable, Locatable {
    *
    * @param boolean emptied
    */
-   public void setEmptied(boolean emptied);
+   public void setEmpty(boolean emptied);
 
   /**
    * Returns whether or not the Implementor has been emptied
    *
    * @return emptied
    */
-   public boolean getEmptied();
+   public boolean isEmpty();
 
    /**
    * Returns the volume of the Implementor
