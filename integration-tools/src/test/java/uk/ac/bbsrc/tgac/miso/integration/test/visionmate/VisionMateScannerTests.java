@@ -18,10 +18,12 @@ public class VisionMateScannerTests extends BoxScannerTests<VisionMateScanner> {
   private static MockScannerServer server;
   private static VisionMateScanner client;
   
+  private static Thread serverThread;
+  
   @BeforeClass
   public static void setup() throws IntegrationException {
     server = new MockScannerServer();
-    client = new VisionMateScanner("127.0.0.1", 8000);
+    client = new VisionMateScanner("127.0.0.1", 8000, 2000, 5000);
   }
   
   @Override
@@ -56,12 +58,34 @@ public class VisionMateScannerTests extends BoxScannerTests<VisionMateScanner> {
 
   @Override
   protected void prePrepare() {
-    new Thread(server).start();
+    prepareServer();
   }
 
   @Override
   protected void preGet() {
-    new Thread(server).start();
+    prepareServer();
+  }
+  
+  private void prepareServer() {
+    if (serverThread != null) {
+      try {
+        serverThread.join();
+      } catch (InterruptedException e) {
+        throw new IllegalStateException("Wait for server availability failed");
+      }
+    }
+    serverThread = new Thread(server);
+    serverThread.start();
+    try {
+      // sleep for a second to give the mock server time to start before the client tries to connect
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e1) {
+        // Unhandled. Already retried. Worst-case: unit test fails
+      }
+    }
   }
 
 }

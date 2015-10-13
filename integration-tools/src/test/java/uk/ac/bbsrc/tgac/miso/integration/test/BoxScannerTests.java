@@ -1,5 +1,8 @@
 package uk.ac.bbsrc.tgac.miso.integration.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 
 import uk.ac.bbsrc.tgac.miso.integration.BoxScan;
@@ -39,20 +42,14 @@ public abstract class BoxScannerTests<T extends BoxScanner> {
   protected abstract void preGet();
   
   @Test
-  public void testPrepare() throws IntegrationException {
-    BoxScanner scanner = getScanner();
-    prePrepare();
-    scanner.prepareScan(2, 2);
-  }
-  
-  @Test
   public void testScanBeforeGet() throws IntegrationException {
     BoxScanner scanner = getScanner();
     prePrepare();
     scanner.prepareScan(2, 2);
     simulateScan(getSampleScan("11111"));
     preGet();
-    scanner.getScan();
+    BoxScan scan = scanner.getScan();
+    assertEquals("11111", scan.getBarcode(1, 1));
   }
   
   @Test
@@ -76,7 +73,33 @@ public abstract class BoxScannerTests<T extends BoxScanner> {
     }).run();
     
     preGet();
-    scanner.getScan();
+    BoxScan scan = scanner.getScan();
+    assertEquals("22222", scan.getBarcode(1, 1));
+  }
+  
+  @Test
+  public void testMultiplePrepares() throws IntegrationException {
+    BoxScanner scanner = getScanner();
+    prePrepare();
+    scanner.prepareScan(2, 2);
+    prePrepare();
+    scanner.prepareScan(2, 2);
+    prePrepare();
+    scanner.prepareScan(2, 2);
+    simulateScan(getSampleScan("33333"));
+    preGet();
+    BoxScan scan = scanner.getScan();
+    assertEquals("33333", scan.getBarcode(1, 1));
+  }
+  
+  @Test
+  public void testNoScan() throws IntegrationException {
+    BoxScanner scanner = getScanner();
+    prePrepare();
+    scanner.prepareScan(2, 2);
+    preGet();
+    BoxScan scan = scanner.getScan();
+    assertNull(scan);
   }
 
 }
