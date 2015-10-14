@@ -622,8 +622,8 @@ Sample.ui = {
             { "sTitle": "Alias"},
             { "sTitle": "Type"},
             { "sTitle": "QC Passed"},
-            { "sTitle": "QC Result"}
-            //{ "sTitle": "Edit"}
+            { "sTitle": "QC Result"},
+            { "sTitle": "ID", "bVisible": false}
           ],
           "bJQueryUI": true,
           "iDisplayLength": 25,
