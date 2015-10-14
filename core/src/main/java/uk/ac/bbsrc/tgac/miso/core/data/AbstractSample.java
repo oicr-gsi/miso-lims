@@ -82,7 +82,6 @@ public abstract class AbstractSample extends AbstractBoxable implements Sample {
   private String locationBarcode;
   private String alias;
   private Date lastUpdated;
-  private boolean empty;
 
   public Project getProject() {
     return project;

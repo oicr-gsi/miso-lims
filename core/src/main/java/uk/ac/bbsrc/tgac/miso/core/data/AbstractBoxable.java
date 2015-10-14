@@ -7,6 +7,8 @@ public abstract class AbstractBoxable implements Boxable {
   private boolean empty;
   private double volume;
   private Long boxId;
+  private String boxAlias;
+  private long positionId;
 
   @Override
   public void setBoxId(Long boxId) {
@@ -38,4 +40,25 @@ public abstract class AbstractBoxable implements Boxable {
     if (empty) volume = 0;
     this.empty = empty;
   }
+
+  @Override
+  public String getBoxAlias() {
+    return boxAlias;
+  }
+
+  @Override
+  public void setBoxAlias(String boxAlias) {
+    this.boxAlias = boxAlias;
+  }
+
+  @Override
+  public long getBoxPositionId() {
+    return positionId;
+  }
+
+  @Override
+  public void setBoxPositionId(long id) {
+    positionId = id;
+  }
+
 }

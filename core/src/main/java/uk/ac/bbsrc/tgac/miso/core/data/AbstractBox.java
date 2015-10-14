@@ -1,6 +1,7 @@
 package uk.ac.bbsrc.tgac.miso.core.data;
 
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
+
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
 
@@ -15,15 +16,15 @@ public abstract class AbstractBox implements Box {
   private String identificationBarcode;
   private String locationBarcode;
 
-  private int columns;
-  private int rows;
-  private BoxType type;
-  
+  private BoxSize size;
+  private BoxUse use;
+
   @Override
   public long getId() {
     return boxId;
   }
 
+  @Override
   public void setId(long id) {
     this.boxId = id;
   }
@@ -69,26 +70,6 @@ public abstract class AbstractBox implements Box {
   }
 
   @Override
-  public int getNumRows() {
-    return rows;
-  }
-
-  @Override
-  public void setNumRows(int rows) {
-    this.rows = rows;
-  }
-
-  @Override
-  public int getNumColumns() {
-    return columns;
-  }
-
-  @Override
-  public void setNumColumns(int columns) {
-    this.columns = columns;
-  }
-
-  @Override
   public SecurityProfile getSecurityProfile() {
     return securityProfile;
   }
@@ -108,26 +89,38 @@ public abstract class AbstractBox implements Box {
     }
   }
 
+  @Override
+  public int getTotalSize() {
+    return size.getRows() * size.getColumns();
+  }
+
+  @Override
   public boolean userCanRead(User user) {
     return securityProfile.userCanRead(user);
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return securityProfile.userCanWrite(user);
   }
 
   @Override
-  public int getSize() {
-    return getNumRows() * getNumColumns();
+  public BoxUse getUse() {
+    return use;
   }
 
   @Override
-  public void setType(BoxType type) {
-    this.type = type;
+  public void setUse(BoxUse use) {
+    this.use = use;
   }
 
   @Override
-  public BoxType getType() {
-    return type;
+  public BoxSize getSize() {
+    return size;
+  }
+
+  @Override
+  public void setSize(BoxSize size) {
+    this.size = size;
   }
 }
