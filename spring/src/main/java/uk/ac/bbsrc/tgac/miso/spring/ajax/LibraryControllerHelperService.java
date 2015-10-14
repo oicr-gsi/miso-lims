@@ -1198,7 +1198,9 @@ public class LibraryControllerHelperService {
                                                 library.getAlias()) + "','" +
                       library.getLibraryType().getDescription() + "','" +
                       library.getSample().getName()+ "','" +
-                      qcpassed + "','" + "']");
+                      qcpassed + "','" + 
+                      (library.getIdentificationBarcode() != null ? library.getIdentificationBarcode() : "") +
+                      "']");
                       //"<a href=\"/miso/library/" + library.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "']");
       }
       j.put("array", jsonArray);
