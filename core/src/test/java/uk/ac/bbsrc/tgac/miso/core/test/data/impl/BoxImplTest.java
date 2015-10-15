@@ -12,31 +12,29 @@ import com.eaglegenomics.simlims.core.User;
 import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.*;
 
-
 public class BoxImplTest {
+
   @Test
-  public void testDefaults() {
+  public void testNotDefault() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
-    assertTrue(box.getNumRows() == 8);
-    assertTrue(box.getNumColumns() == 12);
+    box.setSize(size);
+    assertTrue(box.getSize().getRows() == 10);
+    assertTrue(box.getSize().getColumns() == 20);
 
     User user = null;
     box = new BoxImpl(user);
   }
 
   @Test
-  public void testNotDefault() {
-    Box box = new BoxImpl(10, 20);
-    assertTrue(box.getNumRows() == 10);
-    assertTrue(box.getNumColumns() == 20);
-
-    User user = null;
-    box = new BoxImpl(10, 20, user);
-  }
-
-  @Test
   public void testFreeandAdd() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     assertTrue(box.isFreePosition("A01"));
     assertTrue(box.isFreePosition("A12"));
     assertTrue(box.isFreePosition("H01"));
@@ -76,7 +74,11 @@ public class BoxImplTest {
 
   @Test
   public void testDefaultValidPositions() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     assertTrue(box.isValidPosition("A01"));
     assertTrue(box.isValidPosition("B01"));
     assertTrue(box.isValidPosition("D01"));
@@ -107,19 +109,31 @@ public class BoxImplTest {
 
   @Test
   public void getFreeTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     box.setBoxable("A01", new SampleImpl());
     box.setBoxable("B01", new LibraryImpl());
-    assertTrue(box.getFree() == 96-2);
+    assertTrue(box.getFree() == 96 - 2);
 
-    Box box2 = new BoxImpl(1, 1);
+    BoxSize size2 = new BoxSize();
+    size2.setColumns(1);
+    size2.setRows(1);
+    Box box2 = new BoxImpl();
+    box2.setSize(size2);
     box2.setBoxable("A01", new SampleImpl());
     assertTrue(box2.getFree() == 0);
   }
 
   @Test
   public void getsetBoxablesTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     Map<String, Boxable> map = new HashMap<String, Boxable>();
     map.put("A01", new SampleImpl());
     map.put("B01", new LibraryImpl());
@@ -130,7 +144,11 @@ public class BoxImplTest {
 
   @Test
   public void boxableExistsTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     Sample s = new SampleImpl();
     box.setBoxable("A01", s);
     Library l = new LibraryImpl();
@@ -141,7 +159,11 @@ public class BoxImplTest {
 
   @Test
   public void addRemoveBoxableTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     Sample s = new SampleImpl();
     box.setBoxable("A01", s);
     assertTrue(box.boxableExists(s));
@@ -156,7 +178,11 @@ public class BoxImplTest {
 
   @Test
   public void removeAllBoxablesTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     box.setBoxable("A01", new SampleImpl());
     box.setBoxable("B01", new SampleImpl());
     box.setBoxable("C01", new SampleImpl());
@@ -164,19 +190,23 @@ public class BoxImplTest {
     box.setBoxable("E01", new SampleImpl());
     box.setBoxable("F01", new SampleImpl());
     box.setBoxable("G01", new SampleImpl());
-    assertTrue(box.getSize()-box.getFree() == 7);
+    assertTrue(box.getTotalSize() - box.getFree() == 7);
     box.removeAllBoxables();
-    assertTrue(box.getFree() == box.getSize());
+    assertTrue(box.getFree() == box.getTotalSize());
 
     box.setBoxable("A01", new LibraryImpl());
-    assertTrue(box.getSize()-box.getFree() == 1);
+    assertTrue(box.getTotalSize() - box.getFree() == 1);
     box.removeAllBoxables();
-    assertTrue(box.getFree() == box.getSize());
+    assertTrue(box.getFree() == box.getTotalSize());
   }
 
   @Test
   public void setBoxableEmptyTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     Sample s = new SampleImpl();
     box.setBoxable("A01", s);
     box.setBoxableEmpty("A01");
@@ -185,7 +215,11 @@ public class BoxImplTest {
 
   @Test
   public void setAllBoxablesEmptyTest() {
+    BoxSize size = new BoxSize();
+    size.setColumns(20);
+    size.setRows(10);
     Box box = new BoxImpl();
+    box.setSize(size);
     Sample s1 = new SampleImpl();
     Sample s2 = new SampleImpl();
     Library l1 = new LibraryImpl();
@@ -195,7 +229,7 @@ public class BoxImplTest {
     assertTrue(!s2.isEmpty());
     assertTrue(!l1.isEmpty());
     assertTrue(!l2.isEmpty());
-    
+
     box.setBoxable("A01", s1);
     box.setBoxable("A02", s2);
     box.setBoxable("B01", l1);
