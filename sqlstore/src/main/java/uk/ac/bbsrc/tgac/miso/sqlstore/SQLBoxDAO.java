@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
@@ -17,7 +16,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
-import uk.ac.bbsrc.tgac.miso.core.data.AbstractDilution;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractBox;
 import uk.ac.bbsrc.tgac.miso.core.data.Box;
 import uk.ac.bbsrc.tgac.miso.core.data.BoxSize;
 import uk.ac.bbsrc.tgac.miso.core.data.BoxUse;
@@ -258,7 +257,7 @@ public class SQLBoxDAO implements BoxStore {
     params.addValue("identificationBarcode", box.getIdentificationBarcode());
     params.addValue("locationBarcode", box.getLocationBarcode());
 
-    if (box.getId() == AbstractDilution.UNSAVED_ID) {
+    if (box.getId() == AbstractBox.UNSAVED_ID) {
       SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("boxId");
       try {
         box.setId(DbUtils.getAutoIncrement(template, TABLE_NAME));
