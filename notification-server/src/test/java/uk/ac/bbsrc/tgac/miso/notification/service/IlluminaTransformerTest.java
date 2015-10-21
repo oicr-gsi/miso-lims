@@ -355,5 +355,4 @@ public class IlluminaTransformerTest {
     }
     assertTrue(sum == combined);
   }
-  
 }
