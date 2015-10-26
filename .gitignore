@@ -10,3 +10,6 @@ target/
 # ROOT (WAR file and extracted folder)
 build/ROOT.war
 build/ROOT/
+
+# Flyway database migration credentials file.
+sqlstore/flyway.properties
