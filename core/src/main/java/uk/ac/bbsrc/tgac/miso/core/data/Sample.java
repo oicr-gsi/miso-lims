@@ -307,4 +307,8 @@ public interface Sample
   public User getLastModifier();
 
   public void setLastModifier(User user);
+
+  public SampleAnalyte getSampleAnalyte();
+
+  public void setSampleAnalyte(SampleAnalyte sampleAnalyte);
 }
