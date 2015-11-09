@@ -14,30 +14,27 @@
   ~
   ~ MISO is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   ~ GNU General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License
-  ~ along with MISO.  If not, see <http://www.gnu.org/licenses/>.
+  ~ along with MISO. If not, see <http://www.gnu.org/licenses/>.
   ~
   ~ **********************************************************************
-  -->
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>miso</artifactId>
     <groupId>uk.ac.bbsrc.tgac.miso</groupId>
+    <artifactId>miso</artifactId>
     <version>0.2.1-SNAPSHOT</version>
   </parent>
 
-  <groupId>${parent.groupId}</groupId>
-  <version>${parent.version}</version>
   <artifactId>miso-web</artifactId>
 
   <packaging>war</packaging>
   <name>MISO MVC</name>
-  <modelVersion>4.0.0</modelVersion>
 
   <build>
     <finalName>ROOT</finalName>
@@ -95,7 +92,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-	          <version>2.3</version>
+            <version>2.3</version>
             <configuration>
               <webResources>
                 <resource>
@@ -122,13 +119,7 @@
         </resources>
       </build>
 
-      <dependencies>
-        <dependency>
-          <groupId>${parent.groupId}</groupId>
-          <artifactId>sqlstore</artifactId>
-          <version>${parent.version}</version>
-        </dependency>
-      </dependencies>
+
 
       <properties>
         <spring-version>3.1.3.RELEASE</spring-version>
@@ -269,11 +260,11 @@
     </repository>
 
     <!--
-    <repository>
+      <repository>
       <id>sonatype-sourceforge-snapshots</id>
       <name>Sonatype SF Repository</name>
       <url>http://oss.sonatype.org/content/repositories/sourceforge-snapshots/</url>
-    </repository>
+      </repository>
     -->
 
     <repository>
@@ -510,28 +501,28 @@
 
     <!--
       <dependency>
-        <groupId>oauth.signpost</groupId>
-        <artifactId>signpost-core</artifactId>
-        <version>1.2</version>
-        <exclusions>
-            <exclusion>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-            </exclusion>
-        </exclusions>
+      <groupId>oauth.signpost</groupId>
+      <artifactId>signpost-core</artifactId>
+      <version>1.2</version>
+      <exclusions>
+      <exclusion>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      </exclusion>
+      </exclusions>
       </dependency>
 
-    <dependency>
-        <groupId>com.atlassian.jira</groupId>
-        <artifactId>jira-rest-java-client</artifactId>
-        <version>0.1.1</version>
-        <exclusions>
-            <exclusion>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
+      <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client</artifactId>
+      <version>0.1.1</version>
+      <exclusions>
+      <exclusion>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      </exclusion>
+      </exclusions>
+      </dependency>
     -->
 
     <dependency>
@@ -552,12 +543,21 @@
       <version>1.19</version>
     </dependency>
     <!--
-    <dependency>
+      <dependency>
       <groupId>org.atmosphere</groupId>
       <artifactId>atmosphere-jquery</artifactId>
       <version>0.8.2</version>
-    </dependency>
+      </dependency>
     -->
+
+    <dependency>
+      <groupId>uk.ac.bbsrc.tgac.miso</groupId>
+      <artifactId>miso-dto</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
   </dependencies>
   <properties>
     <jdom-version>1.1</jdom-version>
