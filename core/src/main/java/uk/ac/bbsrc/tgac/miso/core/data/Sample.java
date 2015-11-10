@@ -311,4 +311,8 @@ public interface Sample
   public SampleAnalyte getSampleAnalyte();
 
   public void setSampleAnalyte(SampleAnalyte sampleAnalyte);
+
+  public Identity getIdentity();
+
+  public void setIdentity(Identity identity);
 }

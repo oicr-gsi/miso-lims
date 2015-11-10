@@ -111,6 +111,10 @@ public abstract class AbstractSample implements Sample {
   @JoinColumn(name = "sampleAnalyteId")
   private SampleAnalyte sampleAnalyte;
 
+  @OneToOne(targetEntity = Identity.class)
+  @JoinColumn(name = "identityId")
+  private Identity identity;
+
   @Override
   public User getLastModifier() {
     return lastModifier;
@@ -465,4 +469,15 @@ public abstract class AbstractSample implements Sample {
   public void setSampleAnalyte(SampleAnalyte sampleAnalyte) {
     this.sampleAnalyte = sampleAnalyte;
   }
+
+  @Override
+  public Identity getIdentity() {
+    return identity;
+  }
+
+  @Override
+  public void setIdentity(Identity identity) {
+    this.identity = identity;
+  }
+
 }
