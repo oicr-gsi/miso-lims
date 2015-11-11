@@ -23,6 +23,8 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -195,6 +197,27 @@ public class PlateControllerHelperService {
       e.printStackTrace();
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
     }
+  }
+  
+  public JSONObject changePlateIdBarcode(HttpSession session, JSONObject json) {
+    Long plateId = json.getLong("plateId");
+    String idBarcode = json.getString("identificationBarcode");
+    
+    try {
+      if (!isStringEmptyOrNull(idBarcode)) {
+        Plate<? extends List<? extends Plateable>, ? extends Plateable> plate = requestManager.getPlateById(plateId);
+        plate.setIdentificationBarcode(idBarcode);
+        requestManager.savePlate(plate);
+      } else {
+        return JSONUtils.SimpleJSONError("New identification barcode not recognized");
+      }
+    }
+    catch (IOException e) {
+      log.debug("Could not change Plate identificationBarcode: " + e.getMessage());
+      return JSONUtils.SimpleJSONError(e.getMessage());
+    }
+    
+    return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");
   }
 
   public JSONObject changePlateLocation(HttpSession session, JSONObject json) {

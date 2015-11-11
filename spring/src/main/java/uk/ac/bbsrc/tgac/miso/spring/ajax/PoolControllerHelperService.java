@@ -23,6 +23,8 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -423,6 +425,27 @@ public class PoolControllerHelperService {
       e.printStackTrace();
       return JSONUtils.SimpleJSONError("Cannot print barcodes: " + e.getMessage());
     }
+  }
+  
+  public JSONObject changePoolIdBarcode(HttpSession session, JSONObject json) {
+    Long poolId = json.getLong("poolId");
+    String idBarcode = json.getString("identificationBarcode");
+    
+    try {
+      if (!isStringEmptyOrNull(idBarcode)) {
+        Pool<? extends Poolable> pool = requestManager.getPoolById(poolId);
+        pool.setIdentificationBarcode(idBarcode);
+        requestManager.savePool(pool);
+      } else {
+        return JSONUtils.SimpleJSONError("New identification barcode not recognized");
+      }
+    }
+    catch (IOException e) {
+      log.debug("Could not change Pool identificationBarcode: " + e.getMessage());
+      return JSONUtils.SimpleJSONError(e.getMessage());
+    }
+    
+    return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");
   }
 
   public JSONObject poolSearchExperiments(HttpSession session, JSONObject json) {

@@ -23,6 +23,26 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+
+import javax.servlet.http.HttpSession;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.eaglegenomics.simlims.core.Note;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sf.json.JSONArray;
@@ -327,16 +347,13 @@ public class ProjectControllerHelperService {
       JSONObject j = new JSONObject();
       JSONArray jsonArray = new JSONArray();
       for (Project project : requestManager.listAllProjects()) {
-        String path = "/miso/project/" + project.getId();
-        jsonArray.add("['" + 
-                      TableHelper.hyperLinkify(path, project.getName(), true) + "','" +
-                      TableHelper.hyperLinkify(path, project.getAlias()) + "','" +
+        jsonArray.add("['" + project.getName() + "','" +
+                      project.getAlias() + "','" +
                       project.getDescription() + "','" +
                       project.getProgress().getKey() + "','" +
 //                      checkOverviews(project.getProjectId()) + "','" +
-                      project.getProjectId() + "']");
-                      //"<a href=\"/miso/project/" + project.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "']");
-
+                      project.getProjectId() + "','" +
+                      "<a href=\"/miso/project/" + project.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "']");
       }
       j.put("projectsArray", jsonArray);
       return j;

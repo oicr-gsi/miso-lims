@@ -23,6 +23,8 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -43,18 +45,23 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpSession;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
-
 import org.krysalis.barcode4j.BarcodeDimension;
 import org.krysalis.barcode4j.BarcodeGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
@@ -362,6 +369,27 @@ public class LibraryControllerHelperService {
 
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
   }
+  
+  public JSONObject changeLibraryIdBarcode(HttpSession session, JSONObject json) {
+    Long libraryId = json.getLong("libraryId");
+    String idBarcode = json.getString("identificationBarcode");
+    
+    try {
+      if (!isStringEmptyOrNull(idBarcode)) {
+        Library library = requestManager.getLibraryById(libraryId);
+        library.setIdentificationBarcode(idBarcode);
+        requestManager.saveLibrary(library);
+      } else {
+        return JSONUtils.SimpleJSONError("New identification barcode not recognized");
+      }
+    }
+    catch (IOException e) {
+      log.debug("Could not change Library identificationBarcode: " + e.getMessage());
+      return JSONUtils.SimpleJSONError(e.getMessage());
+    }
+    
+    return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");
+  }
 
   public JSONObject getLibraryDilutionBarcode(HttpSession session, JSONObject json) {
     Long dilutionId = json.getLong("dilutionId");
@@ -436,6 +464,7 @@ public class LibraryControllerHelperService {
               String selectionType = j.getString("selectionType");
               String strategyType = j.getString("strategyType");
               String locationBarcode = j.getString("locationBarcode");
+              String identificationBarcode = j.getString("identificationBarcode");
 
               Library library = new LibraryImpl();
               library.setSample(sample);
@@ -449,6 +478,7 @@ public class LibraryControllerHelperService {
               library.setLibraryType(requestManager.getLibraryTypeByDescription(type));
               library.setLibrarySelectionType(requestManager.getLibrarySelectionTypeByName(selectionType));
               library.setLibraryStrategyType(requestManager.getLibraryStrategyTypeByName(strategyType));
+              library.setIdentificationBarcode(identificationBarcode);
 
               String libAlias = libraryNamingScheme.generateNameFor("alias", library);
               library.setAlias(libAlias);
@@ -1198,8 +1228,10 @@ public class LibraryControllerHelperService {
                                                 library.getAlias()) + "','" +
                       library.getLibraryType().getDescription() + "','" +
                       library.getSample().getName()+ "','" +
-                      qcpassed + "','" + "']");
-                      //"<a href=\"/miso/library/" + library.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "']");
+                      qcpassed + "','" +
+                      "<a href=\"/miso/library/" + library.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "','" +
+                      (library.getIdentificationBarcode() != null ? library.getIdentificationBarcode() : "") +
+                      "']");
       }
       j.put("array", jsonArray);
       return j;
