@@ -594,6 +594,7 @@ public class SQLSampleDAO implements SampleStore {
       s.setLocationBarcode(rs.getString("locationBarcode"));
       s.setSampleType(rs.getString("sampleType"));
       s.setReceivedDate(rs.getDate("receivedDate"));
+
       if (rs.getString("qcPassed") != null) {
         s.setQcPassed(Boolean.parseBoolean(rs.getString("qcPassed")));
       } else {
