@@ -315,4 +315,8 @@ public interface Sample
   public Identity getIdentity();
 
   public void setIdentity(Identity identity);
+
+  public SampleAdditionalInfo getSampleAdditionalInfo();
+
+  public void setSampleAdditionalInfo(SampleAdditionalInfo sampleAdditionalInfo);
 }
