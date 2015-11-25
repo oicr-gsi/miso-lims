@@ -23,10 +23,10 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data;
 
-import java.util.ArrayList;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -34,8 +34,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -43,7 +41,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.w3c.dom.Document;
@@ -53,7 +50,6 @@ import com.eaglegenomics.simlims.core.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.bbsrc.tgac.miso.core.data.impl.IdentityImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleAdditionalInfoImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleAnalyteImpl;
@@ -77,7 +73,6 @@ import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 public abstract class AbstractSample implements Sample {
   protected static final Logger log = LoggerFactory.getLogger(AbstractSample.class);
   public static final Long UNSAVED_ID = 0L;
-  private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -119,7 +114,6 @@ public abstract class AbstractSample implements Sample {
   private String identificationBarcode;
   private String locationBarcode;
   private String alias;
-  @Transient
   private Date lastUpdated;
   private User lastModifier;
 
@@ -130,6 +124,10 @@ public abstract class AbstractSample implements Sample {
   @OneToOne(targetEntity = Identity.class)
   @JoinColumn(name = "identityId")
   private Identity identity;
+
+  @OneToOne(targetEntity = SampleAdditionalInfoImpl.class)
+  @JoinColumn(name = "sampleAdditionalInfoId")
+  private SampleAdditionalInfo sampleAdditionalInfo;
 
   @Override
   public User getLastModifier() {
@@ -407,10 +405,12 @@ public abstract class AbstractSample implements Sample {
   @Override
   public abstract void buildReport();
 
+  @Override
   public SampleAdditionalInfo getSampleAdditionalInfo() {
     return sampleAdditionalInfo;
   }
 
+  @Override
   public void setSampleAdditionalInfo(SampleAdditionalInfo sampleAdditionalInfo) {
     this.sampleAdditionalInfo = sampleAdditionalInfo;
   }

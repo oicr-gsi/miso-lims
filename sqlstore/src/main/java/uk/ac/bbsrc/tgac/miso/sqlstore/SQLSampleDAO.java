@@ -34,15 +34,10 @@ import java.util.regex.Matcher;
 
 import javax.persistence.CascadeType;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -51,11 +46,21 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eaglegenomics.simlims.core.Note;
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
+import com.googlecode.ehcache.annotations.Cacheable;
+import com.googlecode.ehcache.annotations.KeyGenerator;
+import com.googlecode.ehcache.annotations.Property;
+import com.googlecode.ehcache.annotations.TriggersRemove;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractSample;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
-import uk.ac.bbsrc.tgac.miso.core.data.SampleAnalyte;
 import uk.ac.bbsrc.tgac.miso.core.data.SampleQC;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectOverview;
 import uk.ac.bbsrc.tgac.miso.core.data.type.ProgressType;
@@ -68,20 +73,11 @@ import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
 import uk.ac.bbsrc.tgac.miso.core.store.LibraryStore;
 import uk.ac.bbsrc.tgac.miso.core.store.NoteStore;
 import uk.ac.bbsrc.tgac.miso.core.store.ProjectStore;
-import uk.ac.bbsrc.tgac.miso.core.store.SampleAnalyteStore;
 import uk.ac.bbsrc.tgac.miso.core.store.SampleQcStore;
 import uk.ac.bbsrc.tgac.miso.core.store.SampleStore;
 import uk.ac.bbsrc.tgac.miso.core.store.Store;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
-
-import com.eaglegenomics.simlims.core.Note;
-import com.eaglegenomics.simlims.core.SecurityProfile;
-import com.eaglegenomics.simlims.core.store.SecurityStore;
-import com.googlecode.ehcache.annotations.Cacheable;
-import com.googlecode.ehcache.annotations.KeyGenerator;
-import com.googlecode.ehcache.annotations.Property;
-import com.googlecode.ehcache.annotations.TriggersRemove;
 
 /**
  * uk.ac.bbsrc.tgac.miso.sqlstore
@@ -121,27 +117,18 @@ public class SQLSampleDAO implements SampleStore {
   public static String SAMPLES_SELECT_BY_PROJECT_ID = SAMPLES_SELECT + " WHERE project_projectId = ?";
 
   public static final String SAMPLES_SELECT_BY_EXPERIMENT_ID = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-      + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId "
-      + "FROM "
-      + TABLE_NAME
-      + " s, Experiment_Sample es "
+      + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId " + "FROM " + TABLE_NAME + " s, Experiment_Sample es "
       + "WHERE es.samples_sampleId=s.sampleId " + "AND es.Experiment_experimentId=?";
 
   public static final String SAMPLE_SELECT_BY_LIBRARY_ID = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-      + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId, s.lastModifier "
-      + "FROM "
-      + TABLE_NAME
-      + " s, Library l "
+      + "s.sampleType, s.receivedDate, s.qcPassed, s.project_projectId, s.lastModifier " + "FROM " + TABLE_NAME + " s, Library l "
       + "WHERE s.sampleId=l.sample_sampleId " + "AND l.libraryId=?";
 
   public static final String EXPERIMENT_SAMPLE_DELETE_BY_SAMPLE_ID = "DELETE FROM Experiment_Sample "
       + "WHERE samples_sampleId=:samples_sampleId";
 
   public static final String SAMPLES_BY_RELATED_SUBMISSION = "SELECT s.sampleId, s.name, s.description, s.scientificName, s.taxonIdentifier, s.alias, s.accession, s.securityProfile_profileId, s.identificationBarcode, s.locationBarcode, "
-      + "s.sampleType, s.receivedDate, s.qcPassed, project_projectId, s.lastModifier "
-      + "FROM "
-      + TABLE_NAME
-      + " s, Submission_Sample ss "
+      + "s.sampleType, s.receivedDate, s.qcPassed, project_projectId, s.lastModifier " + "FROM " + TABLE_NAME + " s, Submission_Sample ss "
       + "WHERE s.sampleId=ss.samples_sampleId " + "AND ss.submission_submissionId=?";
 
   public static final String SAMPLE_TYPES_SELECT = "SELECT name FROM SampleType";
@@ -153,7 +140,6 @@ public class SQLSampleDAO implements SampleStore {
   private ProjectStore projectDAO;
   private LibraryStore libraryDAO;
   private SampleQcStore sampleQcDAO;
-  private SampleAnalyteStore sampleAnalyteDAO;
   private NoteStore noteDAO;
   private CascadeType cascadeType;
   private boolean autoGenerateIdentificationBarcodes;
@@ -204,10 +190,6 @@ public class SQLSampleDAO implements SampleStore {
 
   public void setNoteDAO(NoteStore noteDAO) {
     this.noteDAO = noteDAO;
-  }
-
-  public void setSampleAnalyteDAO(SampleAnalyteStore sampleAnalyteDAO) {
-    this.sampleAnalyteDAO = sampleAnalyteDAO;
   }
 
   public void setLibraryDAO(LibraryStore libraryDAO) {
@@ -421,9 +403,6 @@ public class SQLSampleDAO implements SampleStore {
           noteDAO.saveSampleNote(sample, n);
         }
       }
-      if (!(sample.getSampleAnalyte() == null)) {
-        sampleAnalyteDAO.save(sample.getSampleAnalyte());
-      }
 
       purgeListCache(sample);
     }
@@ -617,17 +596,9 @@ public class SQLSampleDAO implements SampleStore {
 
           s.setNotes(noteDAO.listBySample(id));
 
-          SampleAnalyte sampleAnalyte = sampleAnalyteDAO.get(rs.getLong("sampleAnalyteId"));
-          if (sampleAnalyte != null) {
-            s.setSampleAnalyte(sampleAnalyte);
-          }
         } else {
           s.setProject(projectDAO.lazyGet(rs.getLong("project_projectId")));
 
-          SampleAnalyte sampleAnalyte = sampleAnalyteDAO.lazyGet(rs.getLong("sampleAnalyteId"));
-          if (sampleAnalyte != null) {
-            s.setSampleAnalyte(sampleAnalyte);
-          }
         }
         s.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
       } catch (IOException e1) {
