@@ -44,24 +44,26 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 import org.w3c.dom.Document;
+
 import com.eaglegenomics.simlims.core.Note;
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.bbsrc.tgac.miso.core.data.impl.IdentityImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleAdditionalInfoImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleAnalyteImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleAnalyteNode;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleIdentityNode;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleImpl;
+import uk.ac.bbsrc.tgac.miso.core.data.impl.UserImpl;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleQcException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
-
 
 /**
  * Skeleton implementation of a Sample
@@ -92,6 +94,8 @@ public abstract class AbstractSample implements Sample {
 
   @Transient
   private Collection<Note> notes = new HashSet<Note>();
+
+  @Transient
   private final Collection<ChangeLog> changeLog = new ArrayList<>();
 
   @Transient
@@ -114,14 +118,19 @@ public abstract class AbstractSample implements Sample {
   private String identificationBarcode;
   private String locationBarcode;
   private String alias;
+
+  @Transient
   private Date lastUpdated;
+
+  @OneToOne(targetEntity = UserImpl.class)
+  @JoinColumn(name = "lastModifier", nullable = false)
   private User lastModifier;
 
   @OneToOne(targetEntity = SampleAnalyteImpl.class)
   @JoinColumn(name = "sampleAnalyteId")
   private SampleAnalyte sampleAnalyte;
 
-  @OneToOne(targetEntity = Identity.class)
+  @OneToOne(targetEntity = IdentityImpl.class)
   @JoinColumn(name = "identityId")
   private Identity identity;
 
