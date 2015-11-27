@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -44,6 +43,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.factory.TgacDataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
+import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
 import uk.ac.bbsrc.tgac.miso.core.store.NoteStore;
 import uk.ac.bbsrc.tgac.miso.core.store.RunQcStore;
 import uk.ac.bbsrc.tgac.miso.core.store.SequencerPartitionContainerStore;
@@ -52,7 +52,6 @@ import uk.ac.bbsrc.tgac.miso.core.store.StatusStore;
 import uk.ac.bbsrc.tgac.miso.core.store.Store;
 import uk.ac.bbsrc.tgac.miso.core.store.WatcherStore;
 
-@Ignore("Temporarily disabled due to https://jira.oicr.on.ca/browse/GLT-316")
 public class SQLRunDAOTest extends AbstractDAOTest {
 
   @Rule
@@ -80,6 +79,8 @@ public class SQLRunDAOTest extends AbstractDAOTest {
   private NoteStore noteDAO;
   @Mock
   private WatcherStore watcherDAO;
+  @Mock
+  private ChangeLogStore changeLogDAO;
 
   @InjectMocks
   private SQLRunDAO dao;
