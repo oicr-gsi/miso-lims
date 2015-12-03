@@ -25,6 +25,7 @@ package uk.ac.bbsrc.tgac.miso.core.data;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
@@ -319,4 +320,12 @@ public interface Sample
   public SampleAdditionalInfo getSampleAdditionalInfo();
 
   public void setSampleAdditionalInfo(SampleAdditionalInfo sampleAdditionalInfo);
+
+  public Sample getParent();
+
+  public void setParent(Sample parent);
+
+  public Set<Sample> getChildren();
+
+  public void setChildren(Set<Sample> children);
 }
