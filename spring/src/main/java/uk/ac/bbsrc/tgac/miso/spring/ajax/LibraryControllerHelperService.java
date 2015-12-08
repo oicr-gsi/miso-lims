@@ -132,8 +132,7 @@ public class LibraryControllerHelperService {
           return JSONUtils.SimpleJSONResponse("OK");
         } else {
           log.error("Library alias not valid: " + alias);
-          return JSONUtils.SimpleJSONError("The following Library alias doesn't conform to the chosen naming scheme ("
-              + libraryNamingScheme.getValidationRegex("alias") + ") or already exists: " + json.getString("alias"));
+          return JSONUtils.SimpleJSONError("Alias already exists in the database! "+json.getString("alias"));
         }
       } catch (MisoNamingException e) {
         log.error("Cannot validate Library alias " + json.getString("alias"), e);
