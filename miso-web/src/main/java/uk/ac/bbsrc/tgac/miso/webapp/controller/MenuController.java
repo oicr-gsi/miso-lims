@@ -139,6 +139,11 @@ public class MenuController implements ServletContextAware {
   public String activityMenu() {
     return "/pages/activityMenu.jsp";
   }
+  
+  @RequestMapping("/tissueOptions")
+  public String tissueOptions() {
+    return "/pages/tissueOptions.jsp";
+  }
 
   @Override
   public void setServletContext(ServletContext servletContext) {
