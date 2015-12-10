@@ -69,6 +69,7 @@ import uk.ac.bbsrc.tgac.miso.core.store.ProjectStore;
 import uk.ac.bbsrc.tgac.miso.core.store.SampleQcStore;
 import uk.ac.bbsrc.tgac.miso.core.store.SampleStore;
 import uk.ac.bbsrc.tgac.miso.core.store.Store;
+import uk.ac.bbsrc.tgac.miso.core.validation.EntityValidator;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 
@@ -155,6 +156,9 @@ public class SQLSampleDAO implements SampleStore {
   private boolean autoGenerateIdentificationBarcodes;
   private ChangeLogStore changeLogDAO;
   private SecurityStore securityDAO;
+
+  @Autowired
+  private EntityValidator<Sample> sampleValidator;
 
   @Autowired
   private MisoNamingScheme<Sample> sampleNamingScheme;
@@ -306,6 +310,7 @@ public class SQLSampleDAO implements SampleStore {
       "lazySampleCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public long save(Sample sample) throws IOException {
+    sampleValidator.validate(sample);
     Long securityProfileId = sample.getSecurityProfile().getProfileId();
     if (this.cascadeType != null) {
       securityProfileId = securityProfileDAO.save(sample.getSecurityProfile());

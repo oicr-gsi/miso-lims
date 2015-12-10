@@ -117,6 +117,7 @@ public class SampleControllerHelperService {
   @Autowired
   private CacheHelperService cacheHelperService;
 
+  // TODO DESTROY THIS
   public JSONObject validateSampleAlias(HttpSession session, JSONObject json) {
     if (json.has("alias")) {
       String alias = json.getString("alias");

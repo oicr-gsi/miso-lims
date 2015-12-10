@@ -89,4 +89,6 @@
 
   <bean id="filePathGeneratorResolverService" name="filePathGeneratorResolverService" class="uk.ac.bbsrc.tgac.miso.core.service.submission.MisoFilePathGeneratorResolverService"/>
 
+  <bean id="sampleValidator" name="sampleValidator" class="uk.ac.bbsrc.tgac.miso.core.validation.DefaultSampleValidator"/>
+  
 </beans>
