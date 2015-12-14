@@ -39,6 +39,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.PoolQC;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedPoolException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.store.PoolQcStore;
 import uk.ac.bbsrc.tgac.miso.core.store.PoolStore;
@@ -119,7 +120,7 @@ public class SQLPoolQCDAO implements PoolQcStore {
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)
-  public long save(PoolQC poolQC) throws IOException {
+  public long save(PoolQC poolQC) throws IOException, ValidationFailureException {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("pool_poolId", poolQC.getPool().getId());
     params.addValue("qcUserName", poolQC.getQcCreator());
@@ -188,7 +189,12 @@ public class SQLPoolQCDAO implements PoolQcStore {
     if (qc.isDeletable() && (namedTemplate.update(POOL_QC_DELETE, new MapSqlParameterSource().addValue("qcId", qc.getId())) == 1)) {
       Pool l = qc.getPool();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (l != null) poolDAO.save(l);
+        try {
+          if (l != null)
+            poolDAO.save(l);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for Pool on remove.");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (l != null) {
           DbUtils.updateCaches(cacheManager, l, Pool.class);

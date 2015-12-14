@@ -40,6 +40,7 @@ import uk.ac.bbsrc.tgac.miso.core.event.Event;
 import uk.ac.bbsrc.tgac.miso.core.event.ResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.alerter.DaoAlerterService;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.impl

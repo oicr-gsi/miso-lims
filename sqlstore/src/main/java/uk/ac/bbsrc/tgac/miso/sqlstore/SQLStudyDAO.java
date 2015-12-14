@@ -51,6 +51,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -200,7 +201,7 @@ public class SQLStudyDAO implements StudyStore {
   @TriggersRemove(cacheName = { "studyCache",
       "lazyStudyCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Study study) throws IOException {
+  public long save(Study study) throws IOException, ValidationFailureException {
     Long securityProfileId = study.getSecurityProfile().getProfileId();
     if (this.cascadeType != null) {
       securityProfileId = securityProfileDAO.save(study.getSecurityProfile());
@@ -316,7 +317,12 @@ public class SQLStudyDAO implements StudyStore {
     if (study.isDeletable() && (namedTemplate.update(STUDY_DELETE, new MapSqlParameterSource().addValue("studyId", study.getId())) == 1)) {
       Project p = study.getProject();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (p != null) projectDAO.save(p);
+        try {
+          if (p != null)
+            projectDAO.save(p);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation for study failed on remove");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (p != null) {
           DbUtils.updateCaches(cacheManager, p, Project.class);

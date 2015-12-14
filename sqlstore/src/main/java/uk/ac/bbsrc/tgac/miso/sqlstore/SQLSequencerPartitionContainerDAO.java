@@ -52,6 +52,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.AbstractSequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -292,7 +293,8 @@ public class SQLSequencerPartitionContainerDAO implements SequencerPartitionCont
   @TriggersRemove(cacheName = { "sequencerPartitionContainerCache",
       "lazySequencerPartitionContainerCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public synchronized long save(SequencerPartitionContainer<SequencerPoolPartition> sequencerPartitionContainer) throws IOException {
+  public synchronized long save(SequencerPartitionContainer<SequencerPoolPartition> sequencerPartitionContainer)
+          throws IOException, ValidationFailureException {
     Long securityProfileId = sequencerPartitionContainer.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) { // && this.cascadeType.equals(CascadeType.PERSIST))) {
       securityProfileId = securityProfileDAO.save(sequencerPartitionContainer.getSecurityProfile());

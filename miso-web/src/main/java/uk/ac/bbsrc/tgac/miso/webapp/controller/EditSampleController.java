@@ -69,6 +69,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -453,10 +454,13 @@ public class EditSampleController {
       model.clear();
       return "redirect:/miso/sample/" + sample.getId();
     } catch (IOException ex) {
-      if (log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
         log.debug("Failed to save sample", ex);
       }
       throw ex;
+    } catch (ValidationFailureException ex) {
+      model.put("backEndError", ex.getMessage());
+      return sample.getId() == AbstractSample.UNSAVED_ID ? "/miso/sample/new" : "/miso/sample/" + sample.getId();
     }
   }
 }

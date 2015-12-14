@@ -24,6 +24,7 @@
 package uk.ac.bbsrc.tgac.miso.core.event;
 
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 /**
  * A simple interface defining a scenario in which an {@link Alert} can be raised.

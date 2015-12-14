@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
 import uk.ac.bbsrc.tgac.miso.core.event.AlerterService;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.store.AlertStore;
 
 /**
@@ -64,6 +65,9 @@ public class DaoAlerterService implements AlerterService {
     } catch (IOException e) {
       log.error("Cannot save alert to DAO", e);
       throw new AlertingException("Cannot save alert to DAO", e);
+    } catch (ValidationFailureException e) {
+      log.error("Validation failed for alert");
+      throw new AlertingException("Validation failed for alert", e);
     }
   }
 }

@@ -59,6 +59,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.PoolAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedPoolQcException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -373,7 +374,7 @@ public class SQLPoolDAO implements PoolStore {
   @TriggersRemove(cacheName = { "poolCache",
       "lazyPoolCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Pool<? extends Poolable> pool) throws IOException {
+  public long save(Pool<? extends Poolable> pool) throws IOException, ValidationFailureException {
     User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
 
     Long securityProfileId = pool.getSecurityProfile().getProfileId();

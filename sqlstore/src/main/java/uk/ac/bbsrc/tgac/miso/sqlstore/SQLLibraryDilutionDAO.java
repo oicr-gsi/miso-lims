@@ -31,6 +31,7 @@ import net.sf.ehcache.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.*;
 import uk.ac.bbsrc.tgac.miso.core.store.EmPCRStore;
@@ -295,7 +296,7 @@ public class SQLLibraryDilutionDAO implements LibraryDilutionStore {
   @TriggersRemove(cacheName = { "libraryDilutionCache",
       "lazyLibraryDilutionCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(LibraryDilution dilution) throws IOException {
+  public long save(LibraryDilution dilution) throws IOException, ValidationFailureException {
     Long securityProfileId = dilution.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) {
       securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
@@ -381,7 +382,12 @@ public class SQLLibraryDilutionDAO implements LibraryDilutionStore {
         && (namedTemplate.update(LIBRARY_DILUTION_DELETE, new MapSqlParameterSource().addValue("dilutionId", d.getId())) == 1)) {
       Library l = d.getLibrary();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (l != null) libraryDAO.save(l);
+        try {
+          if (l != null)
+            libraryDAO.save(l);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for library on remove in LibraryDilutionDAO");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (l != null) {
           DbUtils.updateCaches(cacheManager, l, Library.class);

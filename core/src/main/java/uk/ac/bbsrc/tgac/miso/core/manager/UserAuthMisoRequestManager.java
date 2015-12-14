@@ -67,6 +67,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.UserImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCR;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCRDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 
 /**
@@ -131,7 +132,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveProject(Project project) throws IOException {
+  public long saveProject(Project project) throws ValidationFailureException, IOException {
     if (writeCheck(project)) {
       return super.saveProject(project);
     } else {
@@ -140,7 +141,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveProjectOverview(ProjectOverview overview) throws IOException {
+  public long saveProjectOverview(ProjectOverview overview) throws ValidationFailureException, IOException {
     if (writeCheck(overview.getProject())) {
       return super.saveProjectOverview(overview);
     } else {
@@ -149,7 +150,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws IOException {
+  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws ValidationFailureException, IOException {
     if (writeCheck(overview.getProject())) {
       return super.saveProjectOverviewNote(overview, note);
     } else {
@@ -158,7 +159,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveRun(Run run) throws IOException {
+  public long saveRun(Run run) throws ValidationFailureException, IOException {
     if (writeCheck(run)) {
       return super.saveRun(run);
     } else {
@@ -167,7 +168,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveRunQC(RunQC runQC) throws IOException {
+  public long saveRunQC(RunQC runQC) throws ValidationFailureException, IOException {
     if (writeCheck(runQC.getRun())) {
       return super.saveRunQC(runQC);
     } else {
@@ -176,7 +177,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSample(Sample sample) throws IOException {
+  public long saveSample(Sample sample) throws ValidationFailureException, IOException {
     if (writeCheck(sample)) {
       return super.saveSample(sample);
     } else {
@@ -185,7 +186,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSampleQC(SampleQC sampleQC) throws IOException {
+  public long saveSampleQC(SampleQC sampleQC) throws ValidationFailureException, IOException {
     if (writeCheck(sampleQC.getSample())) {
       return super.saveSampleQC(sampleQC);
     } else {
@@ -194,7 +195,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSampleNote(Sample sample, Note note) throws IOException {
+  public long saveSampleNote(Sample sample, Note note) throws ValidationFailureException, IOException {
     if (writeCheck(sample)) {
       return super.saveSampleNote(sample, note);
     } else {
@@ -203,7 +204,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveLibrary(Library library) throws IOException {
+  public long saveLibrary(Library library) throws ValidationFailureException, IOException {
     if (writeCheck(library)) {
       return super.saveLibrary(library);
     } else {
@@ -212,7 +213,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveLibraryDilution(LibraryDilution libraryDilution) throws IOException {
+  public long saveLibraryDilution(LibraryDilution libraryDilution) throws ValidationFailureException, IOException {
     if (writeCheck(libraryDilution)) {
       return super.saveLibraryDilution(libraryDilution);
     } else {
@@ -221,7 +222,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveLibraryNote(Library library, Note note) throws IOException {
+  public long saveLibraryNote(Library library, Note note) throws ValidationFailureException, IOException {
     if (writeCheck(library)) {
       return super.saveLibraryNote(library, note);
     } else {
@@ -230,7 +231,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveLibraryQC(LibraryQC libraryQC) throws IOException {
+  public long saveLibraryQC(LibraryQC libraryQC) throws ValidationFailureException, IOException {
     if (writeCheck(libraryQC.getLibrary())) {
       return super.saveLibraryQC(libraryQC);
     } else {
@@ -239,7 +240,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long savePool(Pool pool) throws IOException {
+  public long savePool(Pool pool) throws ValidationFailureException, IOException {
     if (writeCheck(pool)) {
       return super.savePool(pool);
     } else {
@@ -248,7 +249,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long savePoolQC(PoolQC poolQC) throws IOException {
+  public long savePoolQC(PoolQC poolQC) throws ValidationFailureException, IOException {
     if (writeCheck(poolQC.getPool())) {
       return super.savePoolQC(poolQC);
     } else {
@@ -257,7 +258,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveEmPCR(emPCR pcr) throws IOException {
+  public long saveEmPCR(emPCR pcr) throws ValidationFailureException, IOException {
     if (writeCheck(pcr)) {
       return super.saveEmPCR(pcr);
     } else {
@@ -266,7 +267,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveEmPCRDilution(emPCRDilution dilution) throws IOException {
+  public long saveEmPCRDilution(emPCRDilution dilution) throws ValidationFailureException, IOException {
     if (writeCheck(dilution)) {
       return super.saveEmPCRDilution(dilution);
     } else {
@@ -275,7 +276,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveExperiment(Experiment experiment) throws IOException {
+  public long saveExperiment(Experiment experiment) throws ValidationFailureException, IOException {
     if (writeCheck(experiment)) {
       return super.saveExperiment(experiment);
     } else {
@@ -284,7 +285,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveStudy(Study study) throws IOException {
+  public long saveStudy(Study study) throws ValidationFailureException, IOException {
     if (writeCheck(study)) {
       return super.saveStudy(study);
     } else {
@@ -293,7 +294,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws IOException {
+  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws ValidationFailureException, IOException {
     if (writeCheck(partition)) {
       return super.saveSequencerPoolPartition(partition);
     } else {
@@ -302,7 +303,8 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSequencerPartitionContainer(SequencerPartitionContainer container) throws IOException {
+  public long saveSequencerPartitionContainer(SequencerPartitionContainer container)
+          throws ValidationFailureException, IOException {
     if (writeCheck(container)) {
       return super.saveSequencerPartitionContainer(container);
     } else {
@@ -311,7 +313,7 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveSubmission(Submission submission) throws IOException {
+  public long saveSubmission(Submission submission) throws ValidationFailureException, IOException {
     if (writeCheck(submission)) {
       return super.saveSubmission(submission);
     } else {
@@ -320,7 +322,8 @@ public class UserAuthMisoRequestManager extends MisoRequestManager {
   }
 
   @Override
-  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup) throws IOException {
+  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup)
+          throws ValidationFailureException, IOException {
     return super.saveEntityGroup(entityGroup);
   }
 

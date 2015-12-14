@@ -37,6 +37,7 @@ import uk.ac.bbsrc.tgac.miso.core.event.impl.DefaultAlert;
 import uk.ac.bbsrc.tgac.miso.core.event.model.ProjectOverviewEvent;
 import uk.ac.bbsrc.tgac.miso.core.event.type.MisoEventType;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.responder

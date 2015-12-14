@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.EntityGroupImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectOverview;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.store.EntityGroupStore;
 import uk.ac.bbsrc.tgac.miso.core.store.ProjectStore;
 import uk.ac.bbsrc.tgac.miso.core.store.Store;
@@ -171,7 +172,8 @@ public class SQLEntityGroupDAO implements EntityGroupStore {
   }
 
   @Override
-  public long save(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup) throws IOException {
+  public long save(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup)
+          throws IOException, ValidationFailureException {
     // save group
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("parentId", entityGroup.getParent().getId());

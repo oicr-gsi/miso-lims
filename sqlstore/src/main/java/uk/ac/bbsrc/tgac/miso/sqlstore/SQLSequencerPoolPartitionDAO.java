@@ -41,6 +41,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractPartition;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.store.PartitionStore;
 import uk.ac.bbsrc.tgac.miso.core.store.PoolStore;
@@ -167,7 +168,7 @@ public class SQLSequencerPoolPartitionDAO implements PartitionStore {
   @TriggersRemove(cacheName = { "sequencerPoolPartitionCache",
       "lazySequencerPoolPartitionCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(SequencerPoolPartition partition) throws IOException {
+  public long save(SequencerPoolPartition partition) throws IOException, ValidationFailureException {
     Long securityProfileId = partition.getSecurityProfile().getProfileId();
     if (securityProfileId == null || this.cascadeType != null) { // && this.cascadeType.equals(CascadeType.PERSIST)) {
       securityProfileDAO.save(partition.getSecurityProfile());

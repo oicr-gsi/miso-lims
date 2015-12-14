@@ -41,6 +41,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.AbstractQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.data.LibraryQC;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
@@ -121,7 +122,7 @@ public class SQLLibraryQCDAO implements LibraryQcStore {
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)
-  public long save(LibraryQC libraryQC) throws IOException {
+  public long save(LibraryQC libraryQC) throws IOException, ValidationFailureException {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("library_libraryId", libraryQC.getLibrary().getId());
     params.addValue("qcUserName", libraryQC.getQcCreator());
@@ -193,7 +194,12 @@ public class SQLLibraryQCDAO implements LibraryQcStore {
     if (qc.isDeletable() && (namedTemplate.update(LIBRARY_QC_DELETE, new MapSqlParameterSource().addValue("qcId", qc.getId())) == 1)) {
       Library l = qc.getLibrary();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (l != null) libraryDAO.save(l);
+        try {
+          if (l != null)
+            libraryDAO.save(l);
+        } catch (ValidationFailureException e) {
+          log.error("Validation for LibraryQC on remove failed");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE) || this.cascadeType.equals(CascadeType.ALL)) {
         if (l != null) {
           DbUtils.updateCaches(cacheManager, l, Library.class);

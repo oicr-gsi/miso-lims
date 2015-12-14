@@ -68,6 +68,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryQcException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -293,7 +294,7 @@ public class SQLLibraryDAO implements LibraryStore {
   @TriggersRemove(cacheName = { "libraryCache",
       "lazyLibraryCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Library library) throws IOException {
+  public long save(Library library) throws IOException, ValidationFailureException {
     Long securityProfileId = library.getSecurityProfile().getProfileId();
     if (this.cascadeType != null) {
       securityProfileId = securityProfileDAO.save(library.getSecurityProfile());
@@ -512,7 +513,12 @@ public class SQLLibraryDAO implements LibraryStore {
         for (Pool p : poolDAO.listByLibraryId(library.getId())) {
           DbUtils.updateCaches(cacheManager, p, Pool.class);
         }
-        sampleDAO.save(library.getSample());
+        try {
+          sampleDAO.save(library.getSample());
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for library sample on remove in LibraryDAO");
+          throw new IOException("Validation failed for library sample on remove in LibraryDAO");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         for (Pool p : poolDAO.listByLibraryId(library.getId())) {
           DbUtils.updateCaches(cacheManager, p, Pool.class);

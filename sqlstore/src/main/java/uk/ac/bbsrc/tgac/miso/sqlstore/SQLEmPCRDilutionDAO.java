@@ -43,6 +43,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCR;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCRDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.*;
@@ -266,7 +267,7 @@ public class SQLEmPCRDilutionDAO implements EmPCRDilutionStore {
   @TriggersRemove(cacheName = { "emPCRDilutionCache",
       "lazyEmPCRDilutionCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(emPCRDilution dilution) throws IOException {
+  public long save(emPCRDilution dilution) throws IOException, ValidationFailureException {
     Long securityProfileId = dilution.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) { // && this.cascadeType.equals(CascadeType.PERSIST))) {
       securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
@@ -350,7 +351,12 @@ public class SQLEmPCRDilutionDAO implements EmPCRDilutionStore {
         && (namedTemplate.update(EMPCR_DILUTION_DELETE, new MapSqlParameterSource().addValue("dilutionId", d.getId())) == 1)) {
       emPCR e = d.getEmPCR();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (e != null) emPcrDAO.save(e);
+        try {
+          if (e != null)
+            emPcrDAO.save(e);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for emPCRDilution on remove.");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (e != null) {
           DbUtils.updateCaches(cacheManager, e, emPCR.class);

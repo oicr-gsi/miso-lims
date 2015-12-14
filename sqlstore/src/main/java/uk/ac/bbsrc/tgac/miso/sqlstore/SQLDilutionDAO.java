@@ -32,13 +32,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCR;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.*;
 import uk.ac.bbsrc.tgac.miso.core.store.EmPCRStore;
 import uk.ac.bbsrc.tgac.miso.core.store.DilutionStore;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.TriggersRemove;
-import org.slf4j.Logger;
+import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -388,8 +389,13 @@ public class SQLDilutionDAO implements DilutionStore {
       @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public long saveLibraryDilution(LibraryDilution dilution) throws IOException {
     Long securityProfileId = dilution.getSecurityProfile().getProfileId();
+
     if (securityProfileId == null || (this.cascadeType != null)) { // && this.cascadeType.equals(CascadeType.PERSIST))) {
-      securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
+      try {
+        securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
+      } catch (ValidationFailureException ex) {
+        log.error("Validate failed for security profile in library dilution on save");
+      }
     }
 
     MapSqlParameterSource params = new MapSqlParameterSource();
@@ -445,7 +451,12 @@ public class SQLDilutionDAO implements DilutionStore {
     if (this.cascadeType != null) {
       Library l = dilution.getLibrary();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (l != null) libraryDAO.save(l);
+        try {
+          if (l != null)
+            libraryDAO.save(l);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for library dilution");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (l != null) {
           Cache pc = cacheManager.getCache("libraryCache");
@@ -481,7 +492,11 @@ public class SQLDilutionDAO implements DilutionStore {
   public long saveEmPCRDilution(emPCRDilution dilution) throws IOException {
     Long securityProfileId = dilution.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) { // && this.cascadeType.equals(CascadeType.PERSIST))) {
-      securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
+      try {
+        securityProfileId = securityProfileDAO.save(dilution.getSecurityProfile());
+      } catch (ValidationFailureException ex) {
+        log.error("Failed to validate EmPCR dilution on save");
+      }
     }
 
     MapSqlParameterSource params = new MapSqlParameterSource();
@@ -537,7 +552,12 @@ public class SQLDilutionDAO implements DilutionStore {
     if (this.cascadeType != null) {
       emPCR e = dilution.getEmPCR();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (e != null) emPcrDAO.save(e);
+        try {
+          if (e != null)
+            emPcrDAO.save(e);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for emPCR on save.", ex);
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (e != null) {
           Cache pc = cacheManager.getCache("empcrCache");
@@ -550,7 +570,7 @@ public class SQLDilutionDAO implements DilutionStore {
   }
 
   @Override
-  public long save(Dilution dilution) throws IOException {
+  public long save(Dilution dilution) throws IOException, ValidationFailureException {
     if (dilution instanceof LibraryDilution) {
       return saveLibraryDilution((LibraryDilution) dilution);
     } else if (dilution instanceof emPCRDilution) {
@@ -605,7 +625,13 @@ public class SQLDilutionDAO implements DilutionStore {
         && (namedTemplate.update(LIBRARY_DILUTION_DELETE, new MapSqlParameterSource().addValue("dilutionId", d.getId())) == 1)) {
       Library l = d.getLibrary();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (l != null) libraryDAO.save(l);
+        try {
+          if (l != null)
+            libraryDAO.save(l);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for library on remove.");
+          throw new IOException("Validation failed for library on remove.");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (l != null) {
           Cache pc = cacheManager.getCache("libraryCache");
@@ -626,7 +652,12 @@ public class SQLDilutionDAO implements DilutionStore {
         && (namedTemplate.update(EMPCR_DILUTION_DELETE, new MapSqlParameterSource().addValue("dilutionId", d.getId())) == 1)) {
       emPCR e = d.getEmPCR();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (e != null) emPcrDAO.save(e);
+        try {
+          if (e != null)
+            emPcrDAO.save(e);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for emPcr on remove");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (e != null) {
           Cache pc = cacheManager.getCache("empcrCache");

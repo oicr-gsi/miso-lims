@@ -27,35 +27,45 @@ import net.sourceforge.fluxion.spi.ServiceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ServiceProvider
 public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
   protected static final Logger log = LoggerFactory.getLogger(DefaultSampleValidator.class);
-  //private Map<String, EntityValidatorFunction> validations;
+
+  @Autowired
+  private MisoNamingScheme<Sample> sampleNamingScheme;
 
   public DefaultSampleValidator() {
-    //super("frog not valid", (String s) -> s == "frog");
+    // Pleaaaase give me λs  😭😭
+
+    addGlobalValidation("length", new EntityFieldValidatorFunction() {
+      public boolean validate(String data) throws ValidationFailureException, MisoNamingException {
+        return data.length() < 100;
+      }
+    });
+
+    addValidation("alias", new EntityFieldValidatorFunction() {
+      public boolean validate(String data) throws MisoNamingException {
+        return sampleNamingScheme.validateField("alias", data);
+      }
+    });
   }
 
   @Override
-  public boolean validateField(String field) {
-    return validateFunction.validate(field);
-  }
-
-  @Override
-  public boolean validate() {
-    return false;
-  }
-
-  @Override
-  public boolean validate(Sample s) {
-    return validateFunction.validate(s.getAlias());
-  }
-
-  @Override
-  public void addValidation(String field, EntityFieldValidatorFunction f) {
-    this.validateFunction = f;
-    // TODO map
+  public boolean validate(Sample s) throws ValidationFailureException, MisoNamingException {
+    Map<String, String> data = new HashMap<String, String>();
+    data.put("alias", s.getAlias());
+    data.put("description", s.getDescription());
+    data.put("date", s.getLastUpdated().toString());
+    data.put("scientificName", s.getScientificName());
+    return validate(data);
   }
 }

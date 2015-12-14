@@ -23,20 +23,54 @@
 package uk.ac.bbsrc.tgac.miso.core.validation;
 
 import net.sourceforge.fluxion.spi.Spi;
+import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+
+import java.util.Map;
 
 @Spi
 public interface EntityValidator<T> {
-  public void setFailureMessage(String failMessage);
 
-  public String getFailureMessage();
+  /**
+   * Validates a single field, given the field name and corresponding data for that field
+   * @param field
+   * @param data
+   * @return true if the validation succeeded
+   * @throws ValidationFailureException
+   * @throws MisoNamingException
+   */
+  public boolean validateField(String field, String data) throws ValidationFailureException, MisoNamingException;
 
-  //public EntityValidator<T>(String failMessage, EntityFieldValidatorFunction validateFunction);
+  /**
+   * Given an entity, T, validate it completely. If validation fails, throw a ValidationFailureException
+   * @param entity to validate
+   * @return true if validation succeeds
+   * @throws ValidationFailureException
+   * @throws MisoNamingException
+   */
+  public boolean validate(T t) throws ValidationFailureException, MisoNamingException;
 
-  public boolean validateField(String field);
+  /**
+   *  Validates a map of <field, value> pairs. For example, <"alias", "SAM_S0001_TEST">.
+   *  The keys (representing the field) must correspond to those stored in the validations map
+   * @param Map<String, String> data>
+   * @return boolean
+   * @throws ValidationFailureException
+   * @throws MisoNamingException
+   */
+  public boolean validate(Map<String, String> data) throws ValidationFailureException, MisoNamingException;
 
-  public boolean validate();
-
-  public boolean validate(T t);
-
+  /**
+   * Adds a validation rule to be checked when validating an entire Entity
+   * @param field
+   * @param fn
+   */
   public void addValidation(String field, EntityFieldValidatorFunction fn);
+
+  /**
+   * Add a global validation rule that will apply to all fields when validating
+   * @param name
+   * @param fn
+   */
+  public void addGlobalValidation(String name, EntityFieldValidatorFunction fn);
 }

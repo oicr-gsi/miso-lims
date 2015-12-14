@@ -56,6 +56,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Plateable;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlateMaterialType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -280,7 +281,8 @@ public class SQLPlateDAO implements PlateStore {
   @TriggersRemove(cacheName = { "plateCache",
       "lazyPlateCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Plate<? extends List<? extends Plateable>, ? extends Plateable> plate) throws IOException {
+  public long save(Plate<? extends List<? extends Plateable>, ? extends Plateable> plate)
+          throws ValidationFailureException, IOException {
     Long securityProfileId = plate.getSecurityProfile().getProfileId();
     if (securityProfileId == SecurityProfile.UNSAVED_ID || (this.cascadeType != null)) {
       securityProfileId = securityProfileDAO.save(plate.getSecurityProfile());

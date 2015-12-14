@@ -60,6 +60,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.ProgressType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleQcException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -267,7 +268,7 @@ public class SQLSampleDAO implements SampleStore {
   }
 
   // TODO finish this
-  public int[] batchSave(final Collection<Sample> samples) throws IOException {
+  public int[] batchSave(final Collection<Sample> samples) throws IOException, ValidationFailureException {
     List<SqlParameterSource> batch = new ArrayList<SqlParameterSource>();
     try {
       for (Sample sample : samples) {
@@ -309,8 +310,13 @@ public class SQLSampleDAO implements SampleStore {
   @TriggersRemove(cacheName = { "sampleCache",
       "lazySampleCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Sample sample) throws IOException {
-    sampleValidator.validate(sample);
+  public long save(Sample sample) throws ValidationFailureException, IOException {
+    try {
+      sampleValidator.validate(sample);
+    } catch (MisoNamingException e) {
+      log.error("Could not get NamingScheme data from database for sample validation lookup");
+    }
+
     Long securityProfileId = sample.getSecurityProfile().getProfileId();
     if (this.cascadeType != null) {
       securityProfileId = securityProfileDAO.save(sample.getSecurityProfile());
@@ -465,7 +471,12 @@ public class SQLSampleDAO implements SampleStore {
         && (namedTemplate.update(SAMPLE_DELETE, new MapSqlParameterSource().addValue("sampleId", sample.getId())) == 1)) {
       Project p = sample.getProject();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (p != null) projectDAO.save(p);
+        try {
+          if (p != null)
+            projectDAO.save(p);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for project on remove in SQLSampleDAO");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (p != null) {
           DbUtils.updateCaches(cacheManager, p, Project.class);

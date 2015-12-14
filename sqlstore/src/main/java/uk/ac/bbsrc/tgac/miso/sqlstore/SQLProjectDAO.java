@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.ProjectAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.*;
@@ -246,7 +247,7 @@ public class SQLProjectDAO implements ProjectStore {
   @TriggersRemove(cacheName = { "projectCache",
       "lazyProjectCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Project project) throws IOException {
+  public long save(Project project) throws ValidationFailureException, IOException {
     User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
 
     Long securityProfileId = project.getSecurityProfile().getProfileId();
@@ -342,7 +343,7 @@ public class SQLProjectDAO implements ProjectStore {
   }
 
   @Override
-  public long saveOverview(ProjectOverview overview) throws IOException {
+  public long saveOverview(ProjectOverview overview) throws IOException, ValidationFailureException {
     User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
 
     MapSqlParameterSource params = new MapSqlParameterSource();

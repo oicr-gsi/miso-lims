@@ -52,6 +52,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractRun;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractSequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.data.RunQC;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
@@ -61,6 +62,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -291,7 +293,7 @@ public class SQLRunDAO implements RunStore {
   @TriggersRemove(cacheName = { "runCache",
       "lazyRunCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Run run) throws IOException {
+  public long save(Run run) throws IOException, ValidationFailureException {
     Long securityProfileId = run.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) {// && this.cascadeType.equals(CascadeType.PERSIST))) {
       securityProfileId = securityProfileDAO.save(run.getSecurityProfile());
@@ -421,8 +423,12 @@ public class SQLRunDAO implements RunStore {
 
     for (Run run : runs) {
       Long securityProfileId = run.getSecurityProfile().getProfileId();
-      if (securityProfileId == null || (this.cascadeType != null)) {// && this.cascadeType.equals(CascadeType.PERSIST))) {
-        securityProfileId = securityProfileDAO.save(run.getSecurityProfile());
+      try {
+        if (securityProfileId == null || (this.cascadeType != null)) {// && this.cascadeType.equals(CascadeType.PERSIST))) {
+          securityProfileId = securityProfileDAO.save(run.getSecurityProfile());
+        }
+      } catch (ValidationFailureException ex) {
+        log.error("Validation for SecurityProfile in RunDAO failed on saveAll", ex);
       }
 
       Long statusId = null;
@@ -440,8 +446,12 @@ public class SQLRunDAO implements RunStore {
             s.setInstrumentName(run.getSequencerReference().getName());
           }
         }
-        statusId = statusDAO.save(s);
-        run.setStatus(s);
+        try {
+          statusId = statusDAO.save(s);
+          run.setStatus(s);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation for status failed in RunDAO on saveAll.", ex);
+        }
       } else {
         log.warn("No status available to save for run: " + run.getAlias());
       }
@@ -509,7 +519,13 @@ public class SQLRunDAO implements RunStore {
               if (l.getPlatform() == null) {
                 l.setPlatform(run.getSequencerReference().getPlatform());
               }
-              long containerId = sequencerPartitionContainerDAO.save(l);
+
+              long containerId = AbstractSequencerPartitionContainer.UNSAVED_ID;
+              try {
+                containerId = sequencerPartitionContainerDAO.save(l);
+              } catch (ValidationFailureException ex) {
+                log.error("Validation for sequencer partition container failed in RunDAO on saveAll", ex);
+              }
 
               SimpleJdbcInsert fInsert = new SimpleJdbcInsert(template).withTableName("Run_SequencerPartitionContainer");
               MapSqlParameterSource fcParams = new MapSqlParameterSource();

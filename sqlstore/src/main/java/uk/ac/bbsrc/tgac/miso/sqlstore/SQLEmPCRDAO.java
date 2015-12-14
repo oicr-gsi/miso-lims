@@ -31,6 +31,7 @@ import net.sf.ehcache.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.EmPCRDilutionStore;
 import uk.ac.bbsrc.tgac.miso.core.store.LibraryDilutionStore;
@@ -154,7 +155,7 @@ public class SQLEmPCRDAO implements EmPCRStore {
   @TriggersRemove(cacheName = { "emPCRCache",
       "lazyEmPCRCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(emPCR pcr) throws IOException {
+  public long save(emPCR pcr) throws IOException, ValidationFailureException {
     Long securityProfileId = pcr.getSecurityProfile().getProfileId();
     if (securityProfileId == null || (this.cascadeType != null)) {
       securityProfileId = securityProfileDAO.save(pcr.getSecurityProfile());
@@ -265,7 +266,12 @@ public class SQLEmPCRDAO implements EmPCRStore {
     if (e.isDeletable() && (namedTemplate.update(EMPCR_DELETE, new MapSqlParameterSource().addValue("pcrId", e.getId())) == 1)) {
       LibraryDilution ld = e.getLibraryDilution();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (ld != null) libraryDilutionDAO.save(ld);
+        try {
+          if (ld != null)
+            libraryDilutionDAO.save(ld);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for libraryDilution on remove in EmPCRDAO");
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (ld != null) {
           DbUtils.updateCaches(cacheManager, ld, LibraryDilution.class);

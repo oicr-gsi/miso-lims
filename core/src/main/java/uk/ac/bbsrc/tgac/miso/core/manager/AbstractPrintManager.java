@@ -42,6 +42,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
 import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
 import uk.ac.bbsrc.tgac.miso.core.data.PrintableBarcode;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.BarcodableSchemaResolverService;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.PrintContextResolverService;
@@ -138,7 +139,11 @@ public abstract class AbstractPrintManager<C> implements PrintManager<MisoPrintS
   @Override
   public long storePrintService(MisoPrintService service) throws IOException {
     if (printServiceStore != null) {
-      return printServiceStore.save(service);
+      try {
+        return printServiceStore.save(service);
+      } catch (ValidationFailureException ex) {
+        throw new IOException("Validation for print service failed");
+      }
     } else {
       throw new IOException("No printServiceStore defined. Ensure one is declared in the Spring XML, or set manually");
     }
@@ -192,7 +197,11 @@ public abstract class AbstractPrintManager<C> implements PrintManager<MisoPrintS
   @Override
   public long storePrintJob(PrintJob job) throws IOException {
     if (printJobStore != null) {
-      return printJobStore.save(job);
+      try {
+        return printJobStore.save(job);
+      } catch (ValidationFailureException ex) {
+        throw new IOException("Validation for print job failed.");
+      }
     } else {
       throw new IOException("No printJobStore defined. Ensure one is declared in the Spring XML, or set manually");
     }

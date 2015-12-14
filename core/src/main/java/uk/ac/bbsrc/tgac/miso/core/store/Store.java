@@ -23,6 +23,8 @@
 
 package uk.ac.bbsrc.tgac.miso.core.store;
 
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+
 import java.io.IOException;
 import java.util.Collection;
 
@@ -42,7 +44,7 @@ public interface Store<T> {
    * @throws IOException
    *           when the object cannot be saved
    */
-  public long save(T t) throws IOException;
+  public long save(T t) throws ValidationFailureException, IOException;
 
   /**
    * Get a persisted object of a given type T

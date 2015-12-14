@@ -68,75 +68,79 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.LibraryType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 public interface RequestManager {
 
   // SAVES
-  public long saveProject(Project project) throws IOException;
+  public long saveProject(Project project) throws ValidationFailureException, IOException;
 
-  public long saveProjectOverview(ProjectOverview overview) throws IOException;
+  public long saveProjectOverview(ProjectOverview overview) throws ValidationFailureException, IOException;
 
-  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws IOException;
+  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws ValidationFailureException, IOException;
 
-  public long saveRun(Run run) throws IOException;
+  public long saveRun(Run run) throws ValidationFailureException, IOException;
 
-  public int[] saveRuns(Collection<Run> runs) throws IOException;
+  public int[] saveRuns(Collection<Run> runs) throws ValidationFailureException, IOException;
 
-  public long saveRunQC(RunQC runQC) throws IOException;
+  public long saveRunQC(RunQC runQC) throws ValidationFailureException, IOException;
 
-  public long saveRunNote(Run run, Note note) throws IOException;
+  public long saveRunNote(Run run, Note note) throws ValidationFailureException, IOException;
 
-  public long saveSample(Sample sample) throws IOException;
+  public long saveSample(Sample sample) throws ValidationFailureException, IOException;
 
-  public long saveSampleQC(SampleQC sampleQC) throws IOException;
+  public long saveSampleQC(SampleQC sampleQC) throws ValidationFailureException, IOException;
 
-  public long saveSampleNote(Sample sample, Note note) throws IOException;
+  public long saveSampleNote(Sample sample, Note note) throws ValidationFailureException, IOException;
 
-  public long saveEmPcrDilution(emPCRDilution dilution) throws IOException;
+  public long saveEmPcrDilution(emPCRDilution dilution) throws ValidationFailureException, IOException;
 
-  public long saveLibrary(Library library) throws IOException;
+  public long saveLibrary(Library library) throws ValidationFailureException, IOException;
 
-  public long saveLibraryDilution(LibraryDilution libraryDilution) throws IOException;
+  public long saveLibraryDilution(LibraryDilution libraryDilution) throws ValidationFailureException, IOException;
 
-  public long saveLibraryNote(Library library, Note note) throws IOException;
+  public long saveLibraryNote(Library library, Note note) throws ValidationFailureException, IOException;
 
-  public long saveLibraryQC(LibraryQC libraryQC) throws IOException;
+  public long saveLibraryQC(LibraryQC libraryQC) throws ValidationFailureException, IOException;
 
-  public long savePool(Pool pool) throws IOException;
+  public long savePool(Pool pool) throws ValidationFailureException, IOException;
 
-  public long savePoolQC(PoolQC poolQC) throws IOException;
+  public long savePoolQC(PoolQC poolQC) throws ValidationFailureException, IOException;
 
-  public long saveEmPCR(emPCR pcr) throws IOException;
+  public long saveEmPCR(emPCR pcr) throws ValidationFailureException, IOException;
 
-  public long saveEmPCRDilution(emPCRDilution dilution) throws IOException;
+  public long saveEmPCRDilution(emPCRDilution dilution) throws ValidationFailureException, IOException;
 
-  public long saveExperiment(Experiment experiment) throws IOException;
+  public long saveExperiment(Experiment experiment) throws ValidationFailureException, IOException;
 
-  public long saveStudy(Study study) throws IOException;
+  public long saveStudy(Study study) throws ValidationFailureException, IOException;
 
-  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws IOException;
+  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws ValidationFailureException, IOException;
 
-  public long saveSequencerPartitionContainer(SequencerPartitionContainer container) throws IOException;
+  public long saveSequencerPartitionContainer(SequencerPartitionContainer container)
+          throws ValidationFailureException, IOException;
 
-  public long savePlatform(Platform platform) throws IOException;
+  public long savePlatform(Platform platform) throws ValidationFailureException, IOException;
 
-  public long saveStatus(Status status) throws IOException;
+  public long saveStatus(Status status) throws ValidationFailureException, IOException;
 
-  public long saveSecurityProfile(SecurityProfile profile) throws IOException;
+  public long saveSecurityProfile(SecurityProfile profile) throws ValidationFailureException, IOException;
 
-  public long saveSubmission(Submission submission) throws IOException;
+  public long saveSubmission(Submission submission) throws ValidationFailureException, IOException;
 
-  public long saveSequencerReference(SequencerReference sequencerReference) throws IOException;
+  public long saveSequencerReference(SequencerReference sequencerReference) throws ValidationFailureException, IOException;
 
-  public long saveKit(Kit kit) throws IOException;
+  public long saveKit(Kit kit) throws ValidationFailureException, IOException;
 
-  public long saveKitDescriptor(KitDescriptor kitDescriptor) throws IOException;
+  public long saveKitDescriptor(KitDescriptor kitDescriptor) throws ValidationFailureException, IOException;
 
-  public <T extends List<S>, S extends Plateable> long savePlate(Plate<T, S> plate) throws IOException;
+  public <T extends List<S>, S extends Plateable> long savePlate(Plate<T, S> plate)
+          throws ValidationFailureException, IOException;
 
-  public long saveAlert(Alert alert) throws IOException;
+  public long saveAlert(Alert alert) throws ValidationFailureException, IOException;
 
-  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup) throws IOException;
+  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup)
+          throws ValidationFailureException, IOException;
 
   // GETS
   public SequencerPoolPartition getSequencerPoolPartitionById(long partitionId) throws IOException;

@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectOverview;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.NamingSchemeAware;
 
 /**
@@ -110,5 +111,5 @@ public interface ProjectStore extends Store<Project>, Cascadable, Remover<Projec
    * @throws IOException
    *           when
    */
-  long saveOverview(ProjectOverview overview) throws IOException;
+  long saveOverview(ProjectOverview overview) throws IOException, ValidationFailureException;
 }

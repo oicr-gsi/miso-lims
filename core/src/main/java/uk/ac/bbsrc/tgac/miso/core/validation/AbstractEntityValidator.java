@@ -22,32 +22,53 @@
  */
 package uk.ac.bbsrc.tgac.miso.core.validation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class AbstractEntityValidator<T> implements EntityValidator<T> {
-  //private Map<String, EntityValidatorFunction> validations;
-  protected EntityFieldValidatorFunction validateFunction;
-  protected String failMessage;
+  protected static final Logger log = LoggerFactory.getLogger(DefaultSampleValidator.class);
 
-  @Override
-  public void setFailureMessage(String failMessage) {
-    this.failMessage = failMessage;
-  }
+  // TODO change this from map to just a list, so there can be duplicate validators, each with different error messages
+  protected Map<String, EntityFieldValidatorFunction> validators;
 
-  @Override
-  public String getFailureMessage() {
-    return failMessage;
-  }
+  // These are applied to every field
+  private Map<String, EntityFieldValidatorFunction> globalValidators;
 
   public AbstractEntityValidator() {
-    
-  }
-
-  public AbstractEntityValidator(String failMessage, EntityFieldValidatorFunction validateFunction) {
-    this.failMessage = failMessage;
-    this.validateFunction = validateFunction;
+    validators = new HashMap<String, EntityFieldValidatorFunction>();
+    globalValidators = new HashMap<String, EntityFieldValidatorFunction>();
   }
 
   @Override
-  public boolean validateField(String field) {
-    return validateFunction.validate(field);
+  public boolean validateField(String field, String data) throws ValidationFailureException, MisoNamingException {
+    return validators.get(field).validate(data);
+  }
+
+  @Override
+  public boolean validate(Map<String, String> data) throws ValidationFailureException, MisoNamingException {
+    for (Map.Entry<String, String> i : data.entrySet()) {
+      if (validators.get(i.getKey()).validate(i.getValue()) == false)
+        return false;
+    }
+    return true;
+  }
+
+  @Override
+  public void addValidation(String field, EntityFieldValidatorFunction fn) {
+    validators.put(field, fn);
+  }
+
+  @Override
+  public void addGlobalValidation(String name, EntityFieldValidatorFunction fn) {
+    globalValidators.put(name, fn);
+  }
+
+  protected EntityFieldValidatorFunction getValidation(String field) {
+    return validators.get(field);
   }
 }

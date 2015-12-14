@@ -75,6 +75,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.LibraryType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.store.AlertStore;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
 import uk.ac.bbsrc.tgac.miso.core.store.EmPCRDilutionStore;
@@ -1486,7 +1487,7 @@ public class MisoRequestManager implements RequestManager {
   // SAVES
 
   @Override
-  public long saveProject(Project project) throws IOException {
+  public long saveProject(Project project) throws ValidationFailureException, IOException {
     if (projectStore != null) {
       return projectStore.save(project);
     } else {
@@ -1495,7 +1496,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveProjectOverview(ProjectOverview overview) throws IOException {
+  public long saveProjectOverview(ProjectOverview overview) throws ValidationFailureException, IOException {
     if (projectStore != null) {
       return projectStore.saveOverview(overview);
     } else {
@@ -1504,7 +1505,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws IOException {
+  public long saveProjectOverviewNote(ProjectOverview overview, Note note) throws ValidationFailureException, IOException {
     if (noteStore != null) {
       return noteStore.saveProjectOverviewNote(overview, note);
     } else {
@@ -1513,7 +1514,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveRun(Run run) throws IOException {
+  public long saveRun(Run run) throws ValidationFailureException, IOException {
     if (runStore != null) {
       return runStore.save(run);
     } else {
@@ -1522,7 +1523,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public int[] saveRuns(Collection<Run> runs) throws IOException {
+  public int[] saveRuns(Collection<Run> runs) throws ValidationFailureException, IOException {
     if (runStore != null) {
       return runStore.saveAll(runs);
     } else {
@@ -1531,7 +1532,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveRunQC(RunQC runQC) throws IOException {
+  public long saveRunQC(RunQC runQC) throws ValidationFailureException, IOException {
     if (runQcStore != null) {
       return runQcStore.save(runQC);
     } else {
@@ -1540,7 +1541,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveRunNote(Run run, Note note) throws IOException {
+  public long saveRunNote(Run run, Note note) throws ValidationFailureException, IOException {
     if (noteStore != null) {
       return noteStore.saveRunNote(run, note);
     } else {
@@ -1549,7 +1550,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSample(Sample sample) throws IOException {
+  public long saveSample(Sample sample) throws ValidationFailureException, IOException {
     if (sampleStore != null) {
       return sampleStore.save(sample);
     } else {
@@ -1558,7 +1559,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSampleQC(SampleQC sampleQc) throws IOException {
+  public long saveSampleQC(SampleQC sampleQc) throws ValidationFailureException, IOException {
     if (sampleQcStore != null) {
       return sampleQcStore.save(sampleQc);
     } else {
@@ -1567,7 +1568,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSampleNote(Sample sample, Note note) throws IOException {
+  public long saveSampleNote(Sample sample, Note note) throws ValidationFailureException, IOException {
     if (noteStore != null) {
       return noteStore.saveSampleNote(sample, note);
     } else {
@@ -1576,7 +1577,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveEmPcrDilution(emPCRDilution dilution) throws IOException {
+  public long saveEmPcrDilution(emPCRDilution dilution) throws ValidationFailureException, IOException {
     if (emPCRDilutionStore != null) {
       return emPCRDilutionStore.save(dilution);
     } else {
@@ -1585,7 +1586,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveLibrary(Library library) throws IOException {
+  public long saveLibrary(Library library) throws ValidationFailureException, IOException {
     if (libraryStore != null) {
       return libraryStore.save(library);
     } else {
@@ -1594,7 +1595,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveLibraryDilution(LibraryDilution libraryDilution) throws IOException {
+  public long saveLibraryDilution(LibraryDilution libraryDilution) throws ValidationFailureException, IOException {
     if (libraryDilutionStore != null) {
       return libraryDilutionStore.save(libraryDilution);
     } else {
@@ -1603,7 +1604,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveLibraryNote(Library library, Note note) throws IOException {
+  public long saveLibraryNote(Library library, Note note) throws ValidationFailureException, IOException {
     if (noteStore != null) {
       return noteStore.saveLibraryNote(library, note);
     } else {
@@ -1612,7 +1613,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveLibraryQC(LibraryQC libraryQc) throws IOException {
+  public long saveLibraryQC(LibraryQC libraryQc) throws ValidationFailureException, IOException {
     if (libraryQcStore != null) {
       return libraryQcStore.save(libraryQc);
     } else {
@@ -1621,7 +1622,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveEmPCR(emPCR pcr) throws IOException {
+  public long saveEmPCR(emPCR pcr) throws ValidationFailureException, IOException {
     if (emPCRStore != null) {
       return emPCRStore.save(pcr);
     } else {
@@ -1630,7 +1631,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveEmPCRDilution(emPCRDilution dilution) throws IOException {
+  public long saveEmPCRDilution(emPCRDilution dilution) throws ValidationFailureException, IOException {
     if (emPCRDilutionStore != null) {
       return emPCRDilutionStore.save(dilution);
     } else {
@@ -1639,7 +1640,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long savePool(Pool pool) throws IOException {
+  public long savePool(Pool pool) throws ValidationFailureException, IOException {
     if (poolStore != null) {
       return poolStore.save(pool);
     } else {
@@ -1648,7 +1649,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long savePoolQC(PoolQC poolQC) throws IOException {
+  public long savePoolQC(PoolQC poolQC) throws ValidationFailureException, IOException {
     if (poolQcStore != null) {
       return poolQcStore.save(poolQC);
     } else {
@@ -1657,7 +1658,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveExperiment(Experiment experiment) throws IOException {
+  public long saveExperiment(Experiment experiment) throws ValidationFailureException, IOException {
     if (experimentStore != null) {
       return experimentStore.save(experiment);
     } else {
@@ -1666,7 +1667,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveStudy(Study study) throws IOException {
+  public long saveStudy(Study study) throws ValidationFailureException, IOException {
     if (studyStore != null) {
       return studyStore.save(study);
     } else {
@@ -1675,7 +1676,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws IOException {
+  public long saveSequencerPoolPartition(SequencerPoolPartition partition) throws ValidationFailureException, IOException {
     if (partitionStore != null) {
       return partitionStore.save(partition);
     } else {
@@ -1684,7 +1685,8 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSequencerPartitionContainer(SequencerPartitionContainer container) throws IOException {
+  public long saveSequencerPartitionContainer(SequencerPartitionContainer container)
+          throws ValidationFailureException, IOException {
     if (sequencerPartitionContainerStore != null) {
       return sequencerPartitionContainerStore.save(container);
     } else {
@@ -1693,7 +1695,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long savePlatform(Platform platform) throws IOException {
+  public long savePlatform(Platform platform) throws ValidationFailureException, IOException {
     if (platformStore != null) {
       return platformStore.save(platform);
     } else {
@@ -1702,7 +1704,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveStatus(Status status) throws IOException {
+  public long saveStatus(Status status) throws ValidationFailureException, IOException {
     if (statusStore != null) {
       return statusStore.save(status);
     } else {
@@ -1711,7 +1713,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSecurityProfile(SecurityProfile profile) throws IOException {
+  public long saveSecurityProfile(SecurityProfile profile) throws ValidationFailureException, IOException {
     if (securityProfileStore != null) {
       return securityProfileStore.save(profile);
     } else {
@@ -1720,7 +1722,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSubmission(Submission submission) throws IOException {
+  public long saveSubmission(Submission submission) throws ValidationFailureException, IOException {
     if (submissionStore != null) {
       return submissionStore.save(submission);
     } else {
@@ -1729,7 +1731,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveSequencerReference(SequencerReference sequencerReference) throws IOException {
+  public long saveSequencerReference(SequencerReference sequencerReference) throws ValidationFailureException, IOException {
     if (sequencerReferenceStore != null) {
       return sequencerReferenceStore.save(sequencerReference);
     } else {
@@ -1738,7 +1740,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveKit(Kit kit) throws IOException {
+  public long saveKit(Kit kit) throws ValidationFailureException, IOException {
     if (kitStore != null) {
       return kitStore.save(kit);
     } else {
@@ -1747,7 +1749,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveKitDescriptor(KitDescriptor kitDescriptor) throws IOException {
+  public long saveKitDescriptor(KitDescriptor kitDescriptor) throws ValidationFailureException, IOException {
     if (kitStore != null) {
       return kitStore.saveKitDescriptor(kitDescriptor);
     } else {
@@ -1756,7 +1758,8 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public <T extends List<S>, S extends Plateable> long savePlate(Plate<T, S> plate) throws IOException {
+  public <T extends List<S>, S extends Plateable> long savePlate(Plate<T, S> plate)
+          throws ValidationFailureException, IOException {
     if (plateStore != null) {
       return plateStore.save(plate);
     } else {
@@ -1765,7 +1768,7 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveAlert(Alert alert) throws IOException {
+  public long saveAlert(Alert alert) throws ValidationFailureException, IOException {
     if (alertStore != null) {
       return alertStore.save(alert);
     } else {
@@ -1774,7 +1777,8 @@ public class MisoRequestManager implements RequestManager {
   }
 
   @Override
-  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup) throws IOException {
+  public long saveEntityGroup(EntityGroup<? extends Nameable, ? extends Nameable> entityGroup)
+          throws ValidationFailureException, IOException {
     if (entityGroupStore != null) {
       return entityGroupStore.save(entityGroup);
     } else {

@@ -20,11 +20,18 @@
  *
  * *********************************************************************
  */
-package uk.ac.bbsrc.tgac.miso.core.validation;
 
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
-import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+package uk.ac.bbsrc.tgac.miso.core.exception;
 
-public interface EntityFieldValidatorFunction {
-  boolean validate(String data) throws ValidationFailureException, MisoNamingException;
+public class ValidationFailureException extends Exception {
+    public ValidationFailureException(String s) {
+      super(s);
+    }
+
+    public ValidationFailureException(String s, Throwable cause) {
+      super(s);
+      if (cause != null) {
+        initCause(cause);
+      }
+    }
 }
