@@ -36,6 +36,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.ExperimentImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.StudyImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -150,6 +151,10 @@ public class ExperimentWizardControllerHelperService {
     } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addStudyExperiment: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.JSONObjectResponse("studyId", studyId);
   }

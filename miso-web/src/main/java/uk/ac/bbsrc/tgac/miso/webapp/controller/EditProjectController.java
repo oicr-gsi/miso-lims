@@ -83,6 +83,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCRDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryQcException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.FilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
@@ -452,13 +453,19 @@ public class EditProjectController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("project") Project project, ModelMap model, SessionStatus session, HttpServletRequest request)
-      throws IOException {
+    throws IOException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!project.userCanWrite(user)) {
         throw new SecurityException("Permission denied.");
       }
-      requestManager.saveProject(project);
+      try {
+        requestManager.saveProject(project);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO: give user something better
+        throw ex;
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/project/" + project.getProjectId();

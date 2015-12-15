@@ -36,6 +36,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Kit;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.kit.*;
 import uk.ac.bbsrc.tgac.miso.core.data.type.KitType;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -258,6 +259,10 @@ public class ExperimentControllerHelperService {
     } catch (IOException e) {
       log.error("add library kit", e);
       return JSONUtils.SimpleJSONError("Failed to save library kit");
+    } catch (ValidationFailureException ex) {
+      log.error("in addLibraryKit: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -319,6 +324,10 @@ public class ExperimentControllerHelperService {
     } catch (IOException e) {
       log.error("add EmPCR kit", e);
       return JSONUtils.SimpleJSONError("Failed to save EmPCR kit");
+    } catch (ValidationFailureException ex) {
+      log.error("in addEmPcrKit: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -380,6 +389,10 @@ public class ExperimentControllerHelperService {
     } catch (IOException e) {
       log.error("failed to save clustering kit", e);
       return JSONUtils.SimpleJSONError("Failed to save clustering kit");
+    } catch (ValidationFailureException ex) {
+      log.error("in addClusteringKit: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -441,6 +454,10 @@ public class ExperimentControllerHelperService {
     } catch (IOException e) {
       log.error("failed to save sequencing kit", e);
       return JSONUtils.SimpleJSONError("Failed to save sequencing kit");
+    } catch (ValidationFailureException ex) {
+      log.error("in addSequencingKit: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 

@@ -80,6 +80,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
@@ -164,6 +165,10 @@ public class LibraryControllerHelperService {
     } catch (IOException e) {
       log.error("add library note", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addLibraryNote: "+ex.getMessage());
+      // TODO: give something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
@@ -187,6 +192,10 @@ public class LibraryControllerHelperService {
     } catch (IOException e) {
       log.error("delete library note", e);
       return JSONUtils.SimpleJSONError("Cannot remove note: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in deleteLibraryNote: "+ex.getMessage());
+      // TODO: give something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -268,6 +277,10 @@ public class LibraryControllerHelperService {
         } catch (IOException e) {
           log.error("printing barcodes", e);
           return JSONUtils.SimpleJSONError("Error printing barcodes: " + e.getMessage());
+        } catch (ValidationFailureException ex) {
+          log.error("in printLibraryBarcodes: "+ex.getMessage());
+          // TODO: give something better than this
+          return JSONUtils.SimpleJSONError(ex.getMessage());
         }
       }
       PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
@@ -320,6 +333,10 @@ public class LibraryControllerHelperService {
         } catch (IOException e) {
           log.error("print barcodes", e);
           return JSONUtils.SimpleJSONError("Error printing barcodes: " + e.getMessage());
+        } catch (ValidationFailureException ex) {
+          log.error("in printLibraryDilutionBarcodes: "+ex.getMessage());
+          // TODO: give something better than this
+          return JSONUtils.SimpleJSONError(ex.getMessage());
         }
       }
       PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
@@ -359,8 +376,11 @@ public class LibraryControllerHelperService {
     } catch (IOException e) {
       log.error("change library location", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changeLibraryLocation: "+ex.getMessage());
+      // TODO: give something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
-
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
   }
 
@@ -379,6 +399,10 @@ public class LibraryControllerHelperService {
     } catch (IOException e) {
       log.debug("Could not change Library identificationBarcode: " + e.getMessage());
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changeLibraryLocation: "+ex.getMessage());
+      // TODO: give the user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");
@@ -516,10 +540,14 @@ public class LibraryControllerHelperService {
         }
 
         return JSONUtils.SimpleJSONResponse("All libraries saved successfully");
+      } catch (ValidationFailureException ex) {
+        log.error("in bulkSaveLibraries: "+ex.getMessage());
+        // TODO: give something better than this
+        return JSONUtils.SimpleJSONError(ex.getMessage());
       } catch (Exception e) {
         log.error("cannot retrieve parent project", e);
         return JSONUtils.SimpleJSONError("Cannot retrieve parent project with ID " + json.getLong("projectId"));
-      }
+      } 
     } else {
       return JSONUtils.SimpleJSONError("No libraries specified");
     }
@@ -640,10 +668,15 @@ public class LibraryControllerHelperService {
         }
         return JSONUtils.SimpleJSONResponse(sb.toString());
       }
+    } catch (ValidationFailureException ex) {
+      log.error("in addLibraryQC: "+ex.getMessage());
+      // TODO: give something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     } catch (Exception e) {
       log.error("Failed to add Library QC to this Library: ", e);
       return JSONUtils.SimpleJSONError("Failed to add Library QC to this Library: " + e.getMessage());
     }
+
     return JSONUtils.SimpleJSONError("Cannot add LibraryQC");
   }
 
@@ -758,6 +791,10 @@ public class LibraryControllerHelperService {
         }
         return JSONUtils.SimpleJSONResponse(sb.toString());
       }
+    } catch (ValidationFailureException ex) {
+      log.error("in addLibraryDilution: "+ex.getMessage());
+      // TODO: give something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     } catch (Exception e) {
       log.error("Failed to add Library Dilution to this Library: ", e);
       return JSONUtils.SimpleJSONError("Failed to add Library Dilution to this Library: " + e.getMessage());

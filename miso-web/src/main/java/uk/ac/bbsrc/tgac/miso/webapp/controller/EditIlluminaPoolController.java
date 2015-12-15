@@ -57,6 +57,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.illumina.IlluminaPool;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -264,7 +265,7 @@ public class EditIlluminaPoolController {
   }
 
   @RequestMapping(value = "/import", method = RequestMethod.POST)
-  public String importLibraryDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException {
+  public String importLibraryDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException, ValidationFailureException {
     IlluminaPool p = (IlluminaPool) model.get("pool");
     String[] dils = request.getParameterValues("importdilslist");
     for (String s : dils) {
@@ -278,18 +279,26 @@ public class EditIlluminaPoolController {
       }
     }
 
-    requestManager.savePool(p);
+    try {
+      requestManager.savePool(p);
+    } catch (ValidationFailureException ex) {
+      // TODO give something back to the user here
+    }
     return "redirect:/miso/pool/illumina/" + p.getId();
   }
 
   @RequestMapping(method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("pool") Pool pool, ModelMap model, SessionStatus session) throws IOException {
+  public String processSubmit(@ModelAttribute("pool") Pool pool, ModelMap model, SessionStatus session) throws IOException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!pool.userCanWrite(user)) {
         throw new SecurityException("Permission denied.");
       }
-      requestManager.savePool(pool);
+      try {
+        requestManager.savePool(pool);
+      } catch (ValidationFailureException ex) {
+        // TODO gives something back to the user here
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/pool/illumina/" + pool.getId();

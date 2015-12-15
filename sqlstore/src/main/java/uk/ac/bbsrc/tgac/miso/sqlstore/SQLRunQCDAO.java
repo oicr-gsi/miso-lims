@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.bbsrc.tgac.miso.core.data.*;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.store.RunQcStore;
 import uk.ac.bbsrc.tgac.miso.core.store.RunStore;
@@ -129,7 +130,7 @@ public class SQLRunQCDAO implements RunQcStore {
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)
-  public long save(RunQC runQC) throws IOException {
+  public long save(RunQC runQC) throws IOException, ValidationFailureException {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("run_runId", runQC.getRun().getId());
     params.addValue("qcUserName", runQC.getQcCreator());
@@ -219,7 +220,12 @@ public class SQLRunQCDAO implements RunQcStore {
     if (qc.isDeletable() && (namedTemplate.update(RUN_QC_DELETE, new MapSqlParameterSource().addValue("qcId", qc.getId())) == 1)) {
       Run r = qc.getRun();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (r != null) runDAO.save(r);
+        try {
+          if (r != null)
+            runDAO.save(r);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failure exception for run DAO on remove" + ex.getMessage());
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (r != null) {
           DbUtils.updateCaches(cacheManager, r, Run.class);

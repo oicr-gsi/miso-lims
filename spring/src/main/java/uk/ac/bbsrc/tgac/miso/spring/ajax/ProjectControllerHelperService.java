@@ -68,6 +68,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectOverview;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleImpl;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.WatchManager;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.IssueTrackerManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.PrintManager;
@@ -143,6 +144,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("add project overview", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addProjectOverview: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("ok");
@@ -172,6 +177,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("add project overview note", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addProjectOverviewNote: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("ok");
@@ -195,6 +204,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("delete project overview", e);
       return JSONUtils.SimpleJSONError("Cannot remove note: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in deleteProjectOverviewNote"+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -236,6 +249,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("unlock project overview", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in unlockProjectOverview: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }
@@ -250,6 +267,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("lock project overview", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in lockProjectOverview: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }
@@ -508,6 +529,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in print barcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -552,6 +577,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in printSampleBarcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -596,6 +625,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in printAllLibraryBarcodes : "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -641,6 +674,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in printSelectedLibraryBarcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -685,6 +722,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("print allLibraryDilutionBarcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -730,6 +771,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("print selectedLibraryDilutionBarcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -871,6 +916,10 @@ public class ProjectControllerHelperService {
       return JSONUtils.SimpleJSONResponse("OK");
     } catch (final IOException e) {
       log.error("watch overview", e);
+    } catch (ValidationFailureException ex) {
+      log.error("in watchOverview: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONError("Unable to watch/unwatch overview");
   }
@@ -893,6 +942,10 @@ public class ProjectControllerHelperService {
       }
     } catch (final IOException e) {
       log.error("unwatch overview", e);
+    } catch (ValidationFailureException ex) {
+      log.error("in watchOverview: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONError("Unable to watch/unwatch overview");
   }
@@ -966,6 +1019,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("add sample group", e);
       return JSONUtils.SimpleJSONError("Unable to add Sample Group: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addSampleGroup: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -1001,6 +1058,10 @@ public class ProjectControllerHelperService {
     } catch (final IOException e) {
       log.error("add samples to group", e);
       return JSONUtils.SimpleJSONError("Unable to add Sample Group: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addSamplesToGroup: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 }

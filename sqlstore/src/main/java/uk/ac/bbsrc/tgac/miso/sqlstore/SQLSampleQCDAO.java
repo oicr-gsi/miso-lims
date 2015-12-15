@@ -46,6 +46,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.AbstractQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.SampleQC;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
@@ -129,7 +130,7 @@ public class SQLSampleQCDAO implements SampleQcStore {
   @TriggersRemove(cacheName = { "sampleQCCache",
       "lazySampleQCCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(SampleQC sampleQC) throws IOException {
+  public long save(SampleQC sampleQC) throws IOException, ValidationFailureException {
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("sample_sampleId", sampleQC.getSample().getId());
     params.addValue("qcUserName", sampleQC.getQcCreator());
@@ -205,7 +206,12 @@ public class SQLSampleQCDAO implements SampleQcStore {
     if (qc.isDeletable() && (namedTemplate.update(SAMPLE_QC_DELETE, new MapSqlParameterSource().addValue("qcId", qc.getId())) == 1)) {
       Sample s = qc.getSample();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (s != null) sampleDAO.save(s);
+        try {
+          if (s != null)
+            sampleDAO.save(s);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation failed for sample on remove"+ex);
+        }
       } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
         if (s != null) {
           DbUtils.updateCaches(cacheManager, s, Sample.class);

@@ -627,7 +627,11 @@ public class SQLPoolDAO implements PoolStore {
           if (this.cascadeType.equals(CascadeType.PERSIST)) {
             Store<? super Poolable> dao = daoLookup.lookup(d.getClass());
             if (dao != null) {
-              dao.save(d);
+              try {
+                dao.save(d);
+              } catch (ValidationFailureException ex) {
+                log.error("Validation failed for pool dao on remove");
+              }
             }
           } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
             if (d instanceof Plate) {
@@ -646,7 +650,11 @@ public class SQLPoolDAO implements PoolStore {
         for (Experiment e : exps) {
           if (this.cascadeType != null) {
             if (this.cascadeType.equals(CascadeType.PERSIST)) {
-              experimentDAO.save(e);
+              try {
+                experimentDAO.save(e);
+              } catch (ValidationFailureException ex) {
+                log.error("Validation failed for experiment on remove");
+              }
             } else if (this.cascadeType.equals(CascadeType.REMOVE)) {
               DbUtils.updateCaches(cacheManager, e, Experiment.class);
             }

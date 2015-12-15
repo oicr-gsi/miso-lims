@@ -42,6 +42,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.UserImpl;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
 import uk.ac.bbsrc.tgac.miso.core.event.type.AlertLevel;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 
@@ -459,6 +460,10 @@ public class DashboardHelperService {
     } catch (IOException e) {
       log.error("set alert as read", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in setAlertAsRead: "+ex.getMessage());
+      // TODO: give the user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }
@@ -479,6 +484,10 @@ public class DashboardHelperService {
     } catch (IOException e) {
       log.error("set all alerts as read", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in setAllAlertsAsRead: "+ex.getMessage());
+      // TODO: give the user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }

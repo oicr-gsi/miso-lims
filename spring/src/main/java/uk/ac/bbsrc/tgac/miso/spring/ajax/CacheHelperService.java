@@ -41,6 +41,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCRDilution;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.PoolAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.ProjectAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 
@@ -182,6 +183,10 @@ public class CacheHelperService {
       log.error("barcode regeneration failed", e);
       return JSONUtils.JSONObjectResponse("html",
           jQueryDialogFactory.errorDialog("Cache Administration", "Barcode regeneration failed!:\n\n" + e.getMessage()));
+    } catch (ValidationFailureException ex) {
+      log.error("in regenerateAllBarcodes: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     DbUtils.flushAllCaches(cacheManager);

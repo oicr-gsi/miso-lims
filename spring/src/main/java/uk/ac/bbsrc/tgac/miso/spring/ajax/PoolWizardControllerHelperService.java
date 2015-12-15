@@ -40,6 +40,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedPoolException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedPoolQcException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
@@ -162,7 +163,13 @@ public class PoolWizardControllerHelperService {
             }
           }
 
-          requestManager.savePool(pool);
+          try {
+            requestManager.savePool(pool);
+          } catch (ValidationFailureException ex) {
+            log.error("Validation failed for pool on add"+ex.getMessage());
+            // TODO: show something to the user and exit out of here
+            return JSONUtils.SimpleJSONError("Validation failed for pool on add");
+          }
 
           sb.append("<a class='dashboardresult' href='/miso/pool/" + pool.getId()
               + "' target='_blank'><div  onmouseover=\"this.className='dashboardhighlight ui-corner-all'\" onmouseout=\"this.className='dashboard ui-corner-all'\"  class='dashboard ui-corner-all' >");
@@ -225,7 +232,13 @@ public class PoolWizardControllerHelperService {
       s.setSecurityProfile(p.getSecurityProfile());
       s.setStudyType(studyType);
 
-      requestManager.saveStudy(s);
+      try {
+        requestManager.saveStudy(s);
+      } catch (ValidationFailureException ex) {
+        log.error("Validation failed for study on add");
+        // TODO: get something to the user.
+        return JSONUtils.SimpleJSONError("Validation failed for study on add");
+      }
 
       sb.append("<a  class=\"dashboardresult\" href='/miso/study/" + s.getId()
           + "' target='_blank'><div onmouseover=\"this.className='dashboardhighlight ui-corner-all'\" onmouseout=\"this.className='dashboard ui-corner-all'\"  class='dashboard ui-corner-all' >New Study Added:<br/>");

@@ -51,6 +51,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
 import uk.ac.bbsrc.tgac.miso.core.data.Status;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.factory.SequencerInterrogatorFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.interrogator.SequencerInterrogator;
@@ -117,7 +118,7 @@ public class StatsController {
 
   @RequestMapping(value = "/sequencer", method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("sequencerReference") SequencerReference sr, ModelMap model, SessionStatus session)
-      throws IOException {
+    throws IOException, ValidationFailureException {
     try {
       requestManager.saveSequencerReference(sr);
       session.setComplete();
@@ -127,6 +128,10 @@ public class StatsController {
       if (log.isDebugEnabled()) {
         log.debug("Failed to save Sequencer Reference", ex);
       }
+      throw ex;
+    } catch (ValidationFailureException ex) {
+      log.error("in processSubmit: "+ex.getMessage());
+      // TODO: give something better to the user
       throw ex;
     }
   }

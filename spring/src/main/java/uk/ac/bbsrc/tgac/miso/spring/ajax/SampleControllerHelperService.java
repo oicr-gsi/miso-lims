@@ -77,6 +77,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
@@ -230,6 +231,10 @@ public class SampleControllerHelperService {
               log.info("Saved: " + sample.getAlias());
             } catch (IOException e) {
               log.error("Couldn't save: " + sample.getAlias(), e);
+            } catch (ValidationFailureException ex) {
+              log.error("in bulkSaveSamples: "+ex.getMessage());
+              // TODO: give user something better than this
+              return JSONUtils.SimpleJSONError(ex.getMessage());
             }
           }
 
@@ -450,6 +455,10 @@ public class SampleControllerHelperService {
     } catch (IOException e) {
       log.error("add sample note", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addSampleNote"+ex.getMessage());
+      // TODO: give user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
@@ -473,6 +482,10 @@ public class SampleControllerHelperService {
     } catch (IOException e) {
       log.error("cannot remove note", e);
       return JSONUtils.SimpleJSONError("Cannot remove note: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("In deleteSampleNote: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -519,6 +532,10 @@ public class SampleControllerHelperService {
     } catch (IOException e) {
       log.error("cannot set receipt date for sample", e);
       return JSONUtils.SimpleJSONError(e.getMessage() + ": Cannot set receipt date for sample");
+    } catch (ValidationFailureException ex) {
+      log.error("in setSampleReceivedDateByBarcode: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -605,6 +622,10 @@ public class SampleControllerHelperService {
         } catch (IOException e) {
           log.error("printing barcodes", e);
           return JSONUtils.SimpleJSONError("Error printing barcodes: " + e.getMessage());
+        } catch (ValidationFailureException ex) {
+          log.error("in printSampleBarcodes: "+ex.getMessage());
+          // TODO: give the user something better than this
+          return JSONUtils.SimpleJSONError(ex.getMessage());
         }
       }
 
@@ -645,8 +666,11 @@ public class SampleControllerHelperService {
     } catch (IOException e) {
       log.error("change sample location", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changeSampleLocation: "+ex.getMessage());
+      // TODO: give the user something better than this
+      // return JSONUtils.SimpleJSONError(ex.getMessage());
     }
-
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
   }
 
@@ -665,6 +689,10 @@ public class SampleControllerHelperService {
     } catch (IOException e) {
       log.debug("Could not change Sample identificationBarcode: " + e.getMessage());
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changeSampleIdBarcode: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("New Identification Barcode successfully assigned.");
@@ -738,6 +766,10 @@ public class SampleControllerHelperService {
         } catch (IOException e) {
           log.error("remove sample from group", e);
           return JSONUtils.SimpleJSONError("Cannot remove sample from group: " + e.getMessage());
+        } catch (ValidationFailureException ex) {
+          log.error("in removeSampleFromGroup: "+ex.getMessage());
+          // TODO: give the user something better than this
+          return JSONUtils.SimpleJSONError(ex.getMessage());
         }
       } else {
         return JSONUtils.SimpleJSONError("No sample or sample group specified to remove.");

@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.integration.NotificationQueryService;
 import uk.ac.bbsrc.tgac.miso.integration.util.IntegrationException;
 import uk.ac.bbsrc.tgac.miso.runstats.client.RunStatsException;
@@ -179,6 +180,10 @@ public class StatsControllerHelperService {
     } catch (IOException e) {
       log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed to retrieve run progress: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in updateRunProgress: "+ex.getMessage());
+      // TODO give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 }

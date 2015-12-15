@@ -55,6 +55,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.ChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.Plate;
 import uk.ac.bbsrc.tgac.miso.core.data.Plateable;
 import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
@@ -211,7 +212,12 @@ public class EditPlateController {
         throw new SecurityException("Permission denied.");
       }
       plate.setLastModifier(user);
-      requestManager.savePlate(plate);
+      try {
+        requestManager.savePlate(plate);
+      } catch (ValidationFailureException ex) {
+        log.error("in exportPlate: "+ex.getMessage());
+        // TODO give something back to user
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/plate/" + plate.getId();

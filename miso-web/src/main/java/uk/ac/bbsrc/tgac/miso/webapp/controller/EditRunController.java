@@ -68,6 +68,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -313,7 +314,7 @@ public class EditRunController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("run") Run run, ModelMap model, SessionStatus session)
-      throws IOException, MalformedRunException {
+    throws IOException, MalformedRunException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!run.userCanWrite(user)) {
@@ -321,7 +322,13 @@ public class EditRunController {
       }
 
       run.setLastModifier(user);
-      requestManager.saveRun(run);
+      try {
+        requestManager.saveRun(run);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO: give the user something better
+        throw ex;
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/run/" + run.getId();

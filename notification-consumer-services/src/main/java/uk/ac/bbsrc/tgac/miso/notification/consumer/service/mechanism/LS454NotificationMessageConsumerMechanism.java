@@ -39,6 +39,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.ls454.LS454Status;
 import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.NotificationMessageConsumerMechanism;
 import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
@@ -86,18 +87,22 @@ public class LS454NotificationMessageConsumerMechanism
     Assert.notNull(requestManager, "Cannot consume MISO notification messages without a RequestManager.");
     Map<String, List<String>> statuses = message.getPayload();
     Set<Run> output = new HashSet<Run>();
-    for (String key : statuses.keySet()) {
-      HealthType ht = HealthType.valueOf(key);
-      JSONArray runs = (JSONArray) JSONArray.fromObject(statuses.get(key)).get(0);
-      Map<String, Run> map = processRunJSON(ht, runs, requestManager);
-      for (Run r : map.values()) {
-        output.add(r);
+    try {
+      for (String key : statuses.keySet()) {
+        HealthType ht = HealthType.valueOf(key);
+        JSONArray runs = (JSONArray) JSONArray.fromObject(statuses.get(key)).get(0);
+        Map<String, Run> map = processRunJSON(ht, runs, requestManager);
+        for (Run r : map.values()) {
+          output.add(r);
+        }
       }
+    } catch (ValidationFailureException ex) {
+      log.error("in consume: "+ex.getMessage());
     }
     return output;
   }
 
-  private Map<String, Run> processRunJSON(HealthType ht, JSONArray runs, RequestManager requestManager) {
+  private Map<String, Run> processRunJSON(HealthType ht, JSONArray runs, RequestManager requestManager) throws ValidationFailureException {
     Map<String, Run> updatedRuns = new HashMap<String, Run>();
     List<Run> runsToSave = new ArrayList<Run>();
 

@@ -52,6 +52,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Platform;
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
@@ -251,7 +252,7 @@ public class SQLExperimentDAO implements ExperimentStore {
   @TriggersRemove(cacheName = { "experimentCache",
       "lazyExperimentCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
           @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
-  public long save(Experiment experiment) throws IOException {
+  public long save(Experiment experiment) throws IOException, ValidationFailureException {
     Long securityProfileId = experiment.getSecurityProfile().getProfileId();
     if (securityProfileId == null || this.cascadeType != null) {
       securityProfileId = securityProfileDAO.save(experiment.getSecurityProfile());
@@ -424,7 +425,12 @@ public class SQLExperimentDAO implements ExperimentStore {
         && (namedTemplate.update(EXPERIMENT_DELETE, new MapSqlParameterSource().addValue("experimentId", experiment.getId())) == 1)) {
       Study s = experiment.getStudy();
       if (this.cascadeType.equals(CascadeType.PERSIST)) {
-        if (s != null) studyDAO.save(s);
+        try {
+          if (s != null)
+            studyDAO.save(s);
+        } catch (ValidationFailureException ex) {
+          log.error("Validation for study failed on remove"+ex.getMessage());
+        }
         if (experiment.getPool() != null) {
           DbUtils.updateCaches(cacheManager, experiment.getPool(), Pool.class);
         }

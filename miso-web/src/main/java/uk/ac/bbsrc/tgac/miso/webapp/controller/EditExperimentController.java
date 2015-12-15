@@ -59,6 +59,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.data.type.KitType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -229,14 +230,20 @@ public class EditExperimentController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("experiment") Experiment experiment, ModelMap model, SessionStatus session)
-      throws IOException, MalformedExperimentException {
+    throws IOException, MalformedExperimentException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!experiment.userCanWrite(user)) {
         throw new SecurityException("Permission denied.");
       }
       experiment.setLastModifier(user);
-      requestManager.saveExperiment(experiment);
+      try {
+        requestManager.saveExperiment(experiment);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO: give user something better
+        throw ex;
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/experiment/" + experiment.getId();

@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.eaglegenomics.simlims.core.Note;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.util.TaxonomyUtils;
 
@@ -57,7 +58,7 @@ public class MisoFormsService {
     this.requestManager = requestManager;
   }
 
-  public void importSampleDeliveryFormSamples(List<Sample> samples, boolean checkTaxon) throws IOException {
+  public void importSampleDeliveryFormSamples(List<Sample> samples, boolean checkTaxon) throws IOException, ValidationFailureException {
     Map<String, String> foundTaxons = new HashMap<String, String>();
     if (importSampleDeliveryFormSamplesValidation(samples)) {
       log.info("Samples valid. Importing...");

@@ -79,6 +79,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedExperimentException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
@@ -423,6 +424,10 @@ public class PoolControllerHelperService {
     } catch (IOException e) {
       log.debug("Could not change Pool identificationBarcode: " + e.getMessage());
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changePoolIdBarcode: "+ex.getMessage());
+      // TODO: give the user something better than this
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");

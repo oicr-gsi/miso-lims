@@ -52,6 +52,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.AbstractStudy;
 import uk.ac.bbsrc.tgac.miso.core.data.ChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -208,7 +209,12 @@ public class EditStudyController {
         throw new SecurityException("Permission denied.");
       }
       study.setLastModifier(user);
-      requestManager.saveStudy(study);
+      try {
+        requestManager.saveStudy(study);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO give something to the user
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/study/" + study.getId();

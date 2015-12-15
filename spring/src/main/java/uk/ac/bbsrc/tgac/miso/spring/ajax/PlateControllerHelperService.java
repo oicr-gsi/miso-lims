@@ -67,6 +67,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.PlatePool;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlateMaterialType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.PrintManager;
@@ -174,6 +175,10 @@ public class PlateControllerHelperService {
         } catch (IOException e) {
           log.error("printing barcodes", e);
           return JSONUtils.SimpleJSONError("Error printing barcodes: " + e.getMessage());
+        } catch (ValidationFailureException ex) {
+          log.error("in printPlateBarcodes: "+ex.getMessage());
+          // TODO: give user something better
+          return JSONUtils.SimpleJSONError(ex.getMessage());
         }
       }
       PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
@@ -202,6 +207,10 @@ public class PlateControllerHelperService {
     } catch (IOException e) {
       log.debug("Could not change Plate identificationBarcode: " + e.getMessage());
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changePlateIdBarcode: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("New identification barcode successfully assigned.");
@@ -224,6 +233,10 @@ public class PlateControllerHelperService {
     } catch (IOException e) {
       log.error("change plate location", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in changePlateLocation: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("Plate saved successfully");
@@ -336,9 +349,12 @@ public class PlateControllerHelperService {
             log.error("Cannot delete plate. Nothing left to do.", e1);
           }
         }
-
         log.error("cannot save imported plate", e);
         return JSONUtils.SimpleJSONError("Cannot save imported plate: " + e.getMessage());
+      } catch (ValidationFailureException ex) {
+          log.error("in saveImportedElements: "+ex.getMessage());
+          // TODO: give user something better
+          return JSONUtils.SimpleJSONError(ex.getMessage());
       }
     } else {
       return JSONUtils.SimpleJSONError("No valid plates available to save");

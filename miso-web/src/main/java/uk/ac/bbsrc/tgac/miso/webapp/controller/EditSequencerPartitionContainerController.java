@@ -53,6 +53,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
@@ -142,7 +143,7 @@ public class EditSequencerPartitionContainerController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("container") SequencerPartitionContainer container, ModelMap model, SessionStatus session)
-      throws IOException, MalformedRunException {
+    throws IOException, MalformedRunException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!container.userCanWrite(user)) {
@@ -150,7 +151,15 @@ public class EditSequencerPartitionContainerController {
       }
 
       container.setLastModifier(user);
-      long containerId = requestManager.saveSequencerPartitionContainer(container);
+
+      long containerId = AbstractSequencerPartitionContainer.UNSAVED_ID;
+      try {
+        containerId = requestManager.saveSequencerPartitionContainer(container);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO: give user something better
+        throw ex;
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/container/" + containerId;

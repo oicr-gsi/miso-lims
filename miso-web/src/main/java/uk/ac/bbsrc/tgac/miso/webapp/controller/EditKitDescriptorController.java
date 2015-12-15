@@ -43,6 +43,7 @@ import org.springframework.web.servlet.ModelAndView;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.kit.KitDescriptor;
 import uk.ac.bbsrc.tgac.miso.core.data.type.KitType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
@@ -111,7 +112,7 @@ public class EditKitDescriptorController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("kitDescriptor") KitDescriptor kitDescriptor, ModelMap model, SessionStatus session)
-      throws IOException {
+    throws IOException, ValidationFailureException {
     try {
       requestManager.saveKitDescriptor(kitDescriptor);
       session.setComplete();
@@ -121,6 +122,10 @@ public class EditKitDescriptorController {
       if (log.isDebugEnabled()) {
         log.debug("Failed to save Kit Descriptor", ex);
       }
+      throw ex;
+    } catch (ValidationFailureException ex) {
+      log.error("in processSubmit: "+ex.getMessage());
+      // TODO: give something back to user
       throw ex;
     }
   }

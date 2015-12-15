@@ -76,6 +76,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.LibraryStrategyType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.LibraryType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -563,7 +564,7 @@ public class EditLibraryController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("library") Library library, ModelMap model, SessionStatus session)
-      throws IOException, MalformedLibraryException {
+    throws IOException, MalformedLibraryException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!library.userCanWrite(user)) {
@@ -579,6 +580,10 @@ public class EditLibraryController {
         log.debug("Failed to save library", ex);
       }
       throw ex;
+    } catch (ValidationFailureException ex) {
+      log.error("On submit: "+ex.getMessage());
+      // TODO: give the user something better
+      throw ex; // TODO: this has to change
     }
   }
 }

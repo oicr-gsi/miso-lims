@@ -57,6 +57,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.Submission;
 import uk.ac.bbsrc.tgac.miso.core.data.Submittable;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunException;
 import uk.ac.bbsrc.tgac.miso.core.exception.SubmissionException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.FilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
@@ -193,7 +194,7 @@ public class EditSubmissionController {
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("submission") Submission submission, ModelMap model, SessionStatus session)
-      throws IOException, MalformedRunException {
+    throws IOException, MalformedRunException, ValidationFailureException {
     try {
       requestManager.saveSubmission(submission);
       session.setComplete();
@@ -203,6 +204,10 @@ public class EditSubmissionController {
       if (log.isDebugEnabled()) {
         log.debug("Failed to save submission", ex);
       }
+      throw ex;
+    } catch (ValidationFailureException ex) {
+      log.error("in processSubmit: "+ex.getMessage());
+      // TODO give user something better
       throw ex;
     }
   }

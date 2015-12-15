@@ -58,6 +58,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.ls454.LS454Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -262,7 +263,8 @@ public class EditLS454PoolController {
   }
 
   @RequestMapping(value = "/import", method = RequestMethod.POST)
-  public String importEmPCRDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException {
+  public String importEmPCRDilutionsToPool(HttpServletRequest request, ModelMap model)
+    throws IOException, ValidationFailureException {
     LS454Pool p = (LS454Pool) model.get("pool");
     String[] dils = request.getParameterValues("importdilslist");
     for (String s : dils) {
@@ -276,19 +278,31 @@ public class EditLS454PoolController {
       }
     }
 
-    requestManager.savePool(p);
+    try {
+      requestManager.savePool(p);
+    } catch (ValidationFailureException ex) {
+      log.error("in importEmPCRDilutionsToPool: "+ex.getMessage());
+      // TODO: give user something better
+      throw ex;
+    }
     return "redirect:/miso/pool/ls454/" + p.getId();
   }
 
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("pool") Pool pool, ModelMap model, SessionStatus session)
-      throws IOException, MalformedLibraryException {
+    throws IOException, MalformedLibraryException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!pool.userCanWrite(user)) {
         throw new SecurityException("Permission denied.");
       }
-      requestManager.savePool(pool);
+      try {
+        requestManager.savePool(pool);
+      } catch (ValidationFailureException ex) {
+        log.error("in importEmPCRDilutionsToPool: "+ex.getMessage());
+        // TODO: give user something better
+        throw ex;
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/pool/ls454/" + pool.getId();

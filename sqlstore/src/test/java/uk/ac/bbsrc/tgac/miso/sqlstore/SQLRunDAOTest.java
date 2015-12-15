@@ -37,6 +37,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.RunImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.TgacDataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.store.NoteStore;
@@ -321,7 +322,11 @@ public class SQLRunDAOTest extends AbstractDAOTest {
 
     Mockito.when(namingScheme.validateField(Matchers.anyString(), Matchers.anyString())).thenReturn(true);
 
-    assertEquals(1L, dao.save(run));
+    try {
+      assertEquals(1L, dao.save(run));
+    } catch (ValidationFailureException ex) {
+
+    }
     Run savedRun = dao.get(1L);
     assertNotSame(run, savedRun);
     assertEquals(run.getId(), savedRun.getId());
@@ -336,7 +341,11 @@ public class SQLRunDAOTest extends AbstractDAOTest {
     mockAutoIncrement(autoIncrementId);
     Mockito.when(namingScheme.validateField(Matchers.anyString(), Matchers.anyString())).thenReturn(true);
 
-    assertEquals(autoIncrementId, dao.save(newRun));
+    try {
+      assertEquals(autoIncrementId, dao.save(newRun));
+    } catch (ValidationFailureException ex) {
+
+    }
 
     Run savedRun = dao.get(autoIncrementId);
     assertEquals(newRun.getAlias(), savedRun.getAlias());
@@ -344,7 +353,7 @@ public class SQLRunDAOTest extends AbstractDAOTest {
   }
 
   @Test
-  public void testSaveNull() throws IOException {
+  public void testSaveNull() throws IOException, ValidationFailureException {
     exception.expect(NullPointerException.class);
     dao.save(null);
   }

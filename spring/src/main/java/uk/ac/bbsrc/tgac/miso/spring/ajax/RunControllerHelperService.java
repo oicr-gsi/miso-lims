@@ -43,6 +43,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.pacbio.PacBioRun;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.solid.SolidRun;
 import uk.ac.bbsrc.tgac.miso.core.data.type.QcType;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.WatchManager;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
@@ -872,6 +873,10 @@ public class RunControllerHelperService {
     } catch (IOException e) {
       log.error("add run note", e);
       return JSONUtils.SimpleJSONError(e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in addRunNote: "+ex.getMessage());
+      // TODO: give the user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
 
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
@@ -895,6 +900,10 @@ public class RunControllerHelperService {
     } catch (IOException e) {
       log.error("delete run note", e);
       return JSONUtils.SimpleJSONError("Cannot remove note: " + e.getMessage());
+    } catch (ValidationFailureException ex) {
+      log.error("in deleteRunNote:"+ex.getMessage());
+      // TODO give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
   }
 
@@ -910,6 +919,10 @@ public class RunControllerHelperService {
       return JSONUtils.SimpleJSONResponse("OK");
     } catch (IOException e) {
       log.error("watch run", e);
+    } catch (ValidationFailureException ex) {
+      log.error("in watchRun: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONError("Unable to watch run");
   }
@@ -926,6 +939,10 @@ public class RunControllerHelperService {
       return JSONUtils.SimpleJSONResponse("OK");
     } catch (IOException e) {
       log.error("unwatch run", e);
+    } catch (ValidationFailureException ex) {
+      log.error("in unwatchRun: "+ex.getMessage());
+      // TODO: give user something better
+      return JSONUtils.SimpleJSONError(ex.getMessage());
     }
     return JSONUtils.SimpleJSONError("Unable to unwatch run");
   }

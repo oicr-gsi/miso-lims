@@ -60,6 +60,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.PoolImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
+import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
@@ -286,7 +287,7 @@ public class EditPoolController {
   }
 
   @RequestMapping(value = "/import", method = RequestMethod.POST)
-  public String importDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException {
+  public String importDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException, ValidationFailureException {
     Pool<Dilution> p = (PoolImpl) model.get("pool");
     String[] dils = request.getParameterValues("importdilslist");
     for (String s : dils) {
@@ -301,13 +302,18 @@ public class EditPoolController {
     }
     User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
     p.setLastModifier(user);
-    requestManager.savePool(p);
+    try {
+      requestManager.savePool(p);
+    } catch (ValidationFailureException ex) {
+      log.error("in importDilutionsToPool: "+ex.getMessage());
+      // TODO give something to the user
+    }
     return "redirect:/miso/pool/" + p.getId();
   }
 
   @RequestMapping(value = { "/new", "/{poolId}" }, method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("pool") Pool<? extends Poolable> pool, ModelMap model, SessionStatus session)
-      throws IOException {
+    throws IOException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!pool.userCanWrite(user)) {
@@ -315,7 +321,12 @@ public class EditPoolController {
       }
 
       pool.setLastModifier(user);
-      requestManager.savePool(pool);
+      try {
+        requestManager.savePool(pool);
+      } catch (ValidationFailureException ex) {
+        log.error("in processSubmit: "+ex.getMessage());
+        // TODO give something to the user
+      }
       session.setComplete();
       model.clear();
       return "redirect:/miso/pool/" + pool.getId();
