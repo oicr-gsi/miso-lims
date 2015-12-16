@@ -44,17 +44,17 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
   private MisoNamingScheme<Sample> sampleNamingScheme;
 
   public DefaultSampleValidator() {
-    // Pleaaaase give me λs  😭😭
+    // Pleaaaase give me λ 😭😭
 
-    addGlobalValidation("length", new EntityFieldValidatorFunction() {
-      public boolean validate(String data) throws ValidationFailureException, MisoNamingException {
-        return data.length() < 100;
+    addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.length() < 20, "Sample alias too long, must be < 20 characters");
       }
     });
 
     addValidation("alias", new EntityFieldValidatorFunction() {
-      public boolean validate(String data) throws MisoNamingException {
-        return sampleNamingScheme.validateField("alias", data);
+      public EntityValidationResult validate(String data) throws MisoNamingException {
+        return new EntityValidationResult(sampleNamingScheme.validateField("alias", data),"Sample alias does not conform to MISO naming scheme.");
       }
     });
   }
@@ -64,8 +64,8 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
     Map<String, String> data = new HashMap<String, String>();
     data.put("alias", s.getAlias());
     data.put("description", s.getDescription());
-    data.put("date", s.getLastUpdated().toString());
-    data.put("scientificName", s.getScientificName());
+    //data.put("date", s.getLastUpdated().toString());
+    //data.put("scientificName", s.getScientificName());
     return validate(data);
   }
 }

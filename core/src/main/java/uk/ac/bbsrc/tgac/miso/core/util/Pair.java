@@ -20,11 +20,28 @@
  *
  * *********************************************************************
  */
-package uk.ac.bbsrc.tgac.miso.core.validation;
 
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
-import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+package uk.ac.bbsrc.tgac.miso.core.util;
 
-public interface EntityFieldValidatorFunction {
-  EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException;
+
+public class Pair<K, V> {
+  private K key;
+  private V value;
+
+  public Pair(K key, V value) {
+    this.key = key;
+    this.value = value;
+  }
+
+  public K getKey() {
+    return key;
+  }
+
+  public V getValue() {
+    return value;
+  }
+
+  public String toString() {
+    return "(" + key + ", " + value + ")";
+  }
 }

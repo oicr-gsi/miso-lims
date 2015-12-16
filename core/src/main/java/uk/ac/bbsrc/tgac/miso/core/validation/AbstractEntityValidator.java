@@ -26,49 +26,83 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+import uk.ac.bbsrc.tgac.miso.core.util.Pair;
 
+import javax.swing.text.html.parser.Entity;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public abstract class AbstractEntityValidator<T> implements EntityValidator<T> {
   protected static final Logger log = LoggerFactory.getLogger(DefaultSampleValidator.class);
 
-  // TODO change this from map to just a list, so there can be duplicate validators, each with different error messages
-  protected Map<String, EntityFieldValidatorFunction> validators;
+  // Key represents the name of the field, Value is the corresponding validator function
+  private List<Pair<String, EntityFieldValidatorFunction>> validators;
 
-  // These are applied to every field
-  private Map<String, EntityFieldValidatorFunction> globalValidators;
+  // Global validators apply to each field
+  private List<Pair<String, EntityFieldValidatorFunction>> globalValidators;
+
 
   public AbstractEntityValidator() {
-    validators = new HashMap<String, EntityFieldValidatorFunction>();
-    globalValidators = new HashMap<String, EntityFieldValidatorFunction>();
+    validators = new ArrayList<>();
+    globalValidators = new ArrayList<>();
   }
 
+  // Refer to interface for documentation
   @Override
   public boolean validateField(String field, String data) throws ValidationFailureException, MisoNamingException {
-    return validators.get(field).validate(data);
+    EntityValidationResult result = getValidationFunction(field).validate(data);
+    if (result.getPassed() == false)
+      throw new ValidationFailureException(result.getFailureMessage());
+
+    return result.getPassed();
   }
 
+  // Refer to interface for documentation
   @Override
   public boolean validate(Map<String, String> data) throws ValidationFailureException, MisoNamingException {
     for (Map.Entry<String, String> i : data.entrySet()) {
-      if (validators.get(i.getKey()).validate(i.getValue()) == false)
+      // No validation rule found
+      if (getValidationFunction(i.getKey()) == null) {
+        log.info("No validation rule found for given field: "+i.getKey());
+        continue;
+      }
+
+      if (validateField(i.getKey(), i.getValue()) == false)
         return false;
     }
     return true;
   }
 
+  // Refer to interface for documentation
   @Override
   public void addValidation(String field, EntityFieldValidatorFunction fn) {
-    validators.put(field, fn);
+    validators.add(new Pair(field, fn));
   }
 
+  // Refer to interface for documentation
   @Override
   public void addGlobalValidation(String name, EntityFieldValidatorFunction fn) {
-    globalValidators.put(name, fn);
+    globalValidators.add(new Pair(name, fn));
   }
 
-  protected EntityFieldValidatorFunction getValidation(String field) {
-    return validators.get(field);
+  /**
+   * Retrieves the corresponding EntityFieldValidatorFunction given it's field and null otherwise
+   */
+  private EntityFieldValidatorFunction getValidationFunction(String field) {
+    Pair<String, EntityFieldValidatorFunction> p = getValidatorPair(field);
+    return p == null ? null : p.getValue();
+  }
+
+  /**
+   * Retrieves the corresponding Validator Pair given it's field and null otherwise
+   */
+  private Pair<String, EntityFieldValidatorFunction> getValidatorPair(String field) {
+    for (Pair<String, EntityFieldValidatorFunction> p : validators) {
+      if (p.getKey() == field)
+        return p;
+    }
+    return null;
   }
 }

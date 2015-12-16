@@ -22,9 +22,28 @@
  */
 package uk.ac.bbsrc.tgac.miso.core.validation;
 
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
-import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+public class EntityValidationResult {
+  private boolean passed;
+  private String failureMessage;
 
-public interface EntityFieldValidatorFunction {
-  EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException;
+  public EntityValidationResult(boolean passed, String failureMessage) {
+    this.passed = passed;
+    this.failureMessage = failureMessage;
+  }
+
+  public boolean getPassed() {
+    return passed;
+  }
+
+  public void setPassed(boolean passed) {
+    this.passed = passed;
+  }
+
+  public String getFailureMessage() {
+    return failureMessage;
+  }
+
+  public void setFailureMessage(String failureMessage) {
+    this.failureMessage = failureMessage;
+  }
 }

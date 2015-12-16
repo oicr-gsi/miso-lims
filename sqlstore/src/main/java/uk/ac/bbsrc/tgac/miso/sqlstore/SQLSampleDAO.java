@@ -172,6 +172,14 @@ public class SQLSampleDAO implements SampleStore {
     this.sampleNamingScheme = sampleNamingScheme;
   }
 
+  public EntityValidator<Sample> getSampleValidator() {
+    return sampleValidator;
+  }
+
+  public void setSampleValidator(EntityValidator<Sample> sampleValidator) {
+    this.sampleValidator = sampleValidator;
+  }
+
   @Autowired
   private MisoNamingScheme<Sample> namingScheme;
 
@@ -304,6 +312,8 @@ public class SQLSampleDAO implements SampleStore {
       throw new IOException("Cannot save sample - issue with naming scheme", e);
     }
   }
+
+
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)

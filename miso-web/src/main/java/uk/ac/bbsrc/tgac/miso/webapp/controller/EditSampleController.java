@@ -439,6 +439,7 @@ public class EditSampleController {
     return null;
   }
 
+  //@ExceptionHandler({ValidationFailureException.class})
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("sample") Sample sample, ModelMap model, SessionStatus session)
       throws IOException, MalformedSampleException {
@@ -460,7 +461,8 @@ public class EditSampleController {
       throw ex;
     } catch (ValidationFailureException ex) {
       model.put("backEndError", ex.getMessage());
-      return sample.getId() == AbstractSample.UNSAVED_ID ? "/miso/sample/new" : "/miso/sample/" + sample.getId();
+      return null;
+      //return sample.getId() == AbstractSample.UNSAVED_ID ? "/miso/sample/new" : "/miso/sample/" + sample.getId();
     }
   }
 }
