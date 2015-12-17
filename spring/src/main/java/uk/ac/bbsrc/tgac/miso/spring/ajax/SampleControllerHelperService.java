@@ -48,6 +48,7 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpSession;
 
+import net.sf.json.JSON;
 import org.apache.commons.codec.binary.Base64;
 import org.krysalis.barcode4j.BarcodeDimension;
 import org.krysalis.barcode4j.BarcodeGenerator;
@@ -89,6 +90,7 @@ import uk.ac.bbsrc.tgac.miso.core.service.printing.context.PrintContext;
 import uk.ac.bbsrc.tgac.miso.core.util.AliasComparator;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.TaxonomyUtils;
+import uk.ac.bbsrc.tgac.miso.core.validation.EntityValidator;
 
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
@@ -117,6 +119,8 @@ public class SampleControllerHelperService {
   private MisoNamingScheme<Sample> sampleNamingScheme;
   @Autowired
   private CacheHelperService cacheHelperService;
+  @Autowired
+  private EntityValidator<Sample> sampleValidator;
 
   // TODO DESTROY THIS
   public JSONObject validateSampleAlias(HttpSession session, JSONObject json) {
@@ -855,5 +859,34 @@ public class SampleControllerHelperService {
 
   public void setCacheHelperService(CacheHelperService cacheHelperService) {
     this.cacheHelperService = cacheHelperService;
+  }
+
+  public EntityValidator<Sample> getSampleValidator() {
+    return sampleValidator;
+  }
+
+  public void setSampleValidator(EntityValidator<Sample> sampleValidator) {
+    this.sampleValidator = sampleValidator;
+  }
+
+  public JSONObject trySaveSample(HttpSession session, JSONObject json) {
+    JSONObject response = new JSONObject();
+    if (!json.has("alias") || !json.has("description") || !json.has("date") || !json.has("scientificName"))
+      return JSONUtils.SimpleJSONError("JSON request missing data");
+
+    Map<String, String> data = new HashMap<>();
+    data.put("alias", json.getString("alias"));
+    data.put("description", json.getString("description"));
+    data.put("date", json.getString("date"));
+    data.put("scientificName", json.getString("scientificName"));
+
+    try {
+      sampleValidator.validate(data);
+    } catch (ValidationFailureException ex) {
+      response.put("error", ex.getMessage());
+    } catch (MisoNamingException ex) {
+      response.put("error", ex.getMessage());
+    }
+    return response;
   }
 }

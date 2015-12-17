@@ -25,11 +25,11 @@ package uk.ac.bbsrc.tgac.miso.core.exception;
 
 public class ValidationFailureException extends Exception {
     public ValidationFailureException(String s) {
-      super(s);
+      super("Validation failure: "+s);
     }
 
     public ValidationFailureException(String s, Throwable cause) {
-      super(s);
+      super("Validation failure: "+s);
       if (cause != null) {
         initCause(cause);
       }

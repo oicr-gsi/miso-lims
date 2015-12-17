@@ -31,8 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,31 +43,103 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
   protected static final Logger log = LoggerFactory.getLogger(DefaultSampleValidator.class);
 
   @Autowired
+  private RequestManager requestManager;
+  @Autowired
   private MisoNamingScheme<Sample> sampleNamingScheme;
 
-  public DefaultSampleValidator() {
-    // Pleaaaase give me λ 😭😭
+  public void setRequestManager(RequestManager requestManager) {
+    this.requestManager = requestManager;
+  }
 
-    addValidation("alias", new EntityFieldValidatorFunction() {
+  public MisoNamingScheme<Sample> getSampleNamingScheme() {
+    return sampleNamingScheme;
+  }
+
+  public void setSampleNamingScheme(MisoNamingScheme<Sample> sampleNamingScheme) {
+    this.sampleNamingScheme = sampleNamingScheme;
+  }
+
+  public DefaultSampleValidator() {
+    // JAVA 8 TODO: replace with much less verbose λs 😭?
+
+    addValidation("project", new EntityFieldValidatorFunction() {
       public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
-        return new EntityValidationResult(data.length() < 20, "Sample alias too long, must be < 20 characters");
+        return new EntityValidationResult(data != null, "A project must be selected for the sample");
       }
     });
 
     addValidation("alias", new EntityFieldValidatorFunction() {
-      public EntityValidationResult validate(String data) throws MisoNamingException {
-        return new EntityValidationResult(sampleNamingScheme.validateField("alias", data),"Sample alias does not conform to MISO naming scheme.");
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data != null && data != "", "Sample alias cannot be null or empty");
+      }
+    });
+
+    addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.length() <= 100, "Sample alias must be less than or equal to 100 characters");
+      }
+    });
+
+    addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(sampleNamingScheme.validateField("alias", data), "Sample alias does not conform to MISO naming scheme.");
+      }
+    });
+
+    addValidation("date", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data != null && data != "", "Sample date received cannot be null or empty");
+      }
+    });
+
+    addValidation("description", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data != null && data != "", "Sample description cannot be null or empty");
+      }
+    });
+
+    addValidation("description", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.length() <= 100, "Sample description must be less than or equal to 100 characters");
+      }
+    });
+
+    addValidation("scientificName", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data != null && data != "", "Sample scientific name cannot be null or empty");
+      }
+    });
+
+    addValidation("scientificName", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.length() <= 100, "Sample scientific name must be less than or equal to 100 characters");
+      }
+    });
+
+    addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        try {
+          return new EntityValidationResult(!sampleNamingScheme.allowDuplicateEntityNameFor("alias") &&
+                  !requestManager.listSamplesByAlias(data).isEmpty(),
+                  "Sample alias already exists in the database with that alias");
+        } catch (IOException ex) {
+          log.error("Could not connect to database to retrieve samples during validation");
+          return new EntityValidationResult(true, "");
+        }
       }
     });
   }
 
   @Override
   public boolean validate(Sample s) throws ValidationFailureException, MisoNamingException {
-    Map<String, String> data = new HashMap<String, String>();
+    Map<String, String> data = new HashMap<>();
+    data.put("project", s.getProject() == null ? null : "not null");
     data.put("alias", s.getAlias());
     data.put("description", s.getDescription());
-    //data.put("date", s.getLastUpdated().toString());
-    //data.put("scientificName", s.getScientificName());
-    return validate(data);
+    data.put("date", s.getReceivedDate() == null ? null : s.getReceivedDate().toString());
+    data.put("scientificName", s.getScientificName());
+
+    validate(data);
+    return true;
   }
 }

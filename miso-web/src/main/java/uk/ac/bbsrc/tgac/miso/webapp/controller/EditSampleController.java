@@ -442,7 +442,7 @@ public class EditSampleController {
   //@ExceptionHandler({ValidationFailureException.class})
   @RequestMapping(method = RequestMethod.POST)
   public String processSubmit(@ModelAttribute("sample") Sample sample, ModelMap model, SessionStatus session)
-      throws IOException, MalformedSampleException {
+    throws IOException, MalformedSampleException, ValidationFailureException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!sample.userCanWrite(user)) {
@@ -460,8 +460,8 @@ public class EditSampleController {
       }
       throw ex;
     } catch (ValidationFailureException ex) {
-      model.put("backEndError", ex.getMessage());
-      return null;
+      log.error("Failed to save sample", ex);
+      throw ex;
       //return sample.getId() == AbstractSample.UNSAVED_ID ? "/miso/sample/new" : "/miso/sample/" + sample.getId();
     }
   }
