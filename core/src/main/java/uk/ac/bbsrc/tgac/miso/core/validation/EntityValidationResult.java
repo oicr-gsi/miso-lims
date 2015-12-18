@@ -23,20 +23,20 @@
 package uk.ac.bbsrc.tgac.miso.core.validation;
 
 public class EntityValidationResult {
-  private boolean passed;
+  private boolean rule;
   private String failureMessage;
 
-  public EntityValidationResult(boolean passed, String failureMessage) {
-    this.passed = passed;
+  public EntityValidationResult(boolean rule, String failureMessage) {
+    this.rule = rule;
     this.failureMessage = failureMessage;
   }
 
   public boolean getPassed() {
-    return passed;
+    return rule;
   }
 
   public void setPassed(boolean passed) {
-    this.passed = passed;
+    this.rule = passed;
   }
 
   public String getFailureMessage() {

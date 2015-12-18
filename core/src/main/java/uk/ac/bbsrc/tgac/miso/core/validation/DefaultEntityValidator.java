@@ -32,7 +32,6 @@ import uk.ac.bbsrc.tgac.miso.core.exception.ValidationFailureException;
 public class DefaultEntityValidator<T> extends AbstractEntityValidator<T> {
   protected static final Logger log = LoggerFactory.getLogger(DefaultEntityValidator.class);
 
-
   @Override
   public boolean validate(T t) throws ValidationFailureException, MisoNamingException {
     return false;

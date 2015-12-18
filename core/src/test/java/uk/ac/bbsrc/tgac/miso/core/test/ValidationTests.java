@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SampleImpl;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
@@ -57,6 +58,8 @@ public class ValidationTests {
   @InjectMocks
   private DefaultSampleValidator sampleValidator;
 
+  private EntityValidator<Pool> poolValidator;
+
   @Mock
   private MisoRequestManager requestManager;
   @Mock
@@ -70,7 +73,59 @@ public class ValidationTests {
     MockitoAnnotations.initMocks(this);
     sampleValidator = new DefaultSampleValidator();
     sampleValidator.setSampleNamingScheme(sampleNamingScheme);
+
+    poolValidator = new DefaultEntityValidator<Pool>();
   }
+
+
+  @Test
+  public void testAddValidator() throws ValidationFailureException, MisoNamingException {
+    poolValidator.addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.contains("ha"), "Pool alias does not contain laughter");
+      }
+    });
+    assert(poolValidator.validateField("alias", "ha"));
+
+    try {
+      poolValidator.validateField("alias", "nope");
+      assert(false);
+    } catch (ValidationFailureException ex) {
+    }
+
+    poolValidator.addValidation("alias", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.length() <3, "Pool contains no love");
+      }
+    });
+
+    assert(poolValidator.validateField("alias", "ha"));
+
+    try {
+      poolValidator.validateField("alias", "hahahaha");
+    } catch (ValidationFailureException ex) {
+    }
+
+    poolValidator.addValidation("field", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data.endsWith("4"), "field does not end in 4");
+      }
+    });
+
+    assert(poolValidator.validateField("field", "fdsajkldfskjlfdsajklfadsjkl4"));
+
+    try {
+      poolValidator.validateField("field", "12345");
+      assert(false);
+    } catch (ValidationFailureException ex) {
+    }
+
+    Map<String, String> data = new LinkedHashMap<>();
+    data.put("alias", "ha");
+    data.put("field", "fdljkcmn fsamfn dsa  !$#@$#@! 4");
+    assert(poolValidator.validate(data));
+  }
+
 
   @Test
   public void testDefaultSampleValidator() throws ValidationFailureException, MisoNamingException, IOException {
@@ -99,7 +154,6 @@ public class ValidationTests {
     } catch (ValidationFailureException ex) {
     }
   }
-
 
   @Test
   public void testDefaultSampleValidatorName() throws ValidationFailureException, MisoNamingException, IOException {
