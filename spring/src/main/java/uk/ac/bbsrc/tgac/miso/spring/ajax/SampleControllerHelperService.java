@@ -141,8 +141,7 @@ public class SampleControllerHelperService {
           return JSONUtils.SimpleJSONResponse("OK");
         } else {
           log.error("Sample alias not valid: " + alias);
-          return JSONUtils.SimpleJSONError("The following sample alias doesn't conform to the chosen naming scheme ("
-              + sampleNamingScheme.getValidationRegex("alias") + ") or already exists: " + json.getString("alias"));
+          return JSONUtils.SimpleJSONError("Alias already exists in the database! "+json.getString("alias"));
         }
       } catch (MisoNamingException e) {
         log.error("Cannot validate sample alias " + json.getString("alias"), e);

@@ -1,10 +1,14 @@
 package uk.ac.bbsrc.tgac.miso.core.service.naming;
 
+
 import java.lang.reflect.Method;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +35,8 @@ public class DefaultSampleNamingScheme implements RequestManagerAwareNamingSchem
   private Map<String, Boolean> allowDuplicateMap = new HashMap<String, Boolean>();
   private Map<String, Pattern> validationMap = new HashMap<String, Pattern>();
   private Map<String, NameGenerator<Sample>> customNameGeneratorMap = new HashMap<String, NameGenerator<Sample>>();
+
+  @Autowired
   private RequestManager requestManager;
 
   public DefaultSampleNamingScheme() {
@@ -107,14 +113,23 @@ public class DefaultSampleNamingScheme implements RequestManagerAwareNamingSchem
 
   @Override
   public boolean validateField(String fieldName, String entityName) throws MisoNamingException {
+    // Validate against regex
     if (fieldCheck(fieldName) != null) {
       Pattern p = validationMap.get(fieldName);
       if (p != null) {
         Matcher mat = p.matcher(entityName);
-        return mat.matches();
+        if(!mat.matches())
+          return false;
       }
     }
-    return false;
+    try {
+      if (!allowDuplicateEntityNameFor(fieldName) && requestManager.listSamplesByAlias(entityName).size() > 0)
+        return false;
+    } catch (IOException e) {
+      log.error("Cannot connect to database to perform lookup of sample alias.");
+    }
+
+    return true;
   }
 
   @Override

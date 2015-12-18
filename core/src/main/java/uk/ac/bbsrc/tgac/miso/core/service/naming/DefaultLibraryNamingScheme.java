@@ -137,10 +137,18 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
       Pattern p = validationMap.get(fieldName);
       if (p != null) {
         Matcher mat = p.matcher(entityName);
-        return mat.matches();
+        if (!mat.matches())
+            return false;
       }
     }
-    return false;
+    try {
+      if (!allowDuplicateEntityNameFor(fieldName) && requestManager.getLibraryByAlias(entityName) != null)
+        return false;
+    } catch (IOException e) {
+      log.error("Cannot connect to database to perform lookup of library alias.");
+    }
+
+    return true;
   }
 
   @Override
