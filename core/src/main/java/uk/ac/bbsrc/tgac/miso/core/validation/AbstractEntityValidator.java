@@ -65,20 +65,15 @@ public abstract class AbstractEntityValidator<T> implements EntityValidator<T> {
   // Refer to interface for documentation
   @Override
   public boolean validate(Map<String, String> data) throws ValidationFailureException, MisoNamingException {
-    for (Map.Entry<String, String> i : data.entrySet()) {
+    for (Map.Entry<String, String> dataEntry : data.entrySet()) {
       // Apply global validations
       for (Pair<String, EntityFieldValidatorFunction> p : globalValidators) {
-        if (p.getValue().validate(i.getValue()).getPassed() == false)
+        if (p.getValue().validate(dataEntry.getValue()).getPassed() == false)
           return false;
       }
 
-      // No validation rule found
-      if (getValidationFunction(i.getKey()) == null) {
-        log.info("No validation rule found for given field: "+i.getKey());
-        continue;
-      }
-
-      if (validateField(i.getKey(), i.getValue()) == false)
+      log.info("Validating field: "+dataEntry.getKey()+" with value: "+dataEntry.getValue());
+      if (validateField(dataEntry.getKey(), dataEntry.getValue()) == false)
         return false;
     }
     return true;
@@ -94,11 +89,6 @@ public abstract class AbstractEntityValidator<T> implements EntityValidator<T> {
   @Override
   public void addGlobalValidation(String name, EntityFieldValidatorFunction fn) {
     globalValidators.add(new Pair(name, fn));
-  }
-
-  private EntityFieldValidatorFunction getValidationFunction(String field) {
-    Pair<String, EntityFieldValidatorFunction> p = getValidatorPair(field);
-    return p == null ? null : p.getValue();
   }
 
   /**

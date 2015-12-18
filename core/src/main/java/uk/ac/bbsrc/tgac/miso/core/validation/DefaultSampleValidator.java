@@ -35,7 +35,7 @@ import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ServiceProvider
@@ -60,11 +60,23 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
   }
 
   public DefaultSampleValidator() {
-    // JAVA 8 TODO: replace with much less verbose λs 😭?
+    // JAVA 8 TODO: replace with much less verbose λs 😭?, also prevents duplication
+
+    addValidation("name", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(sampleNamingScheme.validateField("name", data), "Sample name does not conform to naming scheme");
+      }
+    });
+
+    addValidation("name", new EntityFieldValidatorFunction() {
+      public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
+        return new EntityValidationResult(data != null && data != "", "Sample name cannot be null or empty");
+      }
+    });
 
     addValidation("project", new EntityFieldValidatorFunction() {
       public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
-        return new EntityValidationResult(data != null, "A project must be selected for the sample");
+        return new EntityValidationResult(data != null && data != "", "A project must be selected for the sample");
       }
     });
 
@@ -82,7 +94,7 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
 
     addValidation("alias", new EntityFieldValidatorFunction() {
       public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
-        return new EntityValidationResult(sampleNamingScheme.validateField("alias", data), "Sample alias does not conform to MISO naming scheme.");
+        return new EntityValidationResult(sampleNamingScheme.validateField("alias", data), "Sample alias does not conform to naming scheme.");
       }
     });
 
@@ -119,8 +131,8 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
     addValidation("alias", new EntityFieldValidatorFunction() {
       public EntityValidationResult validate(String data) throws ValidationFailureException, MisoNamingException {
         try {
-          return new EntityValidationResult(!sampleNamingScheme.allowDuplicateEntityNameFor("alias") &&
-                  !requestManager.listSamplesByAlias(data).isEmpty(),
+          return new EntityValidationResult(sampleNamingScheme.allowDuplicateEntityNameFor("alias") ||
+                  requestManager.listSamplesByAlias(data).isEmpty(),
                   "Sample alias already exists in the database with that alias");
         } catch (IOException ex) {
           log.error("Could not connect to database to retrieve samples during validation");
@@ -132,7 +144,8 @@ public class DefaultSampleValidator extends AbstractEntityValidator<Sample> {
 
   @Override
   public boolean validate(Sample s) throws ValidationFailureException, MisoNamingException {
-    Map<String, String> data = new HashMap<>();
+    Map<String, String> data = new LinkedHashMap<>();
+    data.put("name", s.getName());
     data.put("project", s.getProject() == null ? null : "not null");
     data.put("alias", s.getAlias());
     data.put("description", s.getDescription());

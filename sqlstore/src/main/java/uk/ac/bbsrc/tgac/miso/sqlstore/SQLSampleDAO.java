@@ -351,38 +351,29 @@ public class SQLSampleDAO implements SampleStore {
     }
 
     if (sample.getId() == AbstractSample.UNSAVED_ID) {
-      // if the sample naming scheme doesn't allow duplicates, and a sample alias already exists
-      if (!sampleNamingScheme.allowDuplicateEntityNameFor("alias") && !listByAlias(sample.getAlias()).isEmpty()) {
-        throw new IOException("NEW: A sample with this alias already exists in the database");
-      } else {
-        SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("sampleId");
-        try {
-          sample.setId(DbUtils.getAutoIncrement(template, TABLE_NAME));
+      SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("sampleId");
+      try {
+        sample.setId(DbUtils.getAutoIncrement(template, TABLE_NAME));
 
-          String name = sampleNamingScheme.generateNameFor("name", sample);
-          sample.setName(name);
+        String name = sampleNamingScheme.generateNameFor("name", sample);
+        sample.setName(name);
 
-          if (sampleNamingScheme.validateField("name", sample.getName()) && sampleNamingScheme.validateField("alias", sample.getAlias())) {
-            if (autoGenerateIdentificationBarcodes) {
-              autoGenerateIdBarcode(sample);
-            } // if !autoGenerateIdentificationBarcodes then the identificationBarcode is set by the user
+        if (autoGenerateIdentificationBarcodes) {
+          autoGenerateIdBarcode(sample);
+        } // if !autoGenerateIdentificationBarcodes then the identificationBarcode is set by the user
 
-            params.addValue("name", name);
-            params.addValue("identificationBarcode", sample.getIdentificationBarcode());
+        params.addValue("name", name);
+        params.addValue("identificationBarcode", sample.getIdentificationBarcode());
 
-            Number newId = insert.executeAndReturnKey(params);
-            if (newId.longValue() != sample.getId()) {
-              log.error("Expected Sample ID doesn't match returned value from database insert: rolling back...");
-              new NamedParameterJdbcTemplate(template).update(SAMPLE_DELETE,
-                  new MapSqlParameterSource().addValue("sampleId", newId.longValue()));
-              throw new IOException("Something bad happened. Expected Sample ID doesn't match returned value from DB insert");
-            }
-          } else {
-            throw new IOException("Cannot save sample - invalid field:" + sample.toString());
-          }
-        } catch (MisoNamingException e) {
-          throw new IOException("Cannot save sample - issue with naming scheme", e);
+        Number newId = insert.executeAndReturnKey(params);
+        if (newId.longValue() != sample.getId()) {
+          log.error("Expected Sample ID doesn't match returned value from database insert: rolling back...");
+          new NamedParameterJdbcTemplate(template).update(SAMPLE_DELETE,
+              new MapSqlParameterSource().addValue("sampleId", newId.longValue()));
+          throw new IOException("Something bad happened. Expected Sample ID doesn't match returned value from DB insert");
         }
+      } catch (MisoNamingException e) {
+        throw new IOException("Cannot save sample - issue with naming scheme", e);
       }
     } else {
       SqlRowSet ss = template.queryForRowSet(SAMPLE_SELECT_BY_ALIAS, new Object[] { sample.getAlias() });
