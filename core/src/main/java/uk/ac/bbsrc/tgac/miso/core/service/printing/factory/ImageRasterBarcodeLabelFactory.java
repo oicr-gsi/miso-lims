@@ -23,28 +23,34 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.printing.factory;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.eaglegenomics.simlims.core.User;
 import com.opensymphony.util.FileUtils;
+
 import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.springframework.security.core.context.SecurityContextHolder;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeLabelFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.schema.BarcodableSchema;
 
-import java.io.File;
-import java.io.IOException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.printing.factory
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 17/04/12
  * @since 0.1.6
  */
 @ServiceProvider
-public class ImageRasterBarcodeLabelFactory<T> implements BarcodeLabelFactory<File,T, BarcodableSchema<File, T>> {
+public class ImageRasterBarcodeLabelFactory<T> implements BarcodeLabelFactory<File, T, BarcodableSchema<File, T>> {
+  protected static final Logger log = LoggerFactory.getLogger(ImageRasterBarcodeLabelFactory.class);
   private com.eaglegenomics.simlims.core.manager.SecurityManager securityManager;
   private MisoFilesManager misoFileManager;
 
@@ -59,19 +65,19 @@ public class ImageRasterBarcodeLabelFactory<T> implements BarcodeLabelFactory<Fi
   }
 
   @Override
-  public File getLabel(BarcodableSchema<File, T> s,T b) {
+  public File getLabel(BarcodableSchema<File, T> s, T b) {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
 
       String rasterString = s.getRawState(b);
 
-      File f = misoFileManager.generateTemporaryFile(user.getLoginName() + "_"+b.getClass().getSimpleName().toLowerCase()+"-", ".printjob");
+      File f = misoFileManager.generateTemporaryFile(user.getLoginName() + "_" + b.getClass().getSimpleName().toLowerCase() + "-",
+          ".printjob");
       FileUtils.write(f, rasterString);
 
       return f;
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("get label", e);
     }
     return null;
   }

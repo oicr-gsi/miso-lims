@@ -23,12 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.service;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.Message;
 import org.w3c.dom.Document;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.ws.solid.RunArray;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.ws.solid.SolidService;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.ws.solid.SolidServiceWrapper;
@@ -37,21 +52,11 @@ import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
 import uk.ac.bbsrc.tgac.miso.integration.context.ApplicationContextProvider;
 import uk.ac.bbsrc.tgac.miso.tools.run.util.FileSetTransformer;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * uk.ac.bbsrc.tgac.miso.notification.util
  * <p/>
  * Transforms relevant SOLiD web service responses into a Map to form the payload of a Message
- *
+ * 
  * @author Rob Davey
  * @date 08-Aug-2011
  * @since 0.0.3
@@ -63,8 +68,9 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
     return transform(message.getPayload());
   }
 
+  @Override
   public Map<String, String> transform(Set<File> files) {
-    log.info("Processing "+files.size()+" SOLiD run directories...");
+    log.info("Processing " + files.size() + " SOLiD run directories...");
 
     HashMap<String, JSONArray> map = new HashMap<String, JSONArray>();
     map.put("Running", new JSONArray());
@@ -76,7 +82,7 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
         JSONObject run = new JSONObject();
         String runName = rootFile.getName();
 
-        File statusFile = new File(rootFile, "/"+runName+".xml");
+        File statusFile = new File(rootFile, "/" + runName + ".xml");
 
         log.debug("SOLID: Processing " + runName);
         String runDirRegex = "([A-z0-9]+)_([0-9]{8})_(.*)";
@@ -85,7 +91,8 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
           String machineName = m.group(1);
           String startDate = m.group(2);
           try {
-            SolidServiceWrapper solidServiceWrapper = ApplicationContextProvider.getApplicationContext().getBean(machineName, SolidServiceWrapper.class);
+            SolidServiceWrapper solidServiceWrapper = ApplicationContextProvider.getApplicationContext().getBean(machineName,
+                SolidServiceWrapper.class);
 
             SolidService solidService = solidServiceWrapper.getSolidService();
             RunArray ra = solidService.getSolidPort().getRun(runName, machineName);
@@ -99,14 +106,12 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
                 run.put("fullPath", rootFile.getAbsolutePath());
                 run.put("status", statusXml);
 
-                //run.put("sequencerName", statusDoc.getElementsByTagName("instrumentName").item(0).getTextContent());
                 run.put("sequencerName", machineName);
 
-                if (statusDoc.getElementsByTagName("flowcellNum").getLength() != 0 &&
-                    statusDoc.getElementsByTagName("description").getLength() != 0) {
-                  String id = statusDoc.getElementsByTagName("description").item(0).getTextContent() +
-                              "-" +
-                              statusDoc.getElementsByTagName("flowcellNum").item(0).getTextContent();
+                if (statusDoc.getElementsByTagName("flowcellNum").getLength() != 0
+                    && statusDoc.getElementsByTagName("description").getLength() != 0) {
+                  String id = statusDoc.getElementsByTagName("description").item(0).getTextContent() + "-"
+                      + statusDoc.getElementsByTagName("flowcellNum").item(0).getTextContent();
                   run.put("containerId", id);
                 }
 
@@ -116,32 +121,25 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
                 log.debug(runName + " :: Started -> " + dateStarted);
                 run.put("startDate", dateStarted);
 
-                if (!"".equals(dateStarted) && "".equals(dateCompleted)) {
+                if (!isStringEmptyOrNull(dateStarted) && isStringEmptyOrNull(dateCompleted)) {
                   log.debug(runName + " :: Running");
                   map.get("Running").add(run);
-                }
-                else if (!"".equals(dateStarted) && !"".equals(dateCompleted)) {
+                } else if (!isStringEmptyOrNull(dateStarted) && !isStringEmptyOrNull(dateCompleted)) {
                   log.debug(runName + " :: Completed -> " + dateCompleted);
                   run.put("completionDate", dateCompleted);
                   map.get("Completed").add(run);
-                }
-                else {
+                } else {
                   log.debug(runName + " :: Unknown");
                   map.get("Unknown").add(run);
                 }
-              }
-              catch (ParserConfigurationException e) {
-                //e.printStackTrace();
-                log.error("Error configuring parser: " + e.getMessage());
-              }
-              catch (TransformerException e) {
-                //e.printStackTrace();
-                log.error("Error transforming XML: " + e.getMessage());
+              } catch (ParserConfigurationException e) {
+                log.error("Error configuring parser", e);
+              } catch (TransformerException e) {
+                log.error("Error transforming XML", e);
               }
             }
-          }
-          catch(Exception e) {
-            log.error("Error contacting SOLiD machine. Attempting to parse "+statusFile.getAbsolutePath()+": " + e.getMessage());
+          } catch (Exception e) {
+            log.error("Error contacting SOLiD machine. Attempting to parse " + statusFile.getAbsolutePath(), e);
             run.put("runName", runName);
 
             if (statusFile.exists()) {
@@ -153,11 +151,10 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
                   run.put("fullPath", rootFile.getAbsolutePath());
                   run.put("sequencerName", machineName);
 
-                  if (statusDoc.getElementsByTagName("flowcellNum").getLength() != 0 &&
-                      statusDoc.getElementsByTagName("description").getLength() != 0) {
-                    String id = statusDoc.getElementsByTagName("description").item(0).getTextContent() +
-                                "-" +
-                                statusDoc.getElementsByTagName("flowcellNum").item(0).getTextContent();
+                  if (statusDoc.getElementsByTagName("flowcellNum").getLength() != 0
+                      && statusDoc.getElementsByTagName("description").getLength() != 0) {
+                    String id = statusDoc.getElementsByTagName("description").item(0).getTextContent() + "-"
+                        + statusDoc.getElementsByTagName("flowcellNum").item(0).getTextContent();
                     run.put("containerId", id);
                   }
 
@@ -169,46 +166,40 @@ public class SolidTransformer implements FileSetTransformer<String, String, File
 
                   run.put("status", SubmissionUtils.transform(statusFile));
 
-                  if (!"".equals(dateStarted) && "".equals(dateCompleted)) {
+                  if (!isStringEmptyOrNull(dateStarted) && isStringEmptyOrNull(dateCompleted)) {
                     log.debug(runName + " :: Running");
                     map.get("Running").add(run);
-                  }
-                  else if (!"".equals(dateStarted) && !"".equals(dateCompleted)) {
+                  } else if (!isStringEmptyOrNull(dateStarted) && !isStringEmptyOrNull(dateCompleted)) {
                     log.debug(runName + " :: Completed -> " + dateCompleted);
                     run.put("completionDate", dateCompleted);
                     map.get("Completed").add(run);
-                  }
-                  else {
+                  } else {
                     log.debug(runName + " :: Unknown");
                     run.put("completionDate", "null");
                     map.get("Unknown").add(run);
                   }
+                } catch (ParserConfigurationException ee) {
+                  log.error("Error configuring parser", ee);
+                } catch (TransformerException ee) {
+                  log.error("Error transforming XML", ee);
+                } catch (IOException ee) {
+                  log.error("Error with file IO", ee);
                 }
-                catch (ParserConfigurationException ee) {
-                  log.error("Error configuring parser: " + ee.getMessage());
-                }
-                catch (TransformerException ee) {
-                  log.error("Error transforming XML: " + ee.getMessage());
-                }
-                catch (IOException ee) {
-                  log.error("Error with file IO: " + ee.getMessage());
-                }
-              }
-              else {
+              } else {
                 log.debug(runName + " :: Cannot read status file. Minimal run information only.");
                 run.put("fullPath", rootFile.getAbsolutePath());
-                run.put("status", "<error><RunName>"+runName+"</RunName><ErrorMessage>Cannot read status file</ErrorMessage></error>");
+                run.put("status", "<error><RunName>" + runName + "</RunName><ErrorMessage>Cannot read status file</ErrorMessage></error>");
                 run.put("sequencerName", machineName);
                 run.put("startDate", startDate);
                 run.put("completionDate", "null");
 
                 map.get("Unknown").add(run);
               }
-            }
-            else {
+            } else {
               log.debug(runName + " :: Status file doesn't exist. Minimal run information only.");
               run.put("fullPath", rootFile.getAbsolutePath());
-              run.put("status", "<error><RunName>"+runName+"</RunName><ErrorMessage>Error contacting SOLiD machine and status xml file doesn't exist</ErrorMessage></error>");
+              run.put("status", "<error><RunName>" + runName
+                  + "</RunName><ErrorMessage>Error contacting SOLiD machine and status xml file doesn't exist</ErrorMessage></error>");
               run.put("sequencerName", machineName);
               run.put("startDate", startDate);
               run.put("completionDate", "null");

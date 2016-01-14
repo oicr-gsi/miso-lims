@@ -23,21 +23,22 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.event.Event;
 import uk.ac.bbsrc.tgac.miso.core.event.ResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.listener.MisoListener;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.listener
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 20/10/11
  * @since 0.1.2
@@ -48,6 +49,7 @@ public class DefaultListener implements MisoListener {
 
   private String baseURL = "";
 
+  @Override
   public void setBaseURL(String baseURL) {
     this.baseURL = baseURL;
   }
@@ -57,6 +59,7 @@ public class DefaultListener implements MisoListener {
     return responderServices;
   }
 
+  @Override
   public void setResponderServices(Collection<? extends ResponderService> responderServices) {
     this.responderServices = responderServices;
   }
@@ -67,7 +70,7 @@ public class DefaultListener implements MisoListener {
       event.getEventContext().put("baseURL", baseURL);
     }
 
-    log.info("State change detected: " + event.getEventType() + ". Checking "+getResponderServices().size()+" responders");
+    log.info("State change detected: " + event.getEventType() + ". Checking " + getResponderServices().size() + " responders");
     for (ResponderService responder : getResponderServices()) {
       if (responder.respondsTo(event)) {
         log.info("Responding via " + responder.toString());

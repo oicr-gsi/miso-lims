@@ -23,25 +23,29 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.responder;
 
-import com.eaglegenomics.simlims.core.User;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ProjectOverview;
-import uk.ac.bbsrc.tgac.miso.core.event.*;
+import uk.ac.bbsrc.tgac.miso.core.event.Alert;
+import uk.ac.bbsrc.tgac.miso.core.event.AlerterService;
+import uk.ac.bbsrc.tgac.miso.core.event.Event;
 import uk.ac.bbsrc.tgac.miso.core.event.impl.AbstractResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.impl.DefaultAlert;
 import uk.ac.bbsrc.tgac.miso.core.event.model.ProjectOverviewEvent;
 import uk.ac.bbsrc.tgac.miso.core.event.type.MisoEventType;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.responder
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 20/10/11
  * @since 0.1.2
@@ -51,12 +55,15 @@ public class LibraryPreparationCompleteResponderService extends AbstractResponde
 
   private Set<AlerterService> alerterServices = new HashSet<AlerterService>();
 
-  public LibraryPreparationCompleteResponderService() {}
+  public LibraryPreparationCompleteResponderService() {
+  }
 
+  @Override
   public Set<AlerterService> getAlerterServices() {
     return alerterServices;
   }
 
+  @Override
   public void setAlerterServices(Set<AlerterService> alerterServices) {
     this.alerterServices = alerterServices;
   }
@@ -64,10 +71,10 @@ public class LibraryPreparationCompleteResponderService extends AbstractResponde
   @Override
   public boolean respondsTo(Event event) {
     if (event instanceof ProjectOverviewEvent) {
-      ProjectOverviewEvent poe = (ProjectOverviewEvent)event;
+      ProjectOverviewEvent poe = (ProjectOverviewEvent) event;
       ProjectOverview po = poe.getEventObject();
       if (poe.getEventType().equals(MisoEventType.LIBRARY_PREPARATION_COMPLETED) && po.getLibraryPreparationComplete()) {
-        log.info("Project "+poe.getEventObject().getProject().getAlias() +": " + poe.getEventMessage());
+        log.info("Project " + poe.getEventObject().getProject().getAlias() + ": " + poe.getEventMessage());
         return true;
       }
     }
@@ -77,7 +84,7 @@ public class LibraryPreparationCompleteResponderService extends AbstractResponde
   @Override
   public void generateResponse(Event event) {
     if (event instanceof ProjectOverviewEvent) {
-      ProjectOverviewEvent re = (ProjectOverviewEvent)event;
+      ProjectOverviewEvent re = (ProjectOverviewEvent) event;
       ProjectOverview po = re.getEventObject();
 
       for (User user : po.getWatchers()) {
@@ -85,19 +92,18 @@ public class LibraryPreparationCompleteResponderService extends AbstractResponde
         a.setAlertTitle("Library preparation complete for project " + po.getProject().getAlias() + "(" + po.getProject().getName() + ")");
 
         StringBuilder at = new StringBuilder();
-        at.append("The following Project's Libraries have been prepared: "+po.getProject().getAlias()+" ("+event.getEventMessage()+"). Please view Project " +po.getProject().getId() + " in MISO for more information");
+        at.append("The following Project's Libraries have been prepared: " + po.getProject().getAlias() + " (" + event.getEventMessage()
+            + "). Please view Project " + po.getProject().getId() + " in MISO for more information");
         if (event.getEventContext().has("baseURL")) {
-          at.append(":\n\n" + event.getEventContext().getString("baseURL")+"/project/"+po.getProject().getId());
+          at.append(":\n\n" + event.getEventContext().getString("baseURL") + "/project/" + po.getProject().getId());
         }
         a.setAlertText(at.toString());
 
         for (AlerterService as : alerterServices) {
           try {
             as.raiseAlert(a);
-          }
-          catch (AlertingException e) {
-            log.error("Cannot raise user-level alert:" + e.getMessage());
-            e.printStackTrace();
+          } catch (AlertingException e) {
+            log.error("Cannot raise user-level alert", e);
           }
         }
       }

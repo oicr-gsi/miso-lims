@@ -23,8 +23,11 @@
 
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +37,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Watchable;
 import uk.ac.bbsrc.tgac.miso.core.store.WatcherStore;
-
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
 
 /**
  * uk.ac.bbsrc.tgac.miso.sqlstore
@@ -52,21 +54,15 @@ import java.util.Collection;
  * @since 0.1.3
  */
 public class SQLWatcherDAO implements WatcherStore {
-  private static final String WATCHER_SELECT =
-          "SELECT entityName, userId " +
-          "FROM Watcher";
+  private static final String WATCHER_SELECT = "SELECT entityName, userId " + "FROM Watcher";
 
-  private static final String WATCHERS_SELECT_BY_ENTITY_NAME =
-          WATCHER_SELECT + " WHERE entityName = ?";
+  private static final String WATCHERS_SELECT_BY_ENTITY_NAME = WATCHER_SELECT + " WHERE entityName = ?";
 
-  private static final String WATCHED_ENTITIES_BY_USER =
-          WATCHER_SELECT + " WHERE userId = ?";
+  private static final String WATCHED_ENTITIES_BY_USER = WATCHER_SELECT + " WHERE userId = ?";
 
-  private static final String WATCHER_DELETE_BY_USER_ID =
-          "DELETE FROM Watcher WHERE entityName=:entityName AND userId=:userId";
+  private static final String WATCHER_DELETE_BY_USER_ID = "DELETE FROM Watcher WHERE entityName=:entityName AND userId=:userId";
 
-  private static final String WATCHER_DELETE =
-          "DELETE FROM Watcher WHERE entityName=:entityName";
+  private static final String WATCHER_DELETE = "DELETE FROM Watcher WHERE entityName=:entityName";
 
   protected static final Logger log = LoggerFactory.getLogger(SQLWatcherDAO.class);
 
@@ -94,14 +90,10 @@ public class SQLWatcherDAO implements WatcherStore {
 
   @Override
   public Collection<User> getWatchersByEntityName(String entityName) throws IOException {
-    return template.query(WATCHERS_SELECT_BY_ENTITY_NAME, new Object[]{entityName}, new WatcherMapper());
+    return template.query(WATCHERS_SELECT_BY_ENTITY_NAME, new Object[] { entityName }, new WatcherMapper());
   }
 
-//  @Override
-//  public Collection<Watchable> getWatchedEntitiesByUserId(Long userId) throws IOException {
-//    return template.query(WATCHED_ENTITIES_BY_USER, new Object[]{userId}, new WatchedEntityMapper());
-//  }
-
+  @Override
   public boolean removeWatchedEntity(Watchable watchable) throws IOException {
     MapSqlParameterSource eParams = new MapSqlParameterSource();
     eParams.addValue("entityName", watchable.getWatchableIdentifier());
@@ -109,6 +101,7 @@ public class SQLWatcherDAO implements WatcherStore {
     return eNamedTemplate.update(WATCHER_DELETE, eParams) == 1;
   }
 
+  @Override
   public boolean removeWatchedEntityByUser(Watchable watchable, User user) throws IOException {
     if (user != null) {
       MapSqlParameterSource eParams = new MapSqlParameterSource();
@@ -128,24 +121,23 @@ public class SQLWatcherDAO implements WatcherStore {
     if (user != null) {
       SimpleJdbcInsert fInsert = new SimpleJdbcInsert(template).withTableName("Watcher");
       MapSqlParameterSource fcParams = new MapSqlParameterSource();
-      fcParams.addValue("entityName", watchable.getWatchableIdentifier())
-              .addValue("userId", user.getUserId());
+      fcParams.addValue("entityName", watchable.getWatchableIdentifier());
+      fcParams.addValue("userId", user.getUserId());
       try {
         fInsert.execute(fcParams);
         log.debug("DAO insert of " + user.getUserId() + " on " + watchable.getWatchableIdentifier());
-      }
-      catch(DuplicateKeyException dke) {
-        log.debug("This Watcher combination already exists - not inserting: " + dke.getMessage());
+      } catch (DuplicateKeyException dke) {
+        log.error("This Watcher combination already exists - not inserting", dke);
       }
     }
   }
 
   public class WatcherMapper implements RowMapper<User> {
+    @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
       try {
         return securityManager.getUserById(rs.getLong("userId"));
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         throw new SQLException(e);
       }
     }

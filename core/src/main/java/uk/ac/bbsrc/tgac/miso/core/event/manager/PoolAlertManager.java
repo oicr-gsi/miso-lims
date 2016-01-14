@@ -23,30 +23,31 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.manager;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import com.rits.cloning.Cloner;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import com.rits.cloning.Cloner;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractPool;
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
-import uk.ac.bbsrc.tgac.miso.core.data.Poolable;
-import uk.ac.bbsrc.tgac.miso.core.data.Run;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.PoolImpl;
 import uk.ac.bbsrc.tgac.miso.core.event.listener.MisoListener;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.manager
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 11/11/11
  * @since 0.1.6
@@ -104,26 +105,23 @@ public class PoolAlertManager {
             applyListeners(clone);
             if (pools.containsKey(pool.getId())) {
               log.debug("Not replacing Pool " + clone.getId() + ": Ready? " + clone.getReadyToRun());
-            }
-            else {
+            } else {
               pools.put(pool.getId(), clone);
               log.debug("Queued Pool " + clone.getId() + ": Ready? " + clone.getReadyToRun());
             }
           }
-        }
-        catch (Exception e) {
-          e.printStackTrace();
+        } catch (Exception e) {
+          log.error("push", e);
         }
       }
-    }
-    else {
+    } else {
       log.warn("Alerting system disabled.");
     }
   }
 
   public void pop(Pool pool) {
     if (enabled) {
-      if (pool!= null) {
+      if (pool != null) {
         Pool clone = pools.get(pool.getId());
         if (clone != null) {
           removeListeners(clone);
@@ -132,8 +130,7 @@ public class PoolAlertManager {
           log.debug("Dequeued " + pool.getId());
         }
       }
-    }
-    else {
+    } else {
       log.warn("Alerting system disabled.");
     }
   }
@@ -147,52 +144,25 @@ public class PoolAlertManager {
       Pool clone = pools.get(p.getId());
       if (clone == null) {
         log.debug("Update: no clone - pushing");
-        //new run - add all PoolWatchers!
+        // new run - add all PoolWatchers!
         for (User u : securityManager.listUsersByGroupName("PoolWatchers")) {
           p.addWatcher(u);
         }
         push(p);
-      }
-      else {
+      } else {
         log.debug("Update: got clone of " + clone.getId());
-        //TODO EVIL EVIL EVIL FIX UPON PAIN OF DEATH
+        // TODO EVIL EVIL EVIL FIX UPON PAIN OF DEATH
         if (clone.getReadyToRun()) {
           try {
-            //fire event if pool has been saved initially to ready to run
+            // fire event if pool has been saved initially to ready to run
             Method m = AbstractPool.class.getDeclaredMethod("firePoolReadyEvent");
             m.setAccessible(true);
             m.invoke(clone);
+          } catch (Exception e) {
+            log.error("Cannot fire pool ready event", e);
           }
-          catch (Exception e) {
-            log.error("Cannot fire pool ready event: " + e.getMessage());
-            e.printStackTrace();
-          }
-        }
-        else {
+        } else {
           log.debug("Updating Pool " + clone.getId() + " ...");
-
-          //find any watchable setters on the clone and call the respective getter from the clone parent
-          //i.e. clone.setFoo(parent.getFoo()); where @WatchableSetter Class.setFoo(T t);
-          /*
-          for (Method setter : clone.getClass().getMethods()) {
-            if (setter.getAnnotation(WatchableSetter.class)) {
-              try {
-                Method getter = clone.getClass().getMethod(setter.getName().replaceFirst("set", "get"));
-                setter.invoke(clone, getter.invoke(p));
-              }
-              catch (NoSuchMethodException e) {
-                e.printStackTrace();
-              }
-              catch (InvocationTargetException e) {
-                e.printStackTrace();
-              }
-              catch (IllegalAccessException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-          */
-          //TODO the above will get rid of this necessity to call each method explicitly
           clone.setReadyToRun(p.getReadyToRun());
         }
 
@@ -209,8 +179,7 @@ public class PoolAlertManager {
       if (clone == null) {
         pool.addWatcher(user);
         push(pool);
-      }
-      else {
+      } else {
         clone.addWatcher(user);
       }
     }
@@ -223,8 +192,7 @@ public class PoolAlertManager {
       if (clone == null) {
         pool.removeWatcher(user);
         push(pool);
-      }
-      else {
+      } else {
         clone.removeWatcher(user);
       }
     }
@@ -239,9 +207,9 @@ public class PoolAlertManager {
       for (Pool p : pools.values()) {
         if (user.getGroups() != null && user.getGroups().contains(securityManager.getGroupByName("PoolWatchers"))) {
           addWatcher(p, userId);
-        }
-        else {
-          if (p.getSecurityProfile() != null && p.getSecurityProfile().getOwner() != null && !p.getSecurityProfile().getOwner().equals(user)) {
+        } else {
+          if (p.getSecurityProfile() != null && p.getSecurityProfile().getOwner() != null
+              && !p.getSecurityProfile().getOwner().equals(user)) {
             removeWatcher(p, userId);
           }
         }

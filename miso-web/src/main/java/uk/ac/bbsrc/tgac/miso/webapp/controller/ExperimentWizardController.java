@@ -24,7 +24,10 @@
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,15 +36,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
-import uk.ac.bbsrc.tgac.miso.core.data.*;
 import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Platform;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 
 @Controller
@@ -104,48 +114,12 @@ public class ExperimentWizardController {
         Collections.sort(pools);
       }
       return pools;
-      /*
-      if (experiment.getPlatform().getPlatformType().equals(PlatformType.ILLUMINA)) {
-        ArrayList<IlluminaPool> pools = new ArrayList<IlluminaPool>();
-        for (IlluminaPool p : requestManager.listAllIlluminaPools()) {
-          if (experiment.getPool() == null || !experiment.getPool().equals(p)) {
-            pools.add(p);
-          }
-          Collections.sort(pools);
-        }
-        return pools;
-      }
-      else if (experiment.getPlatform().getPlatformType().equals(PlatformType.LS454)) {
-        ArrayList<LS454Pool> pools = new ArrayList<LS454Pool>();
-        for (LS454Pool p : requestManager.listAll454Pools()) {
-          if (experiment.getPool() == null || !experiment.getPool().equals(p)) {
-            pools.add(p);
-          }
-          Collections.sort(pools);
-        }
-        return pools;
-      }
-      else if (experiment.getPlatform().getPlatformType().equals(PlatformType.SOLID)) {
-        ArrayList<SolidPool> pools = new ArrayList<SolidPool>();
-        for (SolidPool p : requestManager.listAllSolidPools()) {
-          if (experiment.getPool() == null || !experiment.getPool().equals(p)) {
-            pools.add(p);
-          }
-          Collections.sort(pools);
-        }
-        return pools;
-      }
-      else {
-        return Collections.emptyList();
-      }
-      */
     }
     return requestManager.listAllPools();
   }
 
   @RequestMapping(value = "/new/{projectId}", method = RequestMethod.GET)
-  public ModelAndView newAssignedProject(@PathVariable Long projectId,
-                                         ModelMap model) throws IOException {
+  public ModelAndView newAssignedProject(@PathVariable Long projectId, ModelMap model) throws IOException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
 
@@ -156,7 +130,6 @@ public class ExperimentWizardController {
         a.append("<option value=\"" + platform.getPlatformId() + "\">" + platform.getNameAndModel() + "</option>");
       }
 
-
       for (String st : requestManager.listAllStudyTypes()) {
         b.append("<option value=\"" + st + "\">" + st + "</option>");
       }
@@ -165,8 +138,7 @@ public class ExperimentWizardController {
       model.put("platforms", a.toString());
       model.put("studyTypes", b.toString());
       return new ModelAndView("/pages/experimentWizard.jsp", model);
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to show experiment wizard", ex);
       }

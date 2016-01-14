@@ -23,24 +23,24 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.impl;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.apache.commons.net.ftp.FTPClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.context.impl.BradyFtpPrintContext;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.PrintStrategy;
-import uk.ac.bbsrc.tgac.miso.core.util.TransmissionUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.ac.bbsrc.tgac.miso.core.service.printing.context.impl.BradyFtpPrintContext;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.PrintStrategy;
+import uk.ac.bbsrc.tgac.miso.core.util.TransmissionUtils;
+
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 30-Jun-2011
  * @since 0.0.3
@@ -57,12 +57,10 @@ public class BradyFtpPrintStrategy implements PrintStrategy<File, BradyFtpPrintC
       if (TransmissionUtils.ftpPut(ftp, "/execute", files, true, false)) {
         log.info("Printing successful");
         return true;
-      }
-      else {
+      } else {
         log.error("Printing unsuccessful");
       }
-    }
-    else {
+    } else {
       throw new IOException("Invalid parameters supplied for FTP connection");
     }
     return false;

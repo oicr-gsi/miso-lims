@@ -41,6 +41,9 @@
 
 <script src="<c:url value='/scripts/stats_ajax.js?ts=${timestamp.time}'/>" type="text/javascript"></script>
 
+<script type="text/javascript" src="<c:url value='/scripts/parsley/parsley.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/scripts/sample_validation.js?ts=${timestamp.time}'/>"></script>
+
 <div id="maincontent">
 <div id="contentcolumn">
 <c:if test="${sample.id == 0 and not empty sample.project}">
@@ -53,7 +56,8 @@
 <div id="tab-1">
 </c:if>
 
-<form:form action="/miso/sample" method="POST" commandName="sample" autocomplete="off" acceptCharset="utf-8">
+
+<form:form id="sample-form" data-parsley-validate="" action="/miso/sample" method="POST" commandName="sample" autocomplete="off" acceptCharset="utf-8">
 <sessionConversation:insertSessionConversationId attributeName="sample"/>
 <h1>
   <c:choose>
@@ -61,7 +65,7 @@
     <c:otherwise>Create</c:otherwise>
   </c:choose> Sample
   <button type="button" class="fg-button ui-state-default ui-corner-all"
-          onclick="return validate_sample(this.form);">Save
+          onclick="return validate_sample();">Save
   </button>
 </h1>
 
@@ -101,6 +105,12 @@
   sequencing experiments are to be based. Samples can be used in any number of sequencing Experiments in the form
   of a Library that is often processed further into pooled Dilutions.
 </div>
+
+<div class="bs-callout bs-callout-warning hidden">
+  <h2>Oh snap!</h2>
+  <p>This form seems to be invalid!</p>
+</div>
+
 <h2>Sample Information</h2>
 
 <div class="barcodes">
@@ -195,6 +205,9 @@
               <form:checkboxes items="${accessibleProjects}" path="project" itemValue="id"
                                itemLabel="name" onclick="Utils.ui.uncheckOthers('project', this);"/>
             </div>
+            <div class="parsley-errors-list filled" id="projectError">
+              <div class="parsley-required"></div>
+            </div>
           </td>
         </c:when>
         <c:otherwise>
@@ -215,13 +228,13 @@
       </td>
     </tr>
     <tr>
-      <td class="h">Alias:</td>
-      <td><form:input path="alias" class="validateable"/><span id="aliascounter" class="counter"></span></td>
+      <td class="h">Alias:*</td>
+      <td><form:input id="alias" path="alias" name="alias"/><span id="aliascounter" class="counter"></span></td>
         <%--<td><a href="void(0);" onclick="popup('help/sampleAlias.html');">Help</a></td>--%>
     </tr>
     <tr>
-      <td>Description:</td>
-      <td><form:input path="description" class="validateable"/><span id="descriptioncounter"
+      <td>Description:*</td>
+      <td><form:input id="description" path="description"/><span id="descriptioncounter"
                                                                      class="counter"></span>
       </td>
         <%--<td><a href="void(0);" onclick="popup('help/sampleDescription.html');">Help</a></td>--%>
@@ -229,14 +242,14 @@
     <tr>
       <td>Date of receipt:</td>
       <td>
-        <form:input path="receivedDate" id="receiveddatepicker"/>
+        <form:input path="receivedDate" id="receiveddatepicker" placeholder="DD/MM/YYYY"/>
         <script type="text/javascript">
           Utils.ui.addDatePicker("receiveddatepicker");
         </script>
       </td>
     </tr>
     <tr>
-      <td class="h">Scientific Name:</td>
+      <td class="h">Scientific Name:*</td>
       <td><form:input path="scientificName"/>
         <c:if test="${sessionScope.taxonLookupEnabled}">
         <script>Utils.timer.typewatchFunc(jQuery('#scientificName'), validate_ncbi_taxon, 1000, 2);</script>
@@ -253,7 +266,7 @@
       </tr>
     </c:if>
     <tr>
-      <td>Sample Type:</td>
+      <td>Sample Type:*</td>
       <td><form:select id="sampleTypes" path="sampleType" items="${sampleTypes}"/></td>
     </tr>
     <tr bgcolor="yellow">
@@ -652,6 +665,7 @@
               </c:if>
             </c:forEach>
           </td>
+          <td>${run.status.health}</td>
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
@@ -685,6 +699,29 @@
         });
       });
     </script>
+  </c:if>
+
+  <c:if test="${not empty sample.changeLog}">
+    <br/>
+    <h1>Changes</h1>
+    <span style="clear:both">
+      <table class="list" id="changelog_table">
+        <thead>
+        <tr>
+          <th>Summary</th>
+          <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <c:forEach items="${sample.changeLog}" var="change">
+          <tr onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
+            <td><b>${change.summary}</b></td>
+            <td>${change.time}</td>
+          </tr>
+        </c:forEach>
+        </tbody>
+      </table>
+    </span>
   </c:if>
 </c:if>
 
@@ -763,10 +800,8 @@ jQuery(document).ready(function () {
     "bSort": false,
     "sDom": '<<"toolbar">f>r<t>ip>'
   });
-  //jQuery("div.toolbar").html("<a onclick=\"fnClickAddRow();\" href=\"javascript:void(0);\">Add a new row</a>");
   jQuery("div.toolbar").parent().addClass("fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix");
   jQuery("div.toolbar").html("<button onclick=\"bulkCopySample();\" class=\"fg-button ui-state-default ui-corner-all\"><span class=\"add\">Bulk Copy</span></button> <button onclick=\"fnClickAddRow();\" class=\"fg-button ui-state-default ui-corner-all\"><span class=\"add\">Add Row</span></button>");
-  //setEditables(oTable);
 
   jQuery("#tabs").tabs();
   jQuery("#tabs").removeClass('ui-widget').removeClass('ui-widget-content');
@@ -876,8 +911,6 @@ function copyRow(row) {
 }
 
 function setEditables(datatable) {
-  //jQuery('td:not(:eq(8)):not(:eq(3)):not(:eq(4))', datatable.fnGetNodes()).editable(function(value, settings) {
-  //jQuery('td .defaultEditable', datatable.fnGetNodes()).editable(function(value, settings) {
   jQuery('.defaultEditable').editable(function (value, settings) {
     return value;
   },
@@ -1075,7 +1108,6 @@ function bulkLibraryQcTable() {
     jQuery(this).removeAttr("onmouseover").removeAttr("onmouseout");
     jQuery(this).find("td:eq(4)").remove();
     jQuery(this).find("td:eq(3)").remove();
-    //jQuery(this).find("td:eq(2)").addClass("passedCheck");
   });
 
   //headers
@@ -1235,7 +1267,6 @@ function bulkLibraryDilutionTable() {
       jQuery(this).removeAttr("onmouseover").removeAttr("onmouseout");
       jQuery(this).find("td:eq(4)").remove();
       jQuery(this).find("td:eq(3)").remove();
-      //jQuery(this).find("td:eq(2)").addClass("passedCheck");
     });
 
     //headers

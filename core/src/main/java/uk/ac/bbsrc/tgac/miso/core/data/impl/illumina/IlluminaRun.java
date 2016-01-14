@@ -23,33 +23,42 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl.illumina;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
-import org.w3c.dom.Document;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.RunImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
 
-import javax.persistence.*;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl.illumina
  * <p/>
  * TODO Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 @Entity
 @DiscriminatorValue("Illumina")
 public class IlluminaRun extends RunImpl {
+  protected static final Logger log = LoggerFactory.getLogger(IlluminaRun.class);
 
   public IlluminaRun() {
     setPlatformType(PlatformType.ILLUMINA);
@@ -64,7 +73,7 @@ public class IlluminaRun extends RunImpl {
   public IlluminaRun(String statusXml, User user) {
     try {
       Document statusDoc = SubmissionUtils.emptyDocument();
-      if (statusXml != null && !"".equals(statusXml)) {
+      if (!isStringEmptyOrNull(statusXml)) {
         SubmissionUtils.transform(new UnicodeReader(statusXml), statusDoc);
 
         String runName = (statusDoc.getElementsByTagName("RunName").item(0).getTextContent());
@@ -90,21 +99,16 @@ public class IlluminaRun extends RunImpl {
         setStatus(new IlluminaStatus(statusXml));
         if (user != null) {
           setSecurityProfile(new SecurityProfile(user));
-        }
-        else {
+        } else {
           setSecurityProfile(new SecurityProfile());
         }
-      }
-      else {
+      } else {
         log.error("No status XML for this run");
       }
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    catch (TransformerException e) {
-      log.error("Cannot parse status: " + statusXml);
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("Cannot parse status", e);
+    } catch (TransformerException e) {
+      log.error("Cannot parse status: " + statusXml, e);
     }
   }
 
@@ -114,17 +118,13 @@ public class IlluminaRun extends RunImpl {
     setSecurityProfile(new SecurityProfile(user));
   }
 
+  @Override
   public void buildSubmission() {
     /*
-    try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      submissionDocument = docBuilder.newDocument();
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    ERASubmissionFactory.generateFullRunSubmissionXML(submissionDocument, this);
-    */
+     * try { DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder(); submissionDocument =
+     * docBuilder.newDocument(); } catch (ParserConfigurationException e) { e.printStackTrace(); }
+     * ERASubmissionFactory.generateFullRunSubmissionXML(submissionDocument, this);
+     */
   }
 
   @Override
@@ -132,16 +132,11 @@ public class IlluminaRun extends RunImpl {
     StringBuffer sb = new StringBuffer();
     sb.append(super.toString());
     /*
-    if (getFlowcells() != null) {
-      sb.append(" : ");
-      for(Flowcell f: getFlowcells()) {
-        sb.append(f.toString());
-      }
-    }
-    */
+     * if (getFlowcells() != null) { sb.append(" : "); for(Flowcell f: getFlowcells()) { sb.append(f.toString()); } }
+     */
     if (getSequencerPartitionContainers() != null) {
       sb.append(" : ");
-      for(SequencerPartitionContainer f: getSequencerPartitionContainers()) {
+      for (SequencerPartitionContainer f : getSequencerPartitionContainers()) {
         sb.append(f.toString());
       }
     }
@@ -151,6 +146,7 @@ public class IlluminaRun extends RunImpl {
   /**
    * Method buildReport ...
    */
+  @Override
   public void buildReport() {
 
   }

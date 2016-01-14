@@ -1,35 +1,36 @@
 package uk.ac.bbsrc.tgac.miso.core.service.printing.schema.impl;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sourceforge.fluxion.spi.ServiceProvider;
 import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
 import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeLabelFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.factory.FileGeneratingBarcodeLabelFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.schema.BarcodableSchema;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-
 /**
- * Created with IntelliJ IDEA.
- * User: bianx
- * Date: 09/05/2013
- * Time: 11:48
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: bianx Date: 09/05/2013 Time: 11:48 To change this template use File | Settings | File Templates.
  */
 @ServiceProvider
 public class BradyPlateBarcodeLabelSchema implements BarcodableSchema<File, Barcodable> {
+  protected static final Logger log = LoggerFactory.getLogger(BradyPlateBarcodeLabelSchema.class);
   private BarcodeLabelFactory<File, Barcodable, BarcodableSchema<File, Barcodable>> barcodeLabelFactory = new FileGeneratingBarcodeLabelFactory<Barcodable>();
 
-  public String getName(){
-    return  "bradyPlateBarcodeLabelSchema";
+  @Override
+  public String getName() {
+    return "bradyPlateBarcodeLabelSchema";
   }
 
   private Barcodable barcodable;
 
   @Override
   public Class<Barcodable> isStateFor() {
-    return Barcodable.class;  //To change body of implemented methods use File | Settings | File Templates.
+    return Barcodable.class; // To change body of implemented methods use File | Settings | File Templates.
   }
 
   @Override
@@ -58,7 +59,7 @@ public class BradyPlateBarcodeLabelSchema implements BarcodableSchema<File, Barc
       sb.append("B 17,1,0,DATAMATRIX+RECT,0.25;").append(barcode).append("\n");
       sb.append("T 29,2,0,5,pt4;[DATE]").append("\n");
 
-      //shorten alias to fit on label if too long
+      // shorten alias to fit on label if too long
       if (tagBarcode.length() >= 17) {
         tagBarcode = tagBarcode.substring(0, 15) + "...";
       }
@@ -66,9 +67,8 @@ public class BradyPlateBarcodeLabelSchema implements BarcodableSchema<File, Barc
       sb.append("T 17,8,0,5,pt6;").append(tagBarcode).append("\n");
       sb.append("T 17,11,0,5,pt6;").append(name).append("\n");
       sb.append("A 1").append("\n");
-    }
-    catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+    } catch (UnsupportedEncodingException e) {
+      log.error("get raw state", e);
     }
     return sb.toString();
   }

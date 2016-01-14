@@ -23,15 +23,15 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl.kit;
 
-import uk.ac.bbsrc.tgac.miso.core.data.AbstractKit;
-
 import java.io.Serializable;
+
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractKit;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */

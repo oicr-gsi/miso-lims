@@ -23,22 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractRunQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedRunException;
-
-import java.io.Serializable;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.3
  */
 public class RunQCImpl extends AbstractRunQC implements Serializable {
+  protected static final Logger log = LoggerFactory.getLogger(RunQCImpl.class);
   /**
    * Construct a new RunQCImpl
    */
@@ -48,29 +53,28 @@ public class RunQCImpl extends AbstractRunQC implements Serializable {
 
   /**
    * Construct a new RunQC from a parent Run, checking that the given User can read that Run
-   *
-   * @param run of type Run
-   * @param user of type User
+   * 
+   * @param run
+   *          of type Run
+   * @param user
+   *          of type User
    */
   public RunQCImpl(Run run, User user) {
     if (run.userCanRead(user)) {
       try {
         setRun(run);
+      } catch (MalformedRunException e) {
+        log.error("constructor", e);
       }
-      catch (MalformedRunException e) {
-        e.printStackTrace();
-      }
-      //setSecurityProfile(experiment.getSecurityProfile());
-    }
-    else {
-      //setSecurityProfile(new SecurityProfile(user));
     }
   }
 
+  @Override
   public boolean userCanRead(User user) {
     return true;
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return true;
   }

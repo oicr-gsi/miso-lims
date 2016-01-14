@@ -23,22 +23,28 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.util;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import uk.ac.bbsrc.tgac.miso.integration.util.SignatureHelper;
 
-import java.util.*;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import uk.ac.bbsrc.tgac.miso.integration.util.SignatureHelper;
 
 /**
  * uk.ac.bbsrc.tgac.miso.notification.util
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 07-Dec-2010
  * @since 0.1.5
@@ -69,12 +75,12 @@ public class NotificationUtils {
   public Set<Map<String, String>> splitMessage(Message<Map<String, String>> message) {
     Set<Map<String, String>> outset = new HashSet<Map<String, String>>();
     Map<String, String> payload = message.getPayload();
-    //key is run status
+    // key is run status
     for (String key : payload.keySet()) {
-      //each map value is a JSONArray string
+      // each map value is a JSONArray string
       JSONArray a = JSONArray.fromObject(payload.get(key));
       List<JSONObject> all = a.subList(0, a.size());
-      //for (JSONObject o : (Iterable<JSONObject>)a) {
+      // for (JSONObject o : (Iterable<JSONObject>)a) {
       for (List<JSONObject> chunk : NotificationUtils.chunkList(all, splitterBatchSize)) {
         Map<String, String> runMap = new HashMap<String, String>();
         JSONArray aa = new JSONArray();
@@ -94,9 +100,7 @@ public class NotificationUtils {
     List<List<T>> parts = new ArrayList<List<T>>();
     final int N = list.size();
     for (int i = 0; i < N; i += L) {
-      parts.add(new ArrayList<T>(
-        list.subList(i, Math.min(N, i + L)))
-      );
+      parts.add(new ArrayList<T>(list.subList(i, Math.min(N, i + L))));
     }
     return parts;
   }
@@ -111,7 +115,7 @@ public class NotificationUtils {
     newheaders.put(SignatureHelper.USER_HEADER, "notification");
     newheaders.put(SignatureHelper.TIMESTAMP_HEADER, "\"" + System.currentTimeMillis() + "\"");
 
-    //sign only those headers that are Strings
+    // sign only those headers that are Strings
     Map<String, List<String>> stringHeaders = new HashMap<String, List<String>>();
     for (String key : headers.keySet()) {
       if (headers.get(key) instanceof String) {
@@ -125,13 +129,9 @@ public class NotificationUtils {
     try {
       log.debug("HEADERS -> " + stringHeaders + ":" + url + ":" + "notification");
 
-      newheaders.put(SignatureHelper.SIGNATURE_HEADER,
-                     SignatureHelper.createSignature(
-                             stringHeaders,
-                             url,
-                             SignatureHelper.PUBLIC_KEY));
+      newheaders.put(SignatureHelper.SIGNATURE_HEADER, SignatureHelper.createSignature(stringHeaders, url, SignatureHelper.PUBLIC_KEY));
     } catch (Exception e) {
-       e.printStackTrace();
+      log.error("sign message headers", e);
     }
     return newheaders;
   }

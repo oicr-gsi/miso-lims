@@ -23,15 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sourceforge.fluxion.ajax.Ajaxified;
 import net.sourceforge.fluxion.ajax.util.JSONUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.data.Nameable;
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
@@ -44,15 +56,11 @@ import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.*;
-
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -107,12 +115,12 @@ public class CacheHelperService {
       Cache cache = cacheManager.getCache(cacheName);
       if (cache != null) {
         cache.removeAll();
-        log.info("Cache '"+cacheName+"' flushed!");
-      }
-      else {
+        log.info("Cache '" + cacheName + "' flushed!");
+      } else {
         return JSONUtils.SimpleJSONError("No such cache: " + cacheName);
       }
-      return JSONUtils.JSONObjectResponse("html", jQueryDialogFactory.okDialog("Cache Administration", "Cache '"+cacheName+"' flushed successfully!"));
+      return JSONUtils.JSONObjectResponse("html",
+          jQueryDialogFactory.okDialog("Cache Administration", "Cache '" + cacheName + "' flushed successfully!"));
     }
     return JSONUtils.SimpleJSONError("No cache specified to flush");
   }
@@ -136,10 +144,11 @@ public class CacheHelperService {
     for (String s : cacheNames) {
       Cache c = cacheManager.getCache(s);
       JSONObject j = new JSONObject();
-      j.put("name",s);
-      j.put("size",c.getSize());
+      j.put("name", s);
+      j.put("size", c.getSize());
       j.put("hits", c.getLiveCacheStatistics().getCacheHitCount());
-      j.put("searchtimes", c.getLiveCacheStatistics().getAverageGetTimeMillis() + " ("+c.getLiveCacheStatistics().getMaxGetTimeMillis()+")");
+      j.put("searchtimes",
+          c.getLiveCacheStatistics().getAverageGetTimeMillis() + " (" + c.getLiveCacheStatistics().getMaxGetTimeMillis() + ")");
       caches.add(j);
     }
     response.put("caches", caches);
@@ -149,38 +158,38 @@ public class CacheHelperService {
   public JSONObject regenerateAllBarcodes(HttpSession session, JSONObject json) {
     try {
       for (Sample s : requestManager.listAllSamples()) {
-        if (s.getIdentificationBarcode() == null || "".equals(s.getIdentificationBarcode())) {
+        if (isStringEmptyOrNull(s.getIdentificationBarcode())) {
           requestManager.saveSample(s);
         }
       }
 
       for (LibraryDilution ld : requestManager.listAllLibraryDilutions()) {
-        if (ld.getIdentificationBarcode() == null || "".equals(ld.getIdentificationBarcode())) {
+        if (isStringEmptyOrNull(ld.getIdentificationBarcode())) {
           requestManager.saveLibraryDilution(ld);
         }
       }
 
-      for (emPCRDilution ed : requestManager.listAllEmPcrDilutions()) {
-        if (ed.getIdentificationBarcode() == null || "".equals(ed.getIdentificationBarcode())) {
+      for (emPCRDilution ed : requestManager.listAllEmPCRDilutions()) {
+        if (isStringEmptyOrNull(ed.getIdentificationBarcode())) {
           requestManager.saveEmPCRDilution(ed);
         }
       }
 
       for (Library l : requestManager.listAllLibraries()) {
-        if (l.getIdentificationBarcode() == null || "".equals(l.getIdentificationBarcode())) {
+        if (isStringEmptyOrNull(l.getIdentificationBarcode())) {
           requestManager.saveLibrary(l);
         }
       }
 
       for (Pool p : requestManager.listAllPools()) {
-        if (p.getIdentificationBarcode() == null || "".equals(p.getIdentificationBarcode())) {
+        if (isStringEmptyOrNull(p.getIdentificationBarcode())) {
           requestManager.savePool(p);
         }
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return JSONUtils.JSONObjectResponse("html", jQueryDialogFactory.errorDialog("Cache Administration", "Barcode regeneration failed!:\n\n" + e.getMessage()));
+    } catch (IOException e) {
+      log.error("barcode regeneration failed", e);
+      return JSONUtils.JSONObjectResponse("html",
+          jQueryDialogFactory.errorDialog("Cache Administration", "Barcode regeneration failed!:\n\n" + e.getMessage()));
     }
 
     DbUtils.flushAllCaches(cacheManager);
@@ -190,20 +199,7 @@ public class CacheHelperService {
 
   @Deprecated
   public JSONObject reindexAlertManagers(HttpSession session, JSONObject json) {
-    /*
-    try {
-      log.info("Alert managers reindexing...");
-      if (projectAlertManager != null) projectAlertManager.indexify();
-      if (runAlertManager != null) runAlertManager.indexify();
-      if (poolAlertManager != null) poolAlertManager.indexify();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      return JSONUtils.JSONObjectResponse("html", jQueryDialogFactory.okDialog("Cache Administration", "Unable to reindex alert managers: " + e.getMessage()));
-    }
-
-    return JSONUtils.JSONObjectResponse("html", jQueryDialogFactory.okDialog("Cache Administration", "Alert Managers reindexing!"));
-    */
-    return JSONUtils.JSONObjectResponse("html", jQueryDialogFactory.okDialog("Cache Administration", "Deprecated function. Not reindexing."));
+    return JSONUtils.JSONObjectResponse("html",
+        jQueryDialogFactory.okDialog("Cache Administration", "Deprecated function. Not reindexing."));
   }
 }

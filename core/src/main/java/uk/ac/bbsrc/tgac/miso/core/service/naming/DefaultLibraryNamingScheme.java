@@ -1,13 +1,5 @@
 package uk.ac.bbsrc.tgac.miso.core.service.naming;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.data.Library;
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -15,11 +7,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sourceforge.fluxion.spi.ServiceProvider;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
+
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.naming
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 29/08/12
  * @since 0.1.7
@@ -47,13 +48,13 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
   public void setValidationRegex(String fieldName, String regex) throws MisoNamingException {
     if (fieldCheck(fieldName) != null) {
       if (validationMap.get(fieldName) != null) {
-        log.warn("Setting validation regex from '" +validationMap.get(fieldName).pattern()+ "' to '"+regex+"'. This usually doesn't happen at " +
-                 "runtime unless a custom regex is specified at MISO startup!");
+        log.warn("Setting validation regex from '" + validationMap.get(fieldName).pattern() + "' to '" + regex
+            + "'. This usually doesn't happen at " + "runtime unless a custom regex is specified at MISO startup!");
         validationMap.put(fieldName, Pattern.compile(regex));
       }
-    }
-    else {
-      throw new MisoNamingException("Cannot set validation regex for a field (via 'get"+LimsUtils.capitalise(fieldName)+"') that doesn't exist in " + namingSchemeFor().getCanonicalName());
+    } else {
+      throw new MisoNamingException("Cannot set validation regex for a field (via 'get" + LimsUtils.capitalise(fieldName)
+          + "') that doesn't exist in " + namingSchemeFor().getCanonicalName());
     }
   }
 
@@ -74,12 +75,11 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
       String customName = lng.generateName(l);
       if (validateField(fieldName, customName)) {
         return customName;
+      } else {
+        throw new MisoNamingException("Custom naming generator '" + lng.getGeneratorName() + "' supplied for Library field '" + fieldName
+            + "' generated an invalid name according to the validation scheme '" + validationMap.get(fieldName) + "'");
       }
-      else {
-        throw new MisoNamingException("Custom naming generator '"+lng.getGeneratorName()+"' supplied for Library field '"+fieldName+"' generated an invalid name according to the validation scheme '"+validationMap.get(fieldName)+"'");
-      }
-    }
-    else {
+    } else {
       if ("alias".equals(fieldName)) {
         if (l.getSample() != null) {
           Pattern samplePattern = Pattern.compile("([A-z0-9]+)_S([A-z0-9]+)_(.*)");
@@ -88,39 +88,34 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
           if (m.matches()) {
             try {
               int numLibs = requestManager.listAllLibrariesBySampleId(l.getSample().getId()).size();
-              String la = m.group(1) + "_" + "L" + m.group(2) + "-"+(numLibs+1)+"_" + m.group(3);
+              String la = m.group(1) + "_" + "L" + m.group(2) + "-" + (numLibs + 1) + "_" + m.group(3);
               if (validateField("alias", la)) {
                 return la;
-              }
-              else {
+              } else {
                 throw new MisoNamingException("Generated invalid Library alias for: " + l.toString());
               }
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
               throw new MisoNamingException("Cannot generate Library alias for: " + l.toString(), e);
             }
+          } else {
+            throw new MisoNamingException(
+                "Cannot generate Library alias for: " + l.toString() + " from supplied sample alias: " + l.getSample().getAlias());
           }
-          else {
-            throw new MisoNamingException("Cannot generate Library alias for: " + l.toString() + " from supplied sample alias: " + l.getSample().getAlias());
-          }
-        }
-        else {
+        } else {
           throw new MisoNamingException("This alias generation scheme requires the Library to have a parent Sample set.");
         }
-      }
-      else {
+      } else {
         if (validationMap.keySet().contains(fieldName)) {
           Method m = fieldCheck(fieldName);
           if (m != null) {
-            log.info("Generating name for '"+fieldName+"' :: " + DefaultMisoEntityPrefix.get(Library.class.getSimpleName()).name() + l.getId());
+            log.info("Generating name for '" + fieldName + "' :: " + DefaultMisoEntityPrefix.get(Library.class.getSimpleName()).name()
+                + l.getId());
             return DefaultMisoEntityPrefix.get(Library.class.getSimpleName()).name() + l.getId();
-          }
-          else {
+          } else {
             throw new MisoNamingException("No such nameable field.");
           }
-        }
-        else {
-          throw new MisoNamingException("Generation of names on field '"+fieldName+"' not available.");
+        } else {
+          throw new MisoNamingException("Generation of names on field '" + fieldName + "' not available.");
         }
       }
     }
@@ -131,8 +126,7 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
     Pattern p = validationMap.get(fieldName);
     if (p != null) {
       return validationMap.get(fieldName).pattern();
-    }
-    else {
+    } else {
       throw new MisoNamingException("No such field registered for validation");
     }
   }
@@ -173,11 +167,9 @@ public class DefaultLibraryNamingScheme implements RequestManagerAwareNamingSche
 
   private Method fieldCheck(String fieldName) {
     try {
-      return namingSchemeFor().getMethod("get"+LimsUtils.capitalise(fieldName));
-    }
-    catch (NoSuchMethodException e) {
-      log.error("No such field '"+fieldName+"' on class " + namingSchemeFor().getCanonicalName());
-      e.printStackTrace();
+      return namingSchemeFor().getMethod("get" + LimsUtils.capitalise(fieldName));
+    } catch (NoSuchMethodException e) {
+      log.error("No such field '" + fieldName + "' on class " + namingSchemeFor().getCanonicalName(), e);
     }
     return null;
   }

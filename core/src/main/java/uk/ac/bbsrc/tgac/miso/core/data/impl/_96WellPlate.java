@@ -23,18 +23,19 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.Library;
-import uk.ac.bbsrc.tgac.miso.core.data.Plate;
-import uk.ac.bbsrc.tgac.miso.core.data.Plateable;
-
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Set;
 
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.Plate;
+import uk.ac.bbsrc.tgac.miso.core.data.Plateable;
+
 /**
  * A concrete Plate implementation representing a 96-well plate, comprising 96 {@link Library} elements.
- *
+ * 
  * @author Rob Davey
  * @date 05-Sep-2011
  * @since 0.1.1
@@ -64,8 +65,7 @@ public class _96WellPlate extends PlateImpl<Library> implements Plateable, Seria
   public void addElement(Library library) throws IllegalStateException {
     if (elements.size() < MAX_ELEMENTS) {
       elements.add(library);
-    }
-    else {
+    } else {
       throw new IllegalStateException("This 96 well plate already has 96 libraries");
     }
   }

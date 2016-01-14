@@ -33,17 +33,20 @@
 <script type="text/javascript" src="<c:url value='/scripts/run_ajax.js?ts=${timestamp.time}'/>"></script>
 <script type="text/javascript" src="<c:url value='/scripts/jquery/js/jquery.breadcrumbs.popup.js'/>"></script>
 
+
+<script type="text/javascript" src="<c:url value='/scripts/experiment_validation.js?ts=${timestamp.time}'/>"></script>
+
 <div id="maincontent">
 <div id="contentcolumn">
-<form:form action="/miso/experiment" method="POST" commandName="experiment" autocomplete="off"
-           onsubmit="return validate_experiment(this);">
+<form:form id="experiment-form" data-parsley-validate="" action="/miso/experiment" method="POST" commandName="experiment"
+  autocomplete="off">
 <sessionConversation:insertSessionConversationId attributeName="experiment"/>
 <h1>
   <c:choose>
     <c:when test="${experiment.id != 0}">Edit</c:when>
     <c:otherwise>Create</c:otherwise>
   </c:choose> Experiment
-  <button type="submit" class="fg-button ui-state-default ui-corner-all">Save</button>
+  <button onclick="return validate_experiment();" class="fg-button ui-state-default ui-corner-all">Save</button>
 </h1>
 <div class="breadcrumbs">
   <ul>
@@ -79,6 +82,12 @@
   sequencing experiment. Experiments are associated with Runs which contain the actual sequencing results.
   A Pool is attached to an Experiment which is then assigned to an instrument partition (lane/chamber).
 </div>
+
+<div class="bs-callout bs-callout-warning hidden">
+  <h2>Oh snap!</h2>
+  <p>This form seems to be invalid!</p>
+</div>
+
 <h2>Experiment Information</h2>
 <table class="in">
 <tr>
@@ -379,6 +388,28 @@
 </div>
 
 </form:form>
+  <c:if test="${not empty experiment.changeLog}">
+    <br/>
+    <h1>Changes</h1>
+    <span style="clear:both">
+      <table class="list" id="changelog_table">
+        <thead>
+        <tr>
+          <th>Summary</th>
+          <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <c:forEach items="${experiment.changeLog}" var="change">
+          <tr onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
+            <td><b>${change.summary}</b></td>
+            <td>${change.time}</td>
+          </tr>
+        </c:forEach>
+        </tbody>
+      </table>
+    </span>
+  </c:if>
 </div>
 </div>
 

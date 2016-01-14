@@ -23,24 +23,29 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
-import com.eaglegenomics.simlims.core.User;
+import java.io.IOException;
+
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
-
-import java.io.IOException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 11/11/11
  * @since 0.1.3
  */
 @Aspect
 public class RunAlertAspect {
+  protected static final Logger log = LoggerFactory.getLogger(RunAlertAspect.class);
   private RunAlertManager runAlertManager;
 
   public RunAlertAspect(RunAlertManager runAlertManager) {
@@ -52,8 +57,7 @@ public class RunAlertAspect {
       if (user != null) {
         runAlertManager.removeWatcher(run, user.getUserId());
       }
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -63,8 +67,7 @@ public class RunAlertAspect {
       if (user != null) {
         runAlertManager.addWatcher(run, user.getUserId());
       }
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -72,9 +75,8 @@ public class RunAlertAspect {
   public void update(Long runId) {
     try {
       runAlertManager.update(runId);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("update run alert aspect", e);
     }
   }
 }

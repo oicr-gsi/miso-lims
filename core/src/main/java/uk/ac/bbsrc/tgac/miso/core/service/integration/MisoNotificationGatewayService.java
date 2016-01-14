@@ -23,27 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.integration;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.NotificationConsumerStrategy;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.NotificationGateway;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 /**
- * Concrete implementation of a {@link NotificationGatewayService} that discovers, via the SPI framework
- * {@link java.util.ServiceLoader}, available {@link NotificationConsumerService}s and wires them to
- * Spring Integration {@link GatewayProxyFactoryBean} objects so that MISO can accept incoming
- * integration messages on-the-fly.
- *
+ * Concrete implementation of a {@link NotificationGatewayService} that discovers, via the SPI framework {@link java.util.ServiceLoader},
+ * available {@link NotificationConsumerService}s and wires them to Spring Integration {@link GatewayProxyFactoryBean} objects so that MISO
+ * can accept incoming integration messages on-the-fly.
+ * 
  * @author Rob Davey
  * @date 06/02/12
  * @since 0.1.5
@@ -77,16 +77,16 @@ public class MisoNotificationGatewayService extends AbstractEndpoint implements 
       for (NotificationConsumerStrategy s : getNotificationConsumerService().getConsumerStrategies()) {
         log.info("Wiring up gateway for consumer strategy " + s.getName() + "...");
         DirectChannel reply = new DirectChannel();
-        reply.setBeanName("reply-"+s.getName());
+        reply.setBeanName("reply-" + s.getName());
 
         DirectChannel mc = new DirectChannel();
-        mc.setBeanName("channel-"+s.getName());
+        mc.setBeanName("channel-" + s.getName());
 
         GatewayProxyFactoryBean gatewayProxy = new GatewayProxyFactoryBean();
         gatewayProxy.setDefaultRequestChannel(mc);
         gatewayProxy.setServiceInterface(NotificationGateway.class);
         gatewayProxy.setBeanFactory(getBeanFactory());
-        gatewayProxy.setBeanName("gateway-"+s.getName());
+        gatewayProxy.setBeanName("gateway-" + s.getName());
         gatewayProxy.setComponentName("gateway-" + s.getName());
         gatewayProxy.setDefaultReplyChannel(reply);
 
@@ -96,8 +96,7 @@ public class MisoNotificationGatewayService extends AbstractEndpoint implements 
 
         this.proxyMap.put(s.getName(), gatewayProxy);
       }
-    }
-    else {
+    } else {
       log.info("Null consumer service");
     }
   }
@@ -112,11 +111,10 @@ public class MisoNotificationGatewayService extends AbstractEndpoint implements 
         GatewayProxyFactoryBean gateway = this.proxyMap.get(str);
         if (gateway.isRunning()) {
           try {
-            NotificationGateway s = (NotificationGateway)gateway.getObject();
+            NotificationGateway s = (NotificationGateway) gateway.getObject();
             gateways.add(s);
-          }
-          catch (Exception e) {
-            e.printStackTrace();
+          } catch (Exception e) {
+            log.error("get gateways for", e);
           }
         }
       }

@@ -23,37 +23,42 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl.solid;
 
-import com.eaglegenomics.simlims.core.SecurityProfile;
-import com.eaglegenomics.simlims.core.User;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.impl.RunImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.factory.submission.ERASubmissionFactory;
 import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
-
-import javax.persistence.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.StringReader;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl.solid
  * <p/>
  * TODO Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 @Entity
 @DiscriminatorValue("Solid")
 public class SolidRun extends RunImpl {
+  protected static final Logger log = LoggerFactory.getLogger(SolidRun.class);
 
   public SolidRun() {
     setPlatformType(PlatformType.SOLID);
@@ -73,7 +78,7 @@ public class SolidRun extends RunImpl {
 
   public SolidRun(String statusXml, User user) {
     try {
-      if (statusXml != null && !"".equals(statusXml)) {
+      if (!isStringEmptyOrNull(statusXml)) {
         String runDirRegex = "([A-z0-9\\-]+)_([0-9]{8})_(.*)";
         Pattern runRegex = Pattern.compile(runDirRegex);
         Document statusDoc = SubmissionUtils.emptyDocument();
@@ -82,12 +87,11 @@ public class SolidRun extends RunImpl {
         String runName;
         if (statusDoc.getDocumentElement().getTagName().equals("error")) {
           runName = (statusDoc.getElementsByTagName("RunName").item(0).getTextContent());
-        }
-        else {
+        } else {
           runName = (statusDoc.getElementsByTagName("name").item(0).getTextContent());
           if (statusDoc.getElementsByTagName("name").getLength() != 0) {
             for (int i = 0; i < statusDoc.getElementsByTagName("name").getLength(); i++) {
-              Element e = (Element)statusDoc.getElementsByTagName("name").item(i);
+              Element e = (Element) statusDoc.getElementsByTagName("name").item(i);
               Matcher m = runRegex.matcher(e.getTextContent());
               if (m.matches()) {
                 runName = e.getTextContent();
@@ -106,8 +110,7 @@ public class SolidRun extends RunImpl {
           if (m.group(3).startsWith("MP") || m.group(3).startsWith("PE")) {
             setPairedEnd(true);
           }
-        }
-        else {
+        } else {
           setDescription(runName);
         }
 
@@ -115,39 +118,32 @@ public class SolidRun extends RunImpl {
         setStatus(new SolidStatus(statusXml));
         if (user != null) {
           setSecurityProfile(new SecurityProfile(user));
-        }
-        else {
+        } else {
           setSecurityProfile(new SecurityProfile());
         }
-      }
-      else {
+      } else {
         log.error("No status XML for this run");
       }
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    catch (TransformerException e) {
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("parse status XML", e);
+    } catch (TransformerException e) {
+      log.error("parse status XML", e);
     }
   }
 
+  @Override
   public void buildSubmission() {
     /*
-    try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      submissionDocument = docBuilder.newDocument();
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    ERASubmissionFactory.generateFullRunSubmissionXML(submissionDocument, this);
-    */
+     * try { DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder(); submissionDocument =
+     * docBuilder.newDocument(); } catch (ParserConfigurationException e) { e.printStackTrace(); }
+     * ERASubmissionFactory.generateFullRunSubmissionXML(submissionDocument, this);
+     */
   }
 
   /**
    * Method buildReport ...
    */
+  @Override
   public void buildReport() {
 
   }

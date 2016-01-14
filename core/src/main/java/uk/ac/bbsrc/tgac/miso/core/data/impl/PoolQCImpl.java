@@ -23,20 +23,26 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractPoolQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedPoolException;
 
-import java.io.Serializable;
 
 /**
  * Concrete implementation of a PoolQC
- *
+ * 
  * @author Rob Davey
  * @since 0.1.9
  */
 public class PoolQCImpl extends AbstractPoolQC implements Serializable {
+  protected static final Logger log = LoggerFactory.getLogger(PoolQCImpl.class);
   /**
    * Construct a new PoolQC
    */
@@ -45,29 +51,28 @@ public class PoolQCImpl extends AbstractPoolQC implements Serializable {
 
   /**
    * Construct a new PoolQC from a parent Pool, checking that the given User can read that Pool
-   *
-   * @param pool of type Pool
-   * @param user of type User
+   * 
+   * @param pool
+   *          of type Pool
+   * @param user
+   *          of type User
    */
   public PoolQCImpl(Pool pool, User user) {
     if (pool.userCanRead(user)) {
       try {
         setPool(pool);
+      } catch (MalformedPoolException e) {
+        log.error("constructor", e);
       }
-      catch (MalformedPoolException e) {
-        e.printStackTrace();
-      }
-      //setSecurityProfile(experiment.getSecurityProfile());
-    }
-    else {
-      //setSecurityProfile(new SecurityProfile(user));
     }
   }
 
+  @Override
   public boolean userCanRead(User user) {
     return true;
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return true;
   }

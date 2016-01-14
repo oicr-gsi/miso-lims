@@ -23,22 +23,26 @@
 
 package uk.ac.bbsrc.tgac.miso.analysis.parameter;
 
-import org.springframework.util.StringUtils;
-import uk.ac.ebi.fgpt.conan.model.AbstractConanParameter;
-
 import java.io.File;
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import uk.ac.ebi.fgpt.conan.model.AbstractConanParameter;
 
 /**
  * uk.ac.bbsrc.tgac.miso.analysis.parameter
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 14/10/11
  * @since 0.1.2
  */
 public class PathCreatingPathParameter extends AbstractConanParameter implements Optionable {
+  protected static final Logger log = LoggerFactory.getLogger(PathCreatingPathParameter.class);
   private boolean optional = false;
 
   public PathCreatingPathParameter(String name) {
@@ -65,17 +69,15 @@ public class PathCreatingPathParameter extends AbstractConanParameter implements
         if (!f.exists()) {
           if (f.isDirectory()) {
             return (f.mkdirs());
-          }
-          else {
+          } else {
             if (!f.getParentFile().exists()) f.getParentFile().mkdirs();
             return f.createNewFile() && f.delete();
           }
         }
         return true;
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("validate parameter value", e);
     }
     return false;
   }

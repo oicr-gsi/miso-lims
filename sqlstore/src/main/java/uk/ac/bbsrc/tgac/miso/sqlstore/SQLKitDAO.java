@@ -202,9 +202,11 @@ public class SQLKitDAO implements KitStore {
   @Override
   public long save(Kit kit) throws IOException {
     MapSqlParameterSource params = new MapSqlParameterSource();
-    params.addValue("identificationBarcode", kit.getIdentificationBarcode()).addValue("locationBarcode", kit.getLocationBarcode())
-        .addValue("lotNumber", kit.getLotNumber()).addValue("kitDate", kit.getKitDate())
-        .addValue("kitDescriptorId", kit.getKitDescriptor().getKitDescriptorId());
+    params.addValue("identificationBarcode", kit.getIdentificationBarcode());
+    params.addValue("locationBarcode", kit.getLocationBarcode());
+    params.addValue("lotNumber", kit.getLotNumber());
+    params.addValue("kitDate", kit.getKitDate());
+    params.addValue("kitDescriptorId", kit.getKitDescriptor().getKitDescriptorId());
 
     if (kit.getId() == AbstractKit.UNSAVED_ID) {
       SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("kitId");
@@ -274,7 +276,7 @@ public class SQLKitDAO implements KitStore {
         kit.setKitDescriptor(kd);
         kit.setNotes(noteDAO.listByKit(rs.getLong("kitId")));
       } catch (IOException e) {
-        e.printStackTrace();
+        log.error("kit row mapper", e);
       }
       return kit;
     }
@@ -296,7 +298,7 @@ public class SQLKitDAO implements KitStore {
   public List<KitDescriptor> listAllKitDescriptors() throws IOException {
     return template.query(KIT_DESCRIPTORS_SELECT, new KitDescriptorMapper());
   }
-
+  
   @Override
   public List<KitDescriptor> listKitDescriptorsByType(KitType kitType) throws IOException {
     return template.query(KIT_DESCRIPTORS_SELECT_BY_TYPE, new Object[] { kitType.getKey() }, new KitDescriptorMapper());
@@ -305,15 +307,19 @@ public class SQLKitDAO implements KitStore {
   public List<KitDescriptor> listKitDescriptorsByPlatform(PlatformType platformType) throws IOException {
     return template.query(KIT_DESCRIPTORS_SELECT_BY_PLATFORM, new Object[] { platformType }, new KitDescriptorMapper());
   }
-
+  
   @Override
   public long saveKitDescriptor(KitDescriptor kd) throws IOException {
-    log.info("Saving " + kd.toString() + " : " + kd.getKitType() + " : " + kd.getPlatformType());
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    params.addValue("name", kd.getName()).addValue("version", kd.getVersion()).addValue("manufacturer", kd.getManufacturer())
-        .addValue("partNumber", kd.getPartNumber()).addValue("stockLevel", kd.getStockLevel()).addValue("kitType", kd.getKitType().getKey())
-        .addValue("platformType", kd.getPlatformType().getKey()).addValue("description", kd.getDescription());
+    params.addValue("name", kd.getName());
+    params.addValue("version", kd.getVersion());
+    params.addValue("manufacturer", kd.getManufacturer());
+    params.addValue("partNumber", kd.getPartNumber());
+    params.addValue("stockLevel", kd.getStockLevel());
+    params.addValue("kitType", kd.getKitType().getKey());
+    params.addValue("platformType", kd.getPlatformType().getKey());
+    params.addValue("description", kd.getDescription());
 
     if (kd.getKitDescriptorId() == KitDescriptor.UNSAVED_ID) {
       SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName("KitDescriptor").usingGeneratedKeyColumns("kitDescriptorId");
@@ -339,14 +345,9 @@ public class SQLKitDAO implements KitStore {
       kd.setPartNumber(rs.getString("partNumber"));
       kd.setStockLevel(rs.getInt("stockLevel"));
       kd.setDescription(rs.getString("description"));
-
       kd.setKitType(KitType.get(rs.getString("kitType")));
-
-      // log.info("Set kit type for descriptor " + kd.getKitDescriptorId() + " to " + kd.getKitType());
-
       kd.setPlatformType(PlatformType.get(rs.getString("platformType")));
-
-      // log.info("Set platform type for descriptor " + kd.getKitDescriptorId() + " to " + kd.getPlatformType());
+      
       return kd;
     }
   }

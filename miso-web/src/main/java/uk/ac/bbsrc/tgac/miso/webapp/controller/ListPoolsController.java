@@ -23,27 +23,33 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import org.springframework.web.bind.annotation.ModelAttribute;
-import uk.ac.bbsrc.tgac.miso.core.data.Pool;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
-import java.util.*;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.controller
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -88,8 +94,7 @@ public class ListPoolsController {
         for (Pool p : requestManager.listReadyPoolsByPlatform(pt)) {
           if (requestManager.listRunsByPoolId(p.getId()).isEmpty()) {
             pools.add(p);
-          }
-          else {
+          } else {
             poolsUsed.add(p);
           }
         }
@@ -104,8 +109,7 @@ public class ListPoolsController {
 
       model.addAttribute("ready", true);
       return new ModelAndView("/pages/readyPools.jsp", model);
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to list pools", ex);
       }

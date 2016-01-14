@@ -23,19 +23,20 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.integration.strategy;
 
-import net.sourceforge.fluxion.spi.Spi;
-import org.springframework.integration.Message;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
-
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.integration.Message;
+
+import net.sourceforge.fluxion.spi.Spi;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.integration.strategy
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 03/02/12
  * @since 0.1.5
@@ -48,8 +49,9 @@ public interface NotificationConsumerStrategy {
 
   /**
    * Return true if this strategy is able to consume information from a given PlatformType
-   *
-   * @param pt of type PlatformType
+   * 
+   * @param pt
+   *          of type PlatformType
    * @return boolean
    */
   boolean isStrategyFor(PlatformType pt);

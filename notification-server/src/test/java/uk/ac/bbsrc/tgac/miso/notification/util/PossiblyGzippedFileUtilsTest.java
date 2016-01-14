@@ -17,8 +17,8 @@ import org.w3c.dom.Document;
 
 public class PossiblyGzippedFileUtilsTest {
 
-  private static final String h1080_84_raw = "/runs/raw/Completed/111110_h1080_0084_AC08UPACXX";
-  private static final String h1080_84_gzip = "/runs/gzipped/Completed/111110_h1080_0084_AC08UPACXX";
+  private static final String h1080_84_raw = "/runs/111110_h1080_0084_AC08UPACXX_raw";
+  private static final String h1080_84_gzip = "/runs/111110_h1080_0084_AC08UPACXX_raw";
   
   private static final String runInfo = "RunInfo.xml";
   private static final String cycleTimes = "/Logs/CycleTimes.txt";
@@ -75,9 +75,8 @@ public class PossiblyGzippedFileUtilsTest {
   
   @Test
   public void testRawTextTailGrep() throws FileNotFoundException, IOException {
-    Pattern p = Pattern.compile(
-        "(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(\\d{2}:\\d{2}:\\d{2})\\.\\d{3}\\s+[A-z0-9]+\\s+202\\s+End\\s{1}Imaging"
-    );
+    Pattern p = Pattern
+        .compile("(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(\\d{2}:\\d{2}:\\d{2})\\.\\d{3}\\s+[A-z0-9]+\\s+202\\s+End\\s{1}Imaging");
     Matcher m = PossiblyGzippedFileUtils.tailGrep(getResourceFile(h1080_84_raw), cycleTimes, p, 10);
     assertFalse(m == null);
     String cycleDateStr = m.group(1) + "," + m.group(2);
@@ -86,9 +85,8 @@ public class PossiblyGzippedFileUtilsTest {
   
   @Test
   public void testGzippedTextTailGrep() throws FileNotFoundException, IOException {
-    Pattern p = Pattern.compile(
-        "(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(\\d{2}:\\d{2}:\\d{2})\\.\\d{3}\\s+[A-z0-9]+\\s+202\\s+End\\s{1}Imaging"
-    );
+    Pattern p = Pattern
+        .compile("(\\d{1,2}\\/\\d{1,2}\\/\\d{4})\\s+(\\d{2}:\\d{2}:\\d{2})\\.\\d{3}\\s+[A-z0-9]+\\s+202\\s+End\\s{1}Imaging");
     Matcher m = PossiblyGzippedFileUtils.tailGrep(getResourceFile(h1080_84_gzip), cycleTimes, p, 10);
     assertFalse(m == null);
     String cycleDateStr = m.group(1) + "," + m.group(2);

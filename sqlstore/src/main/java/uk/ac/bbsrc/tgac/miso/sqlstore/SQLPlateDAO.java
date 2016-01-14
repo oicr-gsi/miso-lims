@@ -23,42 +23,56 @@
 
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
-import com.eaglegenomics.simlims.core.SecurityProfile;
-import com.google.common.collect.LinkedListMultimap;
-import com.googlecode.ehcache.annotations.Cacheable;
-import com.googlecode.ehcache.annotations.KeyGenerator;
-import com.googlecode.ehcache.annotations.Property;
-import com.googlecode.ehcache.annotations.TriggersRemove;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.CascadeType;
+
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
+
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.store.SecurityStore;
+import com.googlecode.ehcache.annotations.Cacheable;
+import com.googlecode.ehcache.annotations.KeyGenerator;
+import com.googlecode.ehcache.annotations.Property;
+import com.googlecode.ehcache.annotations.TriggersRemove;
+
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractPlate;
+import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.Plate;
+import uk.ac.bbsrc.tgac.miso.core.data.Plateable;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlateMaterialType;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
-import uk.ac.bbsrc.tgac.miso.core.store.*;
-import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
+import uk.ac.bbsrc.tgac.miso.core.store.ChangeLogStore;
+import uk.ac.bbsrc.tgac.miso.core.store.LibraryDilutionStore;
+import uk.ac.bbsrc.tgac.miso.core.store.LibraryStore;
+import uk.ac.bbsrc.tgac.miso.core.store.PlateStore;
+import uk.ac.bbsrc.tgac.miso.core.store.SampleStore;
+import uk.ac.bbsrc.tgac.miso.core.store.Store;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DaoLookup;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
-
-import javax.persistence.CascadeType;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * uk.ac.bbsrc.tgac.miso.sqlstore
@@ -72,54 +86,39 @@ import java.util.*;
 public class SQLPlateDAO implements PlateStore {
   private static final String TABLE_NAME = "Plate";
 
-  public static final String PLATE_SELECT =
-          "SELECT plateId, name, description, creationDate, plateMaterialType, identificationBarcode, locationBarcode, size, tagBarcodeId, securityProfile_profileId " +
-          "FROM "+TABLE_NAME;
+  public static final String PLATE_SELECT = "SELECT plateId, name, description, creationDate, plateMaterialType, identificationBarcode, locationBarcode, size, tagBarcodeId, securityProfile_profileId "
+      + "FROM " + TABLE_NAME;
 
-  public static final String PLATE_SELECT_BY_ID =
-          PLATE_SELECT + " WHERE plateId = ?";
+  public static final String PLATE_SELECT_BY_ID = PLATE_SELECT + " WHERE plateId = ?";
 
-  public static final String PLATE_SELECT_BY_ID_BARCODE =
-          PLATE_SELECT + " WHERE identificationBarcode = ?";
+  public static final String PLATE_SELECT_BY_ID_BARCODE = PLATE_SELECT + " WHERE identificationBarcode = ?";
 
-  public static final String PLATE_UPDATE =
-          "UPDATE "+TABLE_NAME+" " +
-          "SET plateId=:plateId, name=:name, description=:description, creationDate=:creationDate, plateMaterialType=:plateMaterialType, identificationBarcode=:identificationBarcode, locationBarcode=:locationBarcode, size=:size, tagBarcodeId=:tagBarcodeId, securityProfile_profileId=:securityProfile_profileId " +
-          "WHERE plateId=:plateId";
+  public static final String PLATE_UPDATE = "UPDATE "
+      + TABLE_NAME
+      + " "
+      + "SET plateId=:plateId, name=:name, description=:description, creationDate=:creationDate, plateMaterialType=:plateMaterialType, identificationBarcode=:identificationBarcode, locationBarcode=:locationBarcode, size=:size, tagBarcodeId=:tagBarcodeId, securityProfile_profileId=:securityProfile_profileId, lastModifier=:lastModifier "
+      + "WHERE plateId=:plateId";
 
-  public static final String PLATE_DELETE =
-          "DELETE FROM "+TABLE_NAME+" WHERE plateId=:plateId";
+  public static final String PLATE_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE plateId=:plateId";
 
-  public static final String PLATE_BARCODES_SELECT =
-          "SELECT plateBarcodeId, name, sequence, materialType " +
-          "FROM PlateBarcodes";
+  public static final String PLATE_BARCODES_SELECT = "SELECT plateBarcodeId, name, sequence, materialType " + "FROM PlateBarcodes";
 
-  public static final String PLATE_BARCODE_SELECT_BY_NAME =
-          PLATE_BARCODES_SELECT +
-          " WHERE name = ? ORDER by plateBarcodeId";
+  public static final String PLATE_BARCODE_SELECT_BY_NAME = PLATE_BARCODES_SELECT + " WHERE name = ? ORDER by plateBarcodeId";
 
-  public static final String PLATE_BARCODE_SELECT_BY_MATERIAL_TYPE =
-          PLATE_BARCODES_SELECT +
-          " WHERE materialType = ? ORDER by plateBarcodeId";
+  public static final String PLATE_BARCODE_SELECT_BY_MATERIAL_TYPE = PLATE_BARCODES_SELECT
+      + " WHERE materialType = ? ORDER by plateBarcodeId";
 
-  public static final String PLATE_ELEMENT_SELECT_BY_PLATE_ID =
-          "SELECT * FROM Plate_Elements " +
-          "WHERE plate_plateId=? ORDER BY elementPosition";
+  public static final String PLATE_ELEMENT_SELECT_BY_PLATE_ID = "SELECT * FROM Plate_Elements "
+      + "WHERE plate_plateId=? ORDER BY elementPosition";
 
-  public static final String PLATE_ELEMENT_DELETE_BY_PLATE_ID =
-          "DELETE FROM Plate_Elements " +
-          "WHERE plate_plateId=:plate_plateId";
+  public static final String PLATE_ELEMENT_DELETE_BY_PLATE_ID = "DELETE FROM Plate_Elements " + "WHERE plate_plateId=:plate_plateId";
 
-  public static String PLATES_SELECT_BY_PROJECT_ID =
-          "SELECT pl.* FROM Project p " +
-          "INNER JOIN Sample sa ON sa.project_projectId = p.projectId " +
-          "INNER JOIN Library li ON li.sample_sampleId = sa.sampleId " +
-          "INNER JOIN Plate_Elements pe ON li.libraryId = pe.elementId " +
-          "INNER JOIN Plate pl ON pl.plateId = pe.plate_plateId " +
-          "WHERE p.projectId = ? AND pe.elementType = '" + Library.class.getName() + "'";
+  public static String PLATES_SELECT_BY_PROJECT_ID = "SELECT pl.* FROM Project p "
+      + "INNER JOIN Sample sa ON sa.project_projectId = p.projectId " + "INNER JOIN Library li ON li.sample_sampleId = sa.sampleId "
+      + "INNER JOIN Plate_Elements pe ON li.libraryId = pe.elementId " + "INNER JOIN Plate pl ON pl.plateId = pe.plate_plateId "
+      + "WHERE p.projectId = ? AND pe.elementType = '" + Library.class.getName() + "'";
 
-  public static String PLATE_SELECT_BY_SEARCH =
-          PLATE_SELECT + " WHERE name LIKE :search OR identificationBarcode LIKE :search";
+  public static String PLATE_SELECT_BY_SEARCH = PLATE_SELECT + " WHERE name LIKE :search OR identificationBarcode LIKE :search";
 
   protected static final Logger log = LoggerFactory.getLogger(SQLPlateDAO.class);
 
@@ -133,6 +132,8 @@ public class SQLPlateDAO implements PlateStore {
   private LibraryDilutionStore dilutionDAO;
   private Store<SecurityProfile> securityProfileDAO;
   private boolean autoGenerateIdentificationBarcodes;
+  private ChangeLogStore changeLogDAO;
+  private SecurityStore securityDAO;
 
   @Autowired
   private DaoLookup daoLookup;
@@ -208,44 +209,41 @@ public class SQLPlateDAO implements PlateStore {
   
   /**
    * Generates a unique barcode. Note that the barcode will change when the plate's description is changed.
+   * 
    * @param plate
    */
   public void autoGenerateIdBarcode(Plate plate) {
     String barcode = "";
     if (plate.getTagBarcode() != null) {
       barcode = plate.getName() + "::" + plate.getTagBarcode();
-    }
-    else {
-      //TODO this should eventually be changed to alias (however, Plate does not have an alias field)
+    } else {
+      // TODO this should eventually be changed to alias (however, Plate does not have an alias field)
       barcode = plate.getName() + "::" + plate.getDescription();
-    }    
-    plate.setIdentificationBarcode(barcode); 
+    }
+    plate.setIdentificationBarcode(barcode);
   }
 
   @Override
   public Plate<? extends List<? extends Plateable>, ? extends Plateable> lazyGet(long plateId) throws IOException {
-    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID, new Object[]{plateId}, new PlateMapper(true));
+    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID,
+        new Object[] { plateId }, new PlateMapper(true));
     return eResults.size() > 0 ? eResults.get(0) : null;
   }
 
   @Override
-  @Cacheable(cacheName="plateCache",
-    keyGenerator = @KeyGenerator (
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name="includeMethod", value="false"),
-        @Property(name="includeParameterTypes", value="false")
-      }
-    )
-  )
+  @Cacheable(cacheName = "plateCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+      @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public Plate<? extends List<? extends Plateable>, ? extends Plateable> get(long plateId) throws IOException {
-    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID, new Object[]{plateId}, new PlateMapper());
+    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID,
+        new Object[] { plateId }, new PlateMapper());
     return eResults.size() > 0 ? eResults.get(0) : null;
   }
 
   @Override
-  public Plate<? extends List<? extends Plateable>, ? extends Plateable> getPlateByIdentificationBarcode(String barcode) throws IOException {
-    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID_BARCODE, new Object[]{barcode}, new PlateMapper());
+  public Plate<? extends List<? extends Plateable>, ? extends Plateable> getPlateByIdentificationBarcode(String barcode)
+      throws IOException {
+    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> eResults = template.query(PLATE_SELECT_BY_ID_BARCODE,
+        new Object[] { barcode }, new PlateMapper());
     return eResults.size() > 0 ? eResults.get(0) : null;
   }
 
@@ -256,7 +254,8 @@ public class SQLPlateDAO implements PlateStore {
 
   @Override
   public List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> listByProjectId(long projectId) throws IOException {
-    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> plates = template.query(PLATES_SELECT_BY_PROJECT_ID, new Object[]{projectId}, new PlateMapper(true));
+    List<Plate<? extends List<? extends Plateable>, ? extends Plateable>> plates = template.query(PLATES_SELECT_BY_PROJECT_ID,
+        new Object[] { projectId }, new PlateMapper(true));
     Collections.sort(plates);
     return plates;
   }
@@ -272,44 +271,35 @@ public class SQLPlateDAO implements PlateStore {
 
   @Override
   public int count() throws IOException {
-    return template.queryForInt("SELECT count(*) FROM "+TABLE_NAME);
+    return template.queryForInt("SELECT count(*) FROM " + TABLE_NAME);
   }
 
   @Override
   @Transactional(readOnly = false, rollbackFor = Exception.class)
-  @TriggersRemove(
-    cacheName={"plateCache", "lazyPlateCache"},
-    keyGenerator = @KeyGenerator(
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name="includeMethod", value="false"),
-        @Property(name="includeParameterTypes", value="false")
-      }
-    )
-  )
+  @TriggersRemove(cacheName = { "plateCache",
+      "lazyPlateCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+          @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public long save(Plate<? extends List<? extends Plateable>, ? extends Plateable> plate) throws IOException {
     Long securityProfileId = plate.getSecurityProfile().getProfileId();
-    if (securityProfileId == SecurityProfile.UNSAVED_ID  ||
-        (this.cascadeType != null)) { // && this.cascadeType.equals(CascadeType.PERSIST))) {
+    if (securityProfileId == SecurityProfile.UNSAVED_ID || (this.cascadeType != null)) {
       securityProfileId = securityProfileDAO.save(plate.getSecurityProfile());
     }
 
     MapSqlParameterSource params = new MapSqlParameterSource();
-    params.addValue("description", plate.getDescription())
-          .addValue("creationDate", plate.getCreationDate())
-          .addValue("plateMaterialType", plate.getPlateMaterialType().getKey())
-          .addValue("locationBarcode", plate.getLocationBarcode())
-          .addValue("size", plate.getSize())
-          .addValue("securityProfile_profileId", securityProfileId);
+    params.addValue("description", plate.getDescription());
+    params.addValue("creationDate", plate.getCreationDate());
+    params.addValue("plateMaterialType", plate.getPlateMaterialType().getKey());
+    params.addValue("locationBarcode", plate.getLocationBarcode());
+    params.addValue("size", plate.getSize());
+    params.addValue("securityProfile_profileId", securityProfileId);
+    params.addValue("lastModifier", plate.getLastModifier().getUserId());
 
     if (plate.getTagBarcode() != null) {
       params.addValue("tagBarcodeId", plate.getTagBarcode().getId());
-    } 
+    }
 
     if (plate.getId() == AbstractPlate.UNSAVED_ID) {
-      SimpleJdbcInsert insert = new SimpleJdbcInsert(template)
-                            .withTableName(TABLE_NAME)
-                            .usingGeneratedKeyColumns("plateId");
+      SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("plateId");
       try {
         plate.setId(DbUtils.getAutoIncrement(template, TABLE_NAME));
 
@@ -320,7 +310,6 @@ public class SQLPlateDAO implements PlateStore {
           if (autoGenerateIdentificationBarcodes) {
             autoGenerateIdBarcode(plate);
           } // if !autoGenerateIdentificationBarcodes then the identificationBarcode is set by the user
-               
           params.addValue("name", name);
 
           params.addValue("identificationBarcode", plate.getIdentificationBarcode());
@@ -328,60 +317,33 @@ public class SQLPlateDAO implements PlateStore {
           Number newId = insert.executeAndReturnKey(params);
           if (newId.longValue() != plate.getId()) {
             log.error("Expected Plate ID doesn't match returned value from database insert: rolling back...");
-            new NamedParameterJdbcTemplate(template).update(PLATE_DELETE, new MapSqlParameterSource().addValue("plateId", newId.longValue()));
+            new NamedParameterJdbcTemplate(template).update(PLATE_DELETE,
+                new MapSqlParameterSource().addValue("plateId", newId.longValue()));
             throw new IOException("Something bad happened. Expected Plate ID doesn't match returned value from DB insert");
           }
-        }
-        else {
+        } else {
           throw new IOException("Cannot save Plate - invalid field:" + plate.toString());
         }
-      }
-      catch (MisoNamingException e) {
+      } catch (MisoNamingException e) {
         throw new IOException("Cannot save Plate - issue with naming scheme", e);
       }
-      /*
-      String name = "PLA"+ DbUtils.getAutoIncrement(template, TABLE_NAME);
-      params.addValue("name", name);
-      params.addValue("identificationBarcode", name + "::" + plate.getTagBarcode());
-      Number newId = insert.executeAndReturnKey(params);
-      plate.setPlateId(newId.longValue());
-      plate.setName(name);
-      */
-    }
-    else {
-      if (plate.getTagBarcode() != null) {
-        params.addValue("tagBarcodeId", plate.getTagBarcode().getId());
-      } else {
-        params.addValue("tagBarcodeId", null);
-      }
+    } else {
       try {
         if (autoGenerateIdentificationBarcodes) {
           autoGenerateIdBarcode(plate);
         } // if !autoGenerateIdentificationBarcodes then the identificationBarcode is set by the user
-
         if (namingScheme.validateField("name", plate.getName())) {
-          params.addValue("plateId", plate.getId())
-                .addValue("name", plate.getName())
-                .addValue("description", plate.getDescription())
-                .addValue("identificationBarcode", plate.getIdentificationBarcode())
-                .addValue("locationBarcode", plate.getLocationBarcode());
+          params.addValue("plateId", plate.getId());
+          params.addValue("name", plate.getName());
+          params.addValue("identificationBarcode", plate.getLocationBarcode());
           NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
           namedTemplate.update(PLATE_UPDATE, params);
-        }
-        else {
+        } else {
           throw new IOException("Cannot save Plate - invalid field:" + plate.toString());
         }
-      }
-      catch (MisoNamingException e) {
+      } catch (MisoNamingException e) {
         throw new IOException("Cannot save Plate - issue with naming scheme", e);
       }
-      /*
-      params.addValue("plateId", plate.getPlateId());
-      params.addValue("name", plate.getName());
-      params.addValue("identificationBarcode", plate.getName() + "::" + plate.getTagBarcode());
-      NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-      namedTemplate.update(PLATE_UPDATE, params);
-      */
     }
 
     if (this.cascadeType != null && this.cascadeType.equals(CascadeType.PERSIST)) {
@@ -392,8 +354,7 @@ public class SQLPlateDAO implements PlateStore {
         NamedParameterJdbcTemplate nt = new NamedParameterJdbcTemplate(template);
         nt.update(PLATE_ELEMENT_DELETE_BY_PLATE_ID, eparams);
 
-        SimpleJdbcInsert eInsert = new SimpleJdbcInsert(template)
-                .withTableName("Plate_Elements");
+        SimpleJdbcInsert eInsert = new SimpleJdbcInsert(template).withTableName("Plate_Elements");
 
         int pos = 1;
         for (Plateable n : plate.getElements()) {
@@ -401,42 +362,32 @@ public class SQLPlateDAO implements PlateStore {
             Store<? super Plateable> dao = daoLookup.lookup(n.getClass());
             if (dao != null) {
               dao.save(n);
-            }
-            else {
+            } else {
               log.error("No dao class found for " + n.getClass().getName());
             }
           }
           MapSqlParameterSource ltParams = new MapSqlParameterSource();
-          ltParams.addValue("plate_plateId", plate.getId())
-                  .addValue("elementType", eType)
-                  .addValue("elementPosition", pos)
-                  .addValue("elementId", n.getId());
+          ltParams.addValue("plate_plateId", plate.getId());
+          ltParams.addValue("elementType", eType);
+          ltParams.addValue("elementPosition", pos);
+          ltParams.addValue("elementId", n.getId());
 
           eInsert.execute(ltParams);
           pos++;
         }
       }
-    }    
+    }
 
     return plate.getId();
   }
 
   @Override
-  @TriggersRemove(
-    cacheName={"plateCache", "lazyPlateCache"},
-    keyGenerator = @KeyGenerator(
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name="includeMethod", value="false"),
-        @Property(name="includeParameterTypes", value="false")
-      }
-    )
-  )
+  @TriggersRemove(cacheName = { "plateCache",
+      "lazyPlateCache" }, keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+          @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public boolean remove(Plate plate) throws IOException {
     NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
-    if (plate.isDeletable() &&
-           (namedTemplate.update(PLATE_DELETE,
-                                 new MapSqlParameterSource().addValue("plateId", plate.getId())) == 1)) {
+    if (plate.isDeletable() && (namedTemplate.update(PLATE_DELETE, new MapSqlParameterSource().addValue("plateId", plate.getId())) == 1)) {
       MapSqlParameterSource eparams = new MapSqlParameterSource();
       eparams.addValue("plate_plateId", plate.getId());
       namedTemplate.update(PLATE_ELEMENT_DELETE_BY_PLATE_ID, eparams);
@@ -447,11 +398,15 @@ public class SQLPlateDAO implements PlateStore {
 
   public class PlateMapper extends CacheAwareRowMapper<Plate<? extends List<? extends Plateable>, ? extends Plateable>> {
     public PlateMapper() {
-      super((Class<Plate<? extends List<? extends Plateable>, ? extends Plateable>>)((ParameterizedType)new TypeReference<Plate<? extends List<? extends Plateable>, ? extends Plateable>>(){}.getType()).getRawType());
+      super(
+          (Class<Plate<? extends List<? extends Plateable>, ? extends Plateable>>) ((ParameterizedType) new TypeReference<Plate<? extends List<? extends Plateable>, ? extends Plateable>>() {
+          }.getType()).getRawType());
     }
 
     public PlateMapper(boolean lazy) {
-      super((Class<Plate<? extends List<? extends Plateable>, ? extends Plateable>>)((ParameterizedType)new TypeReference<Plate<? extends List<? extends Plateable>, ? extends Plateable>>(){}.getType()).getRawType(), lazy);
+      super(
+          (Class<Plate<? extends List<? extends Plateable>, ? extends Plateable>>) ((ParameterizedType) new TypeReference<Plate<? extends List<? extends Plateable>, ? extends Plateable>>() {
+          }.getType()).getRawType(), lazy);
     }
 
     @Override
@@ -462,13 +417,12 @@ public class SQLPlateDAO implements PlateStore {
         Element element;
         if ((element = lookupCache(cacheManager).get(DbUtils.hashCodeCacheKeyFor(id))) != null) {
           log.debug("Cache hit on map for Plate " + id);
-          return (Plate<? extends List<? extends Plateable>, ? extends Plateable>)element.getObjectValue();
+          return (Plate<? extends List<? extends Plateable>, ? extends Plateable>) element.getObjectValue();
         }
       }
 
       int plateSize = rs.getInt("size");
       
-      //Plate<LinkedList<Plateable>, ? extends Plateable> plate = dataObjectFactory.<LinkedList<Plateable>, Plateable> getPlateOfSize(plateSize);
       Plate<LinkedList<Plateable>, Plateable> plate = dataObjectFactory.getPlateOfSize(plateSize);
       plate.setId(id);
       plate.setName(rs.getString("name"));
@@ -477,9 +431,8 @@ public class SQLPlateDAO implements PlateStore {
       plate.setIdentificationBarcode(rs.getString("identificationBarcode"));
       plate.setLocationBarcode(rs.getString("locationBarcode"));
 
-      //plate.setLastUpdated(rs.getTimestamp("lastUpdated"));
-
       try {
+        plate.setLastModifier(securityDAO.getUserById(rs.getLong("lastModifier")));
         plate.setSecurityProfile(securityProfileDAO.get(rs.getLong("securityProfile_profileId")));
         plate.setPlateMaterialType(PlateMaterialType.get(rs.getString("plateMaterialType")));
         plate.setTagBarcode(libraryDAO.getTagBarcodeById(rs.getLong("tagBarcodeId")));
@@ -487,13 +440,13 @@ public class SQLPlateDAO implements PlateStore {
         if (!isLazy()) {
           plate.setElements(resolvePlateElements(plate.getId()));
         }
-      }
-      catch (IOException e1) {
-        e1.printStackTrace();
+        plate.getChangeLog().addAll(changeLogDAO.listAllById(TABLE_NAME, id));
+      } catch (IOException e1) {
+        log.error("plate row mapper", e1);
       }
 
       if (isCacheEnabled() && lookupCache(cacheManager) != null) {
-        lookupCache(cacheManager).put(new Element(DbUtils.hashCodeCacheKeyFor(id) ,plate));
+        lookupCache(cacheManager).put(new Element(DbUtils.hashCodeCacheKeyFor(id), plate));
       }
 
       return plate;
@@ -505,18 +458,16 @@ public class SQLPlateDAO implements PlateStore {
       LinkedList<Plateable> elements = new LinkedList<Plateable>();
       List<Map<String, Object>> rows = template.queryForList(PLATE_ELEMENT_SELECT_BY_PLATE_ID, plateId);
       for (Map<String, Object> map : rows) {
-        Class<? extends Plateable> clz = Class.forName((String)map.get("elementType")).asSubclass(Plateable.class);
+        Class<? extends Plateable> clz = Class.forName((String) map.get("elementType")).asSubclass(Plateable.class);
         Store<? extends Plateable> dao = daoLookup.lookup(clz);
         if (dao != null) {
           elements.add(dao.get((Long) map.get("elementId")));
-        }
-        else {
+        } else {
           throw new SQLException("No DAO found or more than one found.");
         }
       }
       return elements;
-    }
-    catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException e) {
       throw new IOException(e);
     }
   }
@@ -525,19 +476,31 @@ public class SQLPlateDAO implements PlateStore {
     if (Plateable.class.isAssignableFrom(elementType)) {
       if (Library.class.isAssignableFrom(elementType)) {
         return libraryDAO;
-      }
-      else if (Sample.class.isAssignableFrom(elementType)) {
+      } else if (Sample.class.isAssignableFrom(elementType)) {
         return sampleDAO;
-      }
-      else if (Dilution.class.isAssignableFrom(elementType)) {
+      } else if (Dilution.class.isAssignableFrom(elementType)) {
         return dilutionDAO;
-      }
-      else {
+      } else {
         return null;
       }
-    }
-    else {
+    } else {
       throw new IllegalArgumentException("Element type " + elementType.getName() + " is not a valid Plateable type");
     }
+  }
+
+  public ChangeLogStore getChangeLogDAO() {
+    return changeLogDAO;
+  }
+
+  public void setChangeLogDAO(ChangeLogStore changeLogStore) {
+    this.changeLogDAO = changeLogStore;
+  }
+
+  public SecurityStore getSecurityDAO() {
+    return securityDAO;
+  }
+
+  public void setSecurityDAO(SecurityStore securityDAO) {
+    this.securityDAO = securityDAO;
   }
 }

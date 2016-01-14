@@ -23,20 +23,21 @@
 
 package uk.ac.bbsrc.tgac.miso.analysis.util;
 
-import net.sf.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.analysis.exception.InvalidRequestParameterException;
-import uk.ac.bbsrc.tgac.miso.analysis.submission.TaskSubmissionRequest;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sf.json.JSONObject;
+import uk.ac.bbsrc.tgac.miso.analysis.exception.InvalidRequestParameterException;
+import uk.ac.bbsrc.tgac.miso.analysis.submission.TaskSubmissionRequest;
 
 /**
  * uk.ac.bbsrc.tgac.miso.analysis.util
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 03/11/11
  * @since 0.1.3
@@ -50,11 +51,9 @@ public class PayloadTransformer {
 
     if (j.has("submit")) {
       return generateTaskSubmissionRequest(j);
-    }
-    else if (j.has("query")) {
+    } else if (j.has("query")) {
       return generateQuery(j);
-    }
-    else {
+    } else {
       throw new InvalidRequestParameterException("Incoming request must be of type 'submit', 'tasks', or 'pipelines'");
     }
   }
@@ -65,21 +64,20 @@ public class PayloadTransformer {
       Map<String, String> params = new HashMap<String, String>();
       JSONObject jparams = s.getJSONObject("params");
       for (Object key : jparams.keySet()) {
-        String k = (String)key;
+        String k = (String) key;
         params.put(k, jparams.getString(k));
       }
       return new TaskSubmissionRequest(s.getString("priority"), s.getString("pipeline"), params);
-    }
-    else {
-      throw new InvalidRequestParameterException("Invalid parameters for task creation. Cannot create task submission request: " + j.toString());
+    } else {
+      throw new InvalidRequestParameterException(
+          "Invalid parameters for task creation. Cannot create task submission request: " + j.toString());
     }
   }
 
   private JSONObject generateQuery(JSONObject j) throws InvalidRequestParameterException {
     if (ProcessUtils.validateQueryJSON(j)) {
       return j;
-    }
-    else {
+    } else {
       throw new InvalidRequestParameterException("Invalid query. Cannot perform query: " + j.toString());
     }
   }

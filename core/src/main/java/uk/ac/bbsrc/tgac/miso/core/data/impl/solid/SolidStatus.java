@@ -23,32 +23,36 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl.solid;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
-import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
-import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
-import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.StringReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
+import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
+import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
+import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
+
+
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl.solid
  * <p/>
  * TODO Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.3
  */
 public class SolidStatus extends StatusImpl {
+  protected static final Logger log = LoggerFactory.getLogger(SolidStatus.class);
   String statusXml = null;
 
   public SolidStatus() {
@@ -76,8 +80,7 @@ public class SolidStatus extends StatusImpl {
         }
         setRunName(runName);
         setHealth(HealthType.Unknown);
-      }
-      else {
+      } else {
         String runName = statusDoc.getElementsByTagName("name").item(3).getTextContent();
         String runStarted = statusDoc.getElementsByTagName("dateStarted").item(0).getTextContent();
         DateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -91,15 +94,14 @@ public class SolidStatus extends StatusImpl {
 
         if (statusDoc.getElementsByTagName("name").getLength() != 0) {
           for (int i = 0; i < statusDoc.getElementsByTagName("name").getLength(); i++) {
-            Element e = (Element)statusDoc.getElementsByTagName("name").item(i);
+            Element e = (Element) statusDoc.getElementsByTagName("name").item(i);
             Matcher m = runRegex.matcher(e.getTextContent());
             if (m.matches()) {
               runName = e.getTextContent();
               setInstrumentName(m.group(1));
             }
           }
-        }
-        else {
+        } else {
           Matcher m = runRegex.matcher(runName);
           if (m.matches()) {
             setInstrumentName(m.group(1));
@@ -110,15 +112,12 @@ public class SolidStatus extends StatusImpl {
         setHealth(HealthType.Unknown);
       }
       setXml(statusXml);
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    catch (TransformerException e) {
-      e.printStackTrace();
-    }
-    catch (ParseException e) {
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("parse status XML", e);
+    } catch (TransformerException e) {
+      log.error("parse status XML", e);
+    } catch (ParseException e) {
+      log.error("parse status XML", e);
     }
   }
 

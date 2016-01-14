@@ -23,26 +23,31 @@
 
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.eaglegenomics.simlims.core.User;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
 import com.googlecode.ehcache.annotations.Cacheable;
 import com.googlecode.ehcache.annotations.KeyGenerator;
 import com.googlecode.ehcache.annotations.Property;
 import com.googlecode.ehcache.annotations.TriggersRemove;
-import net.sf.ehcache.Cache;
+
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.transaction.annotation.Transactional;
-import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
 import uk.ac.bbsrc.tgac.miso.core.event.impl.DefaultAlert;
 import uk.ac.bbsrc.tgac.miso.core.event.impl.SystemAlert;
@@ -51,12 +56,6 @@ import uk.ac.bbsrc.tgac.miso.core.store.AlertStore;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import uk.ac.bbsrc.tgac.miso.sqlstore.cache.CacheAwareRowMapper;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
-
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * uk.ac.bbsrc.tgac.miso.sqlstore
@@ -70,35 +69,24 @@ import java.util.List;
 public class SQLAlertDAO implements AlertStore {
   private static final String TABLE_NAME = "Alert";
 
-  private static final String ALERTS_SELECT =
-          "SELECT alertId, title, text, userId, date, isRead, level " +
-          "FROM " + TABLE_NAME;
+  private static final String ALERTS_SELECT = "SELECT alertId, title, text, userId, date, isRead, level " + "FROM " + TABLE_NAME;
 
-  private static final String ALERT_SELECT_BY_ID =
-          ALERTS_SELECT + " " + "WHERE alertId = ?";
+  private static final String ALERT_SELECT_BY_ID = ALERTS_SELECT + " " + "WHERE alertId = ?";
 
-  private static final String ALERT_UPDATE =
-          "UPDATE " + TABLE_NAME +
-          " SET title=:title, text=:text, userId=:userId, date=:date, isRead=:isRead, level=:level " +
-          "WHERE alertId=:alertId";
+  private static final String ALERT_UPDATE = "UPDATE " + TABLE_NAME
+      + " SET title=:title, text=:text, userId=:userId, date=:date, isRead=:isRead, level=:level " + "WHERE alertId=:alertId";
 
-  private static final String ALERT_DELETE =
-          "DELETE FROM "+TABLE_NAME+" WHERE alertId=:alertId";
+  private static final String ALERT_DELETE = "DELETE FROM " + TABLE_NAME + " WHERE alertId=:alertId";
 
-  private static final String ALERTS_BY_USER =
-          ALERTS_SELECT + " WHERE userId = ?";
+  private static final String ALERTS_BY_USER = ALERTS_SELECT + " WHERE userId = ?";
 
-  private static final String ALERTS_BY_USER_WITH_LIMIT =
-          ALERTS_BY_USER + " ORDER BY date DESC LIMIT ?";
+  private static final String ALERTS_BY_USER_WITH_LIMIT = ALERTS_BY_USER + " ORDER BY date DESC LIMIT ?";
 
-  private static final String ALERTS_BY_LEVEL =
-          ALERTS_SELECT + " WHERE level = ?";
+  private static final String ALERTS_BY_LEVEL = ALERTS_SELECT + " WHERE level = ?";
 
-  private static final String UNREAD_ALERTS_BY_USER =
-          ALERTS_SELECT + " WHERE userId = ? AND isRead = false";
+  private static final String UNREAD_ALERTS_BY_USER = ALERTS_SELECT + " WHERE userId = ? AND isRead = false";
 
-  private static final String UNREAD_ALERTS_BY_LEVEL =
-          ALERTS_SELECT + " WHERE level = ? AND isRead = false";
+  private static final String UNREAD_ALERTS_BY_LEVEL = ALERTS_SELECT + " WHERE level = ? AND isRead = false";
 
   protected static final Logger log = LoggerFactory.getLogger(SQLAlertDAO.class);
 
@@ -128,51 +116,33 @@ public class SQLAlertDAO implements AlertStore {
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)
-  @TriggersRemove(
-    cacheName="alertCache",
-    keyGenerator = @KeyGenerator (
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name="includeMethod", value="false"),
-        @Property(name="includeParameterTypes", value="false")
-      }
-    )
-  )
+  @TriggersRemove(cacheName = "alertCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+      @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public boolean remove(Alert alert) throws IOException {
     return alert.isDeletable() && (template.update(ALERT_DELETE, alert.getAlertId()) == 1);
   }
 
   @Override
   @Transactional(readOnly = false, rollbackFor = IOException.class)
-  @TriggersRemove(cacheName="alertCache",
-    keyGenerator = @KeyGenerator(
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name = "includeMethod", value = "false"),
-        @Property(name = "includeParameterTypes", value = "false")
-      }
-    )
-  )
+  @TriggersRemove(cacheName = "alertCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+      @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public long save(Alert alert) throws IOException {
     MapSqlParameterSource params = new MapSqlParameterSource();
-    params.addValue("title", alert.getAlertTitle())
-            .addValue("text", alert.getAlertText())
-            .addValue("date", alert.getAlertDate())
-            .addValue("isRead", alert.getAlertRead())
-            .addValue("level", alert.getAlertLevel().getKey());
+    params.addValue("title", alert.getAlertTitle());
+    params.addValue("text", alert.getAlertText());
+    params.addValue("date", alert.getAlertDate());
+    params.addValue("isRead", alert.getAlertRead());
+    params.addValue("level", alert.getAlertLevel().getKey());
 
     if (alert.getAlertUser() != null) {
       params.addValue("userId", alert.getAlertUser().getUserId());
     }
 
     if (alert.getAlertId() == DefaultAlert.UNSAVED_ID) {
-      SimpleJdbcInsert insert = new SimpleJdbcInsert(template)
-                            .withTableName(TABLE_NAME)
-                            .usingGeneratedKeyColumns("alertId");
+      SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("alertId");
       Number newId = insert.executeAndReturnKey(params);
       alert.setAlertId(newId.longValue());
-    }
-    else {
+    } else {
       params.addValue("alertId", alert.getAlertId());
       NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
       namedTemplate.update(ALERT_UPDATE, params);
@@ -182,17 +152,10 @@ public class SQLAlertDAO implements AlertStore {
   }
 
   @Override
-  @Cacheable(cacheName="alertCache",
-    keyGenerator = @KeyGenerator(
-      name = "HashCodeCacheKeyGenerator",
-      properties = {
-        @Property(name = "includeMethod", value = "false"),
-        @Property(name = "includeParameterTypes", value = "false")
-      }
-    )
-  )
+  @Cacheable(cacheName = "alertCache", keyGenerator = @KeyGenerator(name = "HashCodeCacheKeyGenerator", properties = {
+      @Property(name = "includeMethod", value = "false"), @Property(name = "includeParameterTypes", value = "false") }) )
   public Alert get(long alertId) throws IOException {
-    List<Alert> eResults = template.query(ALERT_SELECT_BY_ID, new Object[]{alertId}, new AlertMapper());
+    List<Alert> eResults = template.query(ALERT_SELECT_BY_ID, new Object[] { alertId }, new AlertMapper());
     Alert e = eResults.size() > 0 ? eResults.get(0) : null;
     return e;
   }
@@ -209,32 +172,32 @@ public class SQLAlertDAO implements AlertStore {
 
   @Override
   public int count() throws IOException {
-    return template.queryForInt("SELECT count(*) FROM "+TABLE_NAME);
+    return template.queryForInt("SELECT count(*) FROM " + TABLE_NAME);
   }
 
   @Override
   public Collection<Alert> listByUserId(long userId) throws IOException {
-    return template.query(ALERTS_BY_USER, new Object[]{userId}, new AlertMapper());
+    return template.query(ALERTS_BY_USER, new Object[] { userId }, new AlertMapper());
   }
 
   @Override
   public Collection<Alert> listByUserId(long userId, long limit) throws IOException {
-    return template.query(ALERTS_BY_USER_WITH_LIMIT, new Object[]{userId, limit}, new AlertMapper());
+    return template.query(ALERTS_BY_USER_WITH_LIMIT, new Object[] { userId, limit }, new AlertMapper());
   }
 
   @Override
   public Collection<Alert> listByAlertLevel(AlertLevel alertLevel) throws IOException {
-    return template.query(ALERTS_BY_LEVEL, new Object[]{alertLevel.getKey()}, new AlertMapper());
+    return template.query(ALERTS_BY_LEVEL, new Object[] { alertLevel.getKey() }, new AlertMapper());
   }
 
   @Override
   public Collection<Alert> listUnreadByUserId(long userId) throws IOException {
-    return template.query(UNREAD_ALERTS_BY_USER, new Object[]{userId}, new AlertMapper());
+    return template.query(UNREAD_ALERTS_BY_USER, new Object[] { userId }, new AlertMapper());
   }
 
   @Override
   public Collection<Alert> listUnreadByAlertLevel(AlertLevel alertLevel) throws IOException {
-    return template.query(UNREAD_ALERTS_BY_LEVEL, new Object[]{alertLevel.getKey()}, new AlertMapper());
+    return template.query(UNREAD_ALERTS_BY_LEVEL, new Object[] { alertLevel.getKey() }, new AlertMapper());
   }
 
   public class AlertMapper extends CacheAwareRowMapper<Alert> {
@@ -256,16 +219,14 @@ public class SQLAlertDAO implements AlertStore {
           Element element;
           if ((element = lookupCache(cacheManager).get(DbUtils.hashCodeCacheKeyFor(id))) != null) {
             log.debug("Cache hit on map for Alert " + id);
-            return (Alert)element.getObjectValue();
+            return (Alert) element.getObjectValue();
           }
         }
-
 
         try {
           if (rs.getLong("userId") == LimsUtils.SYSTEM_USER_ID) {
             a = new SystemAlert();
-          }
-          else {
+          } else {
             User u = securityManager.getUserById(rs.getLong("userId"));
             a = new DefaultAlert(u);
           }
@@ -275,20 +236,17 @@ public class SQLAlertDAO implements AlertStore {
           a.setAlertRead(rs.getBoolean("isRead"));
           a.setAlertLevel(AlertLevel.get(rs.getString("level")));
           a.setAlertDate(rs.getDate("date"));
-        }
-        catch (IOException e1) {
-          e1.printStackTrace();
+        } catch (IOException e1) {
+          log.error("alert row mapper", e1);
         }
 
         if (isCacheEnabled() && lookupCache(cacheManager) != null) {
           lookupCache(cacheManager).put(new Element(DbUtils.hashCodeCacheKeyFor(id), a));
         }
-      }
-      catch(CacheException ce) {
-        ce.printStackTrace();
-      }
-      catch(UnsupportedOperationException uoe) {
-        uoe.printStackTrace();
+      } catch (CacheException ce) {
+        log.error("alert row mapper", ce);
+      } catch (UnsupportedOperationException uoe) {
+        log.error("alert row mapper", uoe);
       }
       return a;
     }

@@ -23,6 +23,18 @@
 
 package uk.ac.bbsrc.tgac.miso.core.factory.barcode;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.codec.binary.Base64;
 import org.krysalis.barcode4j.BarcodeDimension;
 import org.krysalis.barcode4j.BarcodeGenerator;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
@@ -44,23 +56,14 @@ import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
-
-import org.apache.commons.codec.binary.Base64;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.factory.barcode
  * <p/>
  * Simple factory that builds barcode RenderedImages given a MISO Barcodable object and a BarcodeGenerator
- *
+ * 
  * @author Rob Davey
  * @date 09-Feb-2011
  * @since 0.0.3
@@ -158,18 +161,17 @@ public class BarcodeFactory {
   private RenderedImage getImage(Barcodable barcodable, BarcodeGenerator barcodeGenerator, BarcodeDimension dimension) throws IOException {
     String input = barcodable.getIdentificationBarcode();
 
-    if (input != null && !"".equals(input)) {
+    if (!isStringEmptyOrNull(input)) {
       String enc = new String(Base64.encodeBase64(input.getBytes("UTF-8")));
 
       BitmapCanvasProvider provider = new BitmapCanvasProvider(bitmapResolution, imageType, antialias, orientation);
       provider.establishDimensions(dimension);
       if (barcodeGenerator instanceof AbstractBarcodeBean) {
-        AbstractBarcodeBean bean = (AbstractBarcodeBean)barcodeGenerator;
+        AbstractBarcodeBean bean = (AbstractBarcodeBean) barcodeGenerator;
         bean.setModuleWidth(UnitConv.in2mm(pointPixels / bitmapResolution));
         bean.doQuietZone(false);
         bean.generateBarcode(provider, enc);
-      }
-      else {
+      } else {
         barcodeGenerator.generateBarcode(provider, enc);
       }
       provider.finish();
@@ -195,7 +197,7 @@ public class BarcodeFactory {
   }
 
   public RenderedImage generateSquareDataMatrix(Barcodable barcodable, int width) throws IOException {
-    DataMatrixBean dmb = (DataMatrixBean)DATAMATRIX;
+    DataMatrixBean dmb = (DataMatrixBean) DATAMATRIX;
     dmb.setShape(SymbolShapeHint.FORCE_SQUARE);
     return getImage(barcodable, dmb, new BarcodeDimension(width, width));
   }
@@ -205,9 +207,9 @@ public class BarcodeFactory {
   }
 
   public RenderedImage generateRectDataMatrix(Barcodable barcodable, int width, int height) throws IOException {
-    DataMatrixBean dmb = (DataMatrixBean)DATAMATRIX;
+    DataMatrixBean dmb = (DataMatrixBean) DATAMATRIX;
     dmb.setShape(SymbolShapeHint.FORCE_RECTANGLE);
-    return getImage(barcodable, dmb, new BarcodeDimension(width, height));  
+    return getImage(barcodable, dmb, new BarcodeDimension(width, height));
   }
 
   public void generateRectDataMatrix(Barcodable barcodable, int width, int height, OutputStream output) throws IOException {

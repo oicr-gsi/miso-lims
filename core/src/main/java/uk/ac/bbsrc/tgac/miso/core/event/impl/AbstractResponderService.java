@@ -23,9 +23,16 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
-import com.eaglegenomics.simlims.core.User;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Watchable;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
 import uk.ac.bbsrc.tgac.miso.core.event.AlerterService;
@@ -34,16 +41,11 @@ import uk.ac.bbsrc.tgac.miso.core.event.ResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.alerter.DaoAlerterService;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 05/03/12
  * @since 0.1.6
@@ -60,7 +62,7 @@ public abstract class AbstractResponderService implements ResponderService {
 
   public boolean getSaveSystemAlert() {
     return saveSystemAlert;
-  }  
+  }
 
   public Set<AlerterService> getAlerterServices() {
     return alerterServices;
@@ -70,14 +72,15 @@ public abstract class AbstractResponderService implements ResponderService {
     this.alerterServices = alerterServices;
   }
 
+  @Override
   public abstract boolean respondsTo(Event event);
 
   public void raiseSystemAlert(Event event) {
     raiseSystemAlert(event, DaoAlerterService.class);
   }
 
-  protected void raiseSystemAlert(Event event, Class<? extends AlerterService> ... servicesToAlert) {
-    Watchable o = (Watchable)event.getEventObject();
+  protected void raiseSystemAlert(Event event, Class<? extends AlerterService>... servicesToAlert) {
+    Watchable o = (Watchable) event.getEventObject();
 
     Alert a = new SystemAlert();
     a.setAlertTitle("[" + o.getWatchableIdentifier() + "] " + event.getEventType().name());
@@ -90,8 +93,7 @@ public abstract class AbstractResponderService implements ResponderService {
         try {
           as.raiseAlert(a);
         } catch (AlertingException e) {
-          log.error("Cannot raise system alert:" + e.getMessage());
-          e.printStackTrace();
+          log.error("Cannot raise system alert", e);
         }
       }
     }
@@ -109,10 +111,8 @@ public abstract class AbstractResponderService implements ResponderService {
       for (AlerterService as : alerterServices) {
         try {
           as.raiseAlert(a);
-        }
-        catch (AlertingException e) {
-          log.error("Cannot raise user-level alert:" + e.getMessage());
-          e.printStackTrace();
+        } catch (AlertingException e) {
+          log.error("Cannot raise user-level alert", e);
         }
       }
     }

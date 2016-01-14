@@ -23,23 +23,19 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
+import java.io.Serializable;
+
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.AbstractDilution;
-import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
-import uk.ac.bbsrc.tgac.miso.core.data.Library;
-import uk.ac.bbsrc.tgac.miso.core.data.Plate;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Set;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractDilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -56,13 +52,15 @@ public class LibraryDilution extends AbstractDilution implements Serializable {
 
   /**
    * Construct a new LibraryDilution with a SecurityProfile owned by the given User
-   *
-   * @param user of type User
+   * 
+   * @param user
+   *          of type User
    */
   public LibraryDilution(User user) {
     setSecurityProfile(new SecurityProfile(user));
   }
 
+  @Override
   public Library getLibrary() {
     return library;
   }
@@ -71,6 +69,7 @@ public class LibraryDilution extends AbstractDilution implements Serializable {
     this.library = library;
   }
 
+  @Override
   public String getUnits() {
     return UNITS;
   }

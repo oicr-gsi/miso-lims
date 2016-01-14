@@ -23,25 +23,25 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.printing.context.impl;
 
-import com.opensymphony.util.FileUtils;
-import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
-import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeLabelFactory;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.context.PrintContext;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.factory.ImageRasterBarcodeLabelFactory;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.impl.BradySpoolPrintStrategy;
-
-import javax.print.PrintService;
 import java.io.File;
 import java.io.IOException;
+
+import javax.print.PrintService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensymphony.util.FileUtils;
+
+import net.sourceforge.fluxion.spi.ServiceProvider;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.context.PrintContext;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.strategy.impl.BradySpoolPrintStrategy;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.printing.context.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 30-Jun-2011
  * @since 0.0.3

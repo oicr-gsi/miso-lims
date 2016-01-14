@@ -23,21 +23,23 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.event.Alert;
-import uk.ac.bbsrc.tgac.miso.core.event.type.AlertLevel;
+import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.io.Serializable;
-import java.util.Date;
+
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.event.Alert;
+import uk.ac.bbsrc.tgac.miso.core.event.type.AlertLevel;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 07/10/11
  * @since 0.1.2
@@ -136,7 +138,7 @@ public class DefaultAlert implements Alert, Serializable {
 
   @Override
   public int compareTo(Object o) {
-    Alert a = (Alert)o;
+    Alert a = (Alert) o;
     if (getAlertId() != null && a.getAlertId() != null) {
       if (getAlertId() < a.getAlertId()) return -1;
       if (getAlertId() > a.getAlertId()) return 1;

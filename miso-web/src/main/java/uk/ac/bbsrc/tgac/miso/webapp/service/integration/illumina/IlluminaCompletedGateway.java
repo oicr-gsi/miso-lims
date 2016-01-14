@@ -23,21 +23,21 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.service.integration.illumina;
 
+import java.util.Set;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
-
-import java.util.Set;
 
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.service
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 03-Dec-2010
  * @since 0.0.2
  */
 public interface IlluminaCompletedGateway {
-    @Gateway(requestChannel = "illuminaCompletedChannel")
-    void consume(Message<Set<String>> message);  
+  @Gateway(requestChannel = "illuminaCompletedChannel")
+  void consume(Message<Set<String>> message);
 }

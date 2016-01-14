@@ -23,9 +23,8 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +34,16 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
 /**
  * com.eaglegenomics.miso.web
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -68,10 +70,9 @@ public class ListDilutionsController {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       model.addAttribute("libDilutions", requestManager.listAllLibraryDilutions());
-      model.addAttribute("pcrDilutions", requestManager.listAllEmPcrDilutions());
-      return new ModelAndView("/pages/listDilutions.jsp",model);
-    }
-    catch (IOException ex) {
+      model.addAttribute("pcrDilutions", requestManager.listAllEmPCRDilutions());
+      return new ModelAndView("/pages/listDilutions.jsp", model);
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to list dilutions", ex);
       }

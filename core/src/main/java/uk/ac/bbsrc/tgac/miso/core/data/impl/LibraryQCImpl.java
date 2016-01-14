@@ -23,21 +23,26 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
-import com.eaglegenomics.simlims.core.SecurityProfile;
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractLibraryQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
 
-import java.io.Serializable;
 
 /**
  * Concrete implementation of a LibraryQC
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 public class LibraryQCImpl extends AbstractLibraryQC implements Serializable {
+  protected static final Logger log = LoggerFactory.getLogger(LibraryQCImpl.class);
   /**
    * Construct a new LibraryQC
    */
@@ -45,30 +50,30 @@ public class LibraryQCImpl extends AbstractLibraryQC implements Serializable {
   }
 
   /**
-   * Construct a new LibraryQC from a parent Library, checking that the given User can read that Library 
-   *
-   * @param library of type Library
-   * @param user of type User
+   * Construct a new LibraryQC from a parent Library, checking that the given User can read that Library
+   * 
+   * @param library
+   *          of type Library
+   * @param user
+   *          of type User
    */
   public LibraryQCImpl(Library library, User user) {
     if (library.userCanRead(user)) {
       try {
         setLibrary(library);
+      } catch (MalformedLibraryException e) {
+        log.error("construct", e);
       }
-      catch (MalformedLibraryException e) {
-        e.printStackTrace();
-      }
-      //setSecurityProfile(experiment.getSecurityProfile());
-    }
-    else {
-      //setSecurityProfile(new SecurityProfile(user));
+    } else {
     }
   }
 
+  @Override
   public boolean userCanRead(User user) {
     return true;
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return true;
   }

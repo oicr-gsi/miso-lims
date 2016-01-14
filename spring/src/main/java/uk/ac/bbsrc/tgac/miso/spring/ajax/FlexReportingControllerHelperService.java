@@ -23,33 +23,57 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import com.google.json.JsonSanitizer;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.LibraryQC;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.data.Study;
+import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
 import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.data.type.ProgressType;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Xingdong Bian
  * @since 0.1.2
  */
@@ -71,39 +95,25 @@ public class FlexReportingControllerHelperService {
   public String flexHTMLTemplate(String content) {
     StringBuilder sb = new StringBuilder();
     // header
-    sb.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n" +
-              "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
-              "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-gb\">\n" +
-              "<head>\n" +
-              "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">\n" +
-              "<meta http-equiv=\"Pragma\" content=\"no-cache\">\n" +
-              "<meta http-equiv=\"Cache-Control\" content=\"no-cache\">\n" +
-              "    <link rel=\"stylesheet\" href=\"/styles/style.css\" type=\"text/css\">\n" +
-              "<title>MISO Report</title>" +
-              "</head><body><table border=\"0\" width=\"100%\">\n" +
-              "    <tr>\n" +
-              "        <td class=\"headertable\" align=\"left\" \">\n" +
-              "            <img src=\"/styles/images/miso_logo.png\" alt=\"MISO Logo\" name=\"logo\"\n" +
-              "                                  border=\"0\" id=\"misologo\"/>\n" +
-              "        </td>\n" +
-              "        <td class=\"headertable\" align=\"right\" \">\n" +
-              "            <img src=\"/styles/images/brand_logo.png\" alt=\"Brand Logo\" name=\"logo\"\n" +
-              "                                  border=\"0\" id=\"brandlogo\"/>\n" +
-              "        </td>\n" +
-              "    </tr>\n" +
-              "</table><hr/>");
+    sb.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
+        + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" + "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-gb\">\n"
+        + "<head>\n" + "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">\n"
+        + "<meta http-equiv=\"Pragma\" content=\"no-cache\">\n" + "<meta http-equiv=\"Cache-Control\" content=\"no-cache\">\n"
+        + "    <link rel=\"stylesheet\" href=\"/styles/style.css\" type=\"text/css\">\n" + "<title>MISO Report</title>"
+        + "</head><body><table border=\"0\" width=\"100%\">\n" + "    <tr>\n" + "        <td class=\"headertable\" align=\"left\" \">\n"
+        + "            <img src=\"/styles/images/miso_logo.png\" alt=\"MISO Logo\" name=\"logo\"\n"
+        + "                                  border=\"0\" id=\"misologo\"/>\n" + "        </td>\n"
+        + "        <td class=\"headertable\" align=\"right\" \">\n"
+        + "            <img src=\"/styles/images/brand_logo.png\" alt=\"Brand Logo\" name=\"logo\"\n"
+        + "                                  border=\"0\" id=\"brandlogo\"/>\n" + "        </td>\n" + "    </tr>\n" + "</table><hr/>");
     // end of header
 
     sb.append(content);
 
     // footer
-    sb.append("</div>\n" +
-              "<div id=\"footer\">\n" +
-              "    <br/>\n" +
-              "\n" +
-              "    <p>&copy; 2010 - 2012 <a href=\"http://www.tgac.bbsrc.ac.uk/\" target=\"_blank\">The Genome Analysis Centre</a></p>\n" +
-              "</div>\n" +
-              "</body></html>");
+    sb.append("</div>\n" + "<div id=\"footer\">\n" + "    <br/>\n" + "\n"
+        + "    <p>&copy; 2010 - 2012 <a href=\"http://www.tgac.bbsrc.ac.uk/\" target=\"_blank\">The Genome Analysis Centre</a></p>\n"
+        + "</div>\n" + "</body></html>");
     // end of footer
 
     return sb.toString();
@@ -124,9 +134,8 @@ public class FlexReportingControllerHelperService {
       jsonObject.put("html", jsonArray);
       jsonObject.put("progress", "<option value=\"all\">all</option>" + a.toString());
       return jsonObject;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -141,18 +150,16 @@ public class FlexReportingControllerHelperService {
     try {
 
       Collection<Project> projects = null;
-      if (searchStr != null && !searchStr.equals("")) {
+      if (!isStringEmptyOrNull(searchStr)) {
         projects = requestManager.listAllProjectsBySearch(searchStr);
-      }
-      else {
+      } else {
         projects = requestManager.listAllProjects();
       }
 
       for (Project project : projects) {
         if (progress.equals("all") || progress.equals(project.getProgress().getKey())) {
 
-          if (from != null && !from.equals("") &&
-              to != null && !to.equals("")) {
+          if (!isStringEmptyOrNull(from) && !isStringEmptyOrNull(to)) {
             if (project.getCreationDate() != null) {
 
               DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -160,12 +167,12 @@ public class FlexReportingControllerHelperService {
               Date endDate = df.parse(to);
               Date creationDate = project.getCreationDate();
 
-              if ((creationDate.after(startDate) && creationDate.before(endDate)) || creationDate.equals(startDate) || creationDate.equals(endDate)) {
+              if ((creationDate.after(startDate) && creationDate.before(endDate)) || creationDate.equals(startDate)
+                  || creationDate.equals(endDate)) {
                 jsonArray.add(projectRowBuilder(project));
               }
             }
-          }
-          else {
+          } else {
             jsonArray.add(projectRowBuilder(project));
           }
         }
@@ -173,20 +180,16 @@ public class FlexReportingControllerHelperService {
 
       jsonObject.put("html", jsonArray);
       return jsonObject;
-    }
-    catch (Exception e) {
-      log.debug("Failed", e);
+    } catch (Exception e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
 
   public String projectRowBuilder(Project project) {
-    return "['<input class=\"chkboxprojects\" id=\"" + project.getProjectId() +
-           "\" type=\"checkbox\" name=\"projectIds\" value=\"" + project.getProjectId() + "\" id=\"" + project.getProjectId() + "\"/>','"
-           + project.getName() + "','"
-           + project.getAlias() + "','"
-           + project.getDescription() + "','"
-           + project.getProgress().name() + "']";
+    return "['<input class=\"chkboxprojects\" id=\"" + project.getProjectId() + "\" type=\"checkbox\" name=\"projectIds\" value=\""
+        + project.getProjectId() + "\" id=\"" + project.getProjectId() + "\"/>','" + project.getName() + "','" + project.getAlias() + "','"
+        + project.getDescription() + "','" + project.getProgress().name() + "']";
   }
 
   public JSONObject generateProjectsFlexReport(HttpSession session, JSONObject json) {
@@ -224,9 +227,8 @@ public class FlexReportingControllerHelperService {
       response.put("reportTable", buildProjectReport(projects));
       response.put("detailTable", buildProjectDetailReport(projects));
       return response;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -234,10 +236,8 @@ public class FlexReportingControllerHelperService {
   public JSONArray buildProjectReport(List<Project> projects) {
     JSONArray jsonArray = new JSONArray();
     for (Project project : projects) {
-      jsonArray.add("['" + (project.getName().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (project.getAlias().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (project.getDescription().replace("+", "-")).replace("'", "\\'") + "','" +
-                    project.getProgress().name() + "']");
+      jsonArray.add(JsonSanitizer.sanitize("[\"" + (project.getName().replace("+", "-")) + "\",\"" + (project.getAlias().replace("+", "-"))
+          + "\",\"" + (project.getDescription().replace("+", "-")) + "\",\"" + project.getProgress().name() + "\"]"));
     }
     return jsonArray;
   }
@@ -248,7 +248,8 @@ public class FlexReportingControllerHelperService {
       for (Project project : projects) {
         Set<Library> librariesInRun = new HashSet<Library>();
         for (Run run : requestManager.listAllRunsByProjectId(project.getProjectId())) {
-          Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager.listSequencerPartitionContainersByRunId(run.getId());
+          Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager
+              .listSequencerPartitionContainersByRunId(run.getId());
           if (spcs.size() > 0) {
             for (SequencerPartitionContainer<SequencerPoolPartition> spc : spcs) {
 
@@ -261,12 +262,9 @@ public class FlexReportingControllerHelperService {
                         if (libraryInRun.getSample().getProject().equals(requestManager.getProjectById(project.getProjectId()))) {
                           if (librariesInRun.add(libraryInRun)) {
 
-                            jsonArray.add("['" + project.getName() + "','" +
-                                          libraryInRun.getSample().getName() + "','" +
-                                          libraryInRun.getName() + "','" +
-                                          spp.getPool().getName() + "','" +
-                                          run.getName() + "','" +
-                                          run.getStatus().getHealth().getKey() + "']");
+                            jsonArray.add(JsonSanitizer.sanitize("[\"" + project.getName() + "\",\"" + libraryInRun.getSample().getName()
+                                + "\",\"" + libraryInRun.getName() + "\",\"" + spp.getPool().getName() + "\",\"" + run.getName() + "\",\""
+                                + run.getStatus().getHealth().getKey() + "\"]"));
                           }
                         }
                       }
@@ -281,21 +279,17 @@ public class FlexReportingControllerHelperService {
         for (Library library : requestManager.listAllLibrariesByProjectId(project.getProjectId())) {
           if (!librariesInRun.contains(library)) {
             Sample sample = library.getSample();
-            jsonArray.add("['" + project.getName() + "','" +
-                          sample.getName() + "','" +
-                          library.getName() + "','NA','NA','NA']");
+            jsonArray.add("['" + project.getName() + "','" + sample.getName() + "','" + library.getName() + "','NA','NA','NA']");
           }
         }
 
       }
       return jsonArray;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return jsonArray;
     }
   }
-
 
   public JSONObject searchProjectsByRunCompletionDateandString(HttpSession session, JSONObject json) {
     String searchStr = json.getString("str");
@@ -307,10 +301,9 @@ public class FlexReportingControllerHelperService {
     try {
 
       Collection<Project> projects = null;
-      if (searchStr != null && !searchStr.equals("")) {
+      if (!isStringEmptyOrNull(searchStr)) {
         projects = requestManager.listAllProjectsBySearch(searchStr);
-      }
-      else {
+      } else {
         projects = requestManager.listAllProjects();
       }
 
@@ -319,8 +312,7 @@ public class FlexReportingControllerHelperService {
         Collection<Run> runs = requestManager.listAllRunsByProjectId(project.getProjectId());
         for (Run run : runs) {
 
-          if (from != null && !from.equals("") &&
-              to != null && !to.equals("")) {
+          if (!isStringEmptyOrNull(from) && !isStringEmptyOrNull(to)) {
             if (run.getStatus() != null && run.getStatus().getCompletionDate() != null) {
 
               DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -332,8 +324,7 @@ public class FlexReportingControllerHelperService {
                 projectBool = true;
               }
             }
-          }
-          else {
+          } else {
             projectBool = true;
           }
 
@@ -345,9 +336,8 @@ public class FlexReportingControllerHelperService {
 
       jsonObject.put("html", jsonArray);
       return jsonObject;
-    }
-    catch (Exception e) {
-      log.debug("Failed", e);
+    } catch (Exception e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -360,10 +350,11 @@ public class FlexReportingControllerHelperService {
         sb.append("<ul>");
         for (Run run : runs) {
           sb.append("<li>");
-          sb.append("<input class=\"runsinproject" + project.getProjectId() + "\" id=\"" + run.getName() +
-                    "\" type=\"checkbox\" name=\"runIds\" value=\"" + run.getId() + "\" />");
+          sb.append("<input class=\"runsinproject" + project.getProjectId() + "\" id=\"" + run.getName()
+              + "\" type=\"checkbox\" name=\"runIds\" value=\"" + run.getId() + "\" />");
           sb.append(run.getName() + " - " + run.getStatus().getHealth().getKey() + " - " + run.getAlias());
-          Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager.listSequencerPartitionContainersByRunId(run.getId());
+          Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager
+              .listSequencerPartitionContainersByRunId(run.getId());
           if (spcs.size() > 0) {
             sb.append("<ul>");
             for (SequencerPartitionContainer<SequencerPoolPartition> spc : spcs) {
@@ -395,17 +386,11 @@ public class FlexReportingControllerHelperService {
         sb.append("</ul>");
       }
 
-      //return "['<input class=\"chkboxprojectrunlane\" id=\"" + project.getProjectId() +
-      //       "\" type=\"checkbox\" name=\"projectIds\" value=\"" + project.getProjectId() + "\" id=\"" + project.getProjectId() + "\"/>','"
-      //       + project.getName() + "','"
-      return "['<input id=\"" + project.getProjectId() +
-             "\" type=\"radio\" name=\"projectId\" value=\"" + project.getProjectId() + "\" />','" + project.getName() + "','"
-             + project.getAlias() + "','"
-             + project.getProgress().name() + "','"
-             + sb.toString() + "']";
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+      return "['<input id=\"" + project.getProjectId() + "\" type=\"radio\" name=\"projectId\" value=\"" + project.getProjectId()
+          + "\" />','" + project.getName() + "','" + project.getAlias() + "','" + project.getProgress().name() + "','" + sb.toString()
+          + "']";
+    } catch (IOException e) {
+      log.error("Failed", e);
       return "Failed: " + e.getMessage();
     }
   }
@@ -431,9 +416,8 @@ public class FlexReportingControllerHelperService {
 
       response.put("reportTable", buildSampleRelationReport(p, runs));
       return response;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -445,7 +429,8 @@ public class FlexReportingControllerHelperService {
 
       Set<Library> librariesInRun = new HashSet<Library>();
       for (Run run : runs) {
-        Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager.listSequencerPartitionContainersByRunId(run.getId());
+        Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager
+            .listSequencerPartitionContainersByRunId(run.getId());
         if (spcs.size() > 0) {
           for (SequencerPartitionContainer<SequencerPoolPartition> spc : spcs) {
 
@@ -461,21 +446,17 @@ public class FlexReportingControllerHelperService {
 
                           StringBuilder tagBarcode = new StringBuilder();
                           for (Map.Entry<Integer, TagBarcode> entry : libraryInRun.getTagBarcodes().entrySet()) {
-                            tagBarcode.append(entry.getKey().toString() + ": " + entry.getValue().getName() + " (" + entry.getValue().getSequence() + ")<br/>");
+                            tagBarcode.append(entry.getKey().toString() + ": " + entry.getValue().getName() + " ("
+                                + entry.getValue().getSequence() + ")<br/>");
                           }
 
                           List list = new ArrayList(libraryInRun.getLibraryQCs());
                           LibraryQC libraryQc = (LibraryQC) list.get(list.size() - 1);
 
-                          jsonArray.add("['" + sample.getAlias() + "','" +
-                                        sample.getDescription() + "','" +
-                                        sample.getSampleType() + "','" +
-                                        libraryInRun.getName() + "','" +
-                                        dilution.getName() + "','" +
-                                        tagBarcode.toString() + "','" +
-                                        libraryQc.getInsertSize().toString() + "','" +
-                                        run.getAlias() + "','" +
-                                        spp.getPartitionNumber().toString() + "']");
+                          jsonArray.add(JsonSanitizer.sanitize("[\"" + sample.getAlias() + "\",\"" + sample.getDescription() + "\",\""
+                              + sample.getSampleType() + "\",\"" + libraryInRun.getName() + "\",\"" + dilution.getName() + "\",\""
+                              + tagBarcode.toString() + "\",\"" + libraryQc.getInsertSize().toString() + "\",\"" + run.getAlias() + "\",\""
+                              + spp.getPartitionNumber().toString() + "\"]"));
                         }
                       }
                     }
@@ -488,8 +469,7 @@ public class FlexReportingControllerHelperService {
       }
 
       return jsonArray;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return jsonArray;
     }
@@ -499,20 +479,13 @@ public class FlexReportingControllerHelperService {
     try {
       JSONObject jsonObject = new JSONObject();
       StringBuilder a = new StringBuilder();
-      // Collection<Sample> samples = requestManager.listAllSamples();
-      // JSONArray jsonArray = new JSONArray();
-      // for (Sample sample : samples) {
-      //  jsonArray.add(sampleFormRowBuilder(sample));
-      //}
       for (String sampleType : requestManager.listAllSampleTypes()) {
         a.append("<option value=\"" + sampleType + "\">" + sampleType + "</option>");
       }
-      //jsonObject.put("html", jsonArray);
       jsonObject.put("type", "<option value=\"all\">all</option>" + a.toString());
       return jsonObject;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -522,13 +495,9 @@ public class FlexReportingControllerHelperService {
     if (sample.getQcPassed() != null) {
       qc = sample.getQcPassed().toString();
     }
-    return "['<input class=\"chkboxsamples\" id=\"" + sample.getId() +
-           "\" type=\"checkbox\" name=\"sampleIds\" value=\"" + sample.getId() + "\" id=\"" + sample.getId() + "\"/>','"
-           + sample.getName() + "','"
-           + sample.getAlias() + "','"
-           + sample.getDescription() + "','"
-           + sample.getSampleType() + "','"
-           + qc + "']";
+    return "['<input class=\"chkboxsamples\" id=\"" + sample.getId() + "\" type=\"checkbox\" name=\"sampleIds\" value=\"" + sample.getId()
+        + "\" id=\"" + sample.getId() + "\"/>','" + sample.getName() + "','" + sample.getAlias() + "','" + sample.getDescription() + "','"
+        + sample.getSampleType() + "','" + qc + "']";
   }
 
   public JSONObject searchSamplesByCreationDateandString(HttpSession session, JSONObject json) {
@@ -541,10 +510,9 @@ public class FlexReportingControllerHelperService {
     JSONObject jsonObject = new JSONObject();
     try {
       Collection<Sample> samples = null;
-      if (searchStr != null && !searchStr.equals("")) {
+      if (!isStringEmptyOrNull(searchStr)) {
         samples = requestManager.listAllSamplesBySearch(searchStr);
-      }
-      else {
+      } else {
         samples = requestManager.listAllSamples();
       }
       for (Sample sample : samples) {
@@ -552,11 +520,9 @@ public class FlexReportingControllerHelperService {
         if (sample.getQcPassed() != null) {
           sampleQC = sample.getQcPassed().toString();
         }
-        if ((type.equals("all") || type.equals(sample.getSampleType()))
-            && (qc.equals("all") || qc.equals(sampleQC))) {
+        if ((type.equals("all") || type.equals(sample.getSampleType())) && (qc.equals("all") || qc.equals(sampleQC))) {
 
-          if (from != null && !from.equals("") &&
-              to != null && !to.equals("")) {
+          if (!isStringEmptyOrNull(from) && !isStringEmptyOrNull(to)) {
             if (sample.getReceivedDate() != null) {
 
               DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -564,21 +530,20 @@ public class FlexReportingControllerHelperService {
               Date endDate = df.parse(to);
               Date receivedDate = sample.getReceivedDate();
 
-              if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate) || receivedDate.equals(endDate)) {
+              if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate)
+                  || receivedDate.equals(endDate)) {
                 jsonArray.add(sampleFormRowBuilder(sample));
               }
             }
-          }
-          else {
+          } else {
             jsonArray.add(sampleFormRowBuilder(sample));
           }
         }
       }
       jsonObject.put("html", jsonArray);
       return jsonObject;
-    }
-    catch (Exception e) {
-      log.debug("Failed", e);
+    } catch (Exception e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -626,12 +591,10 @@ public class FlexReportingControllerHelperService {
               if (s.getQcPassed() != null) {
                 if (s.getQcPassed()) {
                   qcpassed++;
-                }
-                else {
+                } else {
                   qcfailed++;
                 }
-              }
-              else {
+              } else {
                 qcunknown++;
               }
               if (s.getReceivedDate() != null) {
@@ -658,9 +621,8 @@ public class FlexReportingControllerHelperService {
       response.put("qcgraph", qcGraphArray);
       response.put("reportTable", buildSampleReport(samples));
       return response;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -672,11 +634,9 @@ public class FlexReportingControllerHelperService {
       if (sample.getQcPassed() != null) {
         qc = sample.getQcPassed().toString();
       }
-      jsonArray.add("['" + (sample.getName().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (sample.getAlias().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (sample.getDescription().replace("+", "-")).replace("'", "\\'") + "','" +
-                    sample.getSampleType() + "','" +
-                    qc + "']");
+      jsonArray.add("['" + (sample.getName().replace("+", "-")).replace("'", "\\'") + "','"
+          + (sample.getAlias().replace("+", "-")).replace("'", "\\'") + "','"
+          + (sample.getDescription().replace("+", "-")).replace("'", "\\'") + "','" + sample.getSampleType() + "','" + qc + "']");
     }
     return jsonArray;
   }
@@ -684,26 +644,14 @@ public class FlexReportingControllerHelperService {
   // Starting Library
 
   public JSONObject initLibraries(HttpSession session, JSONObject json) {
-//    try {
     JSONObject jsonObject = new JSONObject();
-    // JSONArray jsonArray = new JSONArray();
     StringBuilder a = new StringBuilder();
-    // Collection<Library> libraries = requestManager.listAllLibraries();
-    // for (Library library : libraries) {
-    //   jsonArray.add(libraryFormRowBuilder(library));
-    // }
 
     for (String platform : PlatformType.getKeys()) {
       a.append("<option value=\"" + platform + "\">" + platform + "</option>");
     }
-    // jsonObject.put("html", jsonArray);
     jsonObject.put("platform", "<option value=\"all\">all</option>" + a.toString());
     return jsonObject;
-//    }
-//    catch (IOException e) {
-//      log.debug("Failed", e);
-//      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
-//    }
   }
 
   public String libraryFormRowBuilder(Library library) {
@@ -711,14 +659,10 @@ public class FlexReportingControllerHelperService {
     if (library.getQcPassed() != null) {
       qc = library.getQcPassed().toString();
     }
-    return "['<input class=\"chkboxlibraries\" id=\"" + library.getId() +
-           "\" type=\"checkbox\" name=\"libraryIds\" value=\"" + library.getId() + "\" id=\"" + library.getId() + "\"/>','"
-           + library.getName() + "','"
-           + library.getAlias() + "','"
-           + library.getDescription() + "','"
-           + library.getPlatformName() + "','"
-           + library.getLibraryType().getDescription() + "','"
-           + qc + "']";
+    return "['<input class=\"chkboxlibraries\" id=\"" + library.getId() + "\" type=\"checkbox\" name=\"libraryIds\" value=\""
+        + library.getId() + "\" id=\"" + library.getId() + "\"/>','" + library.getName() + "','" + library.getAlias() + "','"
+        + library.getDescription() + "','" + library.getPlatformName() + "','" + library.getLibraryType().getDescription() + "','" + qc
+        + "']";
   }
 
   public JSONObject searchLibrariesByCreationDateandString(HttpSession session, JSONObject json) {
@@ -731,10 +675,9 @@ public class FlexReportingControllerHelperService {
     JSONArray jsonArray = new JSONArray();
     try {
       Collection<Library> libraries = null;
-      if (searchStr != null && !searchStr.equals("")) {
+      if (!isStringEmptyOrNull(searchStr)) {
         libraries = requestManager.listAllLibrariesBySearch(searchStr);
-      }
-      else {
+      } else {
         libraries = requestManager.listAllLibraries();
       }
 
@@ -742,28 +685,25 @@ public class FlexReportingControllerHelperService {
         if ((platform.equals("all") || platform.equals(library.getPlatformName()))
             && (qc.equals("all") || qc.equals(library.getQcPassed().toString()))) {
 
-          if (from != null && !from.equals("") &&
-              to != null && !to.equals("") &&
-              library.getCreationDate() != null) {
+          if (!isStringEmptyOrNull(from) && !isStringEmptyOrNull(to) && library.getCreationDate() != null) {
 
             DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
             Date startDate = df.parse(from);
             Date endDate = df.parse(to);
             Date receivedDate = library.getCreationDate();
-            if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate) || receivedDate.equals(endDate)) {
+            if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate)
+                || receivedDate.equals(endDate)) {
               jsonArray.add(libraryFormRowBuilder(library));
             }
-          }
-          else {
+          } else {
             jsonArray.add(libraryFormRowBuilder(library));
           }
         }
       }
       jsonObject.put("html", jsonArray);
       return jsonObject;
-    }
-    catch (Exception e) {
-      log.debug("Failed", e);
+    } catch (Exception e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -822,15 +762,16 @@ public class FlexReportingControllerHelperService {
                 if (l.getQcPassed()) {
                   libqcpassed++;
                 }
-              }
-              else {
+              } else {
                 libqcfailed++;
               }
             }
           }
+          
 
           if (libqcpassed > 0 || libqcfailed > 0) {
-            overviewRelationArray.add("['" + libraryType + "','" + platform + "'," + libqcpassed + "," + libqcfailed + "," + (libqcpassed + libqcfailed) + "]");
+            overviewRelationArray.add(
+                "['" + libraryType + "','" + platform + "'," + libqcpassed + "," + libqcfailed + "," + (libqcpassed + libqcfailed) + "]");
             qcPassed += libqcpassed;
             qcNotPassed += libqcfailed;
           }
@@ -849,9 +790,8 @@ public class FlexReportingControllerHelperService {
       response.put("reportTable", buildLibraryReport(libraries));
       response.put("relationQCTable", buildRelationQCTable(libraries));
       return response;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -863,12 +803,10 @@ public class FlexReportingControllerHelperService {
       if (library.getQcPassed() != null) {
         qc = library.getQcPassed().toString();
       }
-      jsonArray.add("['" + (library.getName().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (library.getAlias().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (library.getDescription().replace("+", "-")).replace("'", "\\'") + "','" +
-                    library.getPlatformName() + "','" +
-                    library.getLibraryType().getDescription() + "','" +
-                    qc + "']");
+      jsonArray.add(JsonSanitizer.sanitize("[\"" + (library.getName().replace("+", "-")).replace("'", "\\'") + "\",\""
+          + (library.getAlias().replace("+", "-")).replace("'", "\\'") + "\",\""
+          + (library.getDescription().replace("+", "-")).replace("'", "\\'") + "\",\"" + library.getPlatformName() + "\",\""
+          + library.getLibraryType().getDescription() + "\",\"" + qc + "\"]"));
     }
     return jsonArray;
   }
@@ -885,30 +823,17 @@ public class FlexReportingControllerHelperService {
         sampleQC = library.getSample().getQcPassed().toString();
       }
 
-      jsonArray.add("['" + library.getSample().getProject().getName() + "','" +
-                    library.getName() + "','" +
-                    library.getAlias() + "','" +
-                    library.getDescription() + "','" +
-                    library.getPlatformName() + "','" +
-                    library.getLibraryType().getDescription() + "','" +
-                    qc + "','" +
-                    LimsUtils.getDateAsString(library.getCreationDate()) + "','" +
-                    library.getSample().getName() + "','" +
-                    sampleQC + "']");
+      jsonArray.add("['" + library.getSample().getProject().getName() + "','" + library.getName() + "','" + library.getAlias() + "','"
+          + library.getDescription() + "','" + library.getPlatformName() + "','" + library.getLibraryType().getDescription() + "','" + qc
+          + "','" + LimsUtils.getDateAsString(library.getCreationDate()) + "','" + library.getSample().getName() + "','" + sampleQC + "']");
     }
     return jsonArray;
   }
 
   public JSONObject initRuns(HttpSession session, JSONObject json) {
-//    try {
     JSONObject jsonObject = new JSONObject();
-    // JSONArray jsonArray = new JSONArray();
     StringBuilder a = new StringBuilder();
     StringBuilder c = new StringBuilder();
-    //Collection<Run> runs = requestManager.listAllRuns();
-    // for (Run run : runs) {
-    //   jsonArray.add(runFormRowBuilder(run));
-    // }
 
     for (String platform : PlatformType.getKeys()) {
       a.append("<option value=\"" + platform + "\">" + platform + "</option>");
@@ -917,23 +842,16 @@ public class FlexReportingControllerHelperService {
     for (String healthString : HealthType.getKeys()) {
       c.append("<option value=\"" + healthString + "\">" + healthString + "</option>");
     }
-    // jsonObject.put("html", jsonArray);
     jsonObject.put("platform", "<option value=\"all\">all</option>" + a.toString());
     jsonObject.put("status", "<option value=\"all\">all</option>" + c.toString());
     return jsonObject;
-//    }
-//    catch (IOException e) {
-//      log.debug("Failed", e);
-//      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
-//    }
   }
 
   public String runFormRowBuilder(Run run) {
-    return "['<input class=\"chkboxruns\" id=\"" + run.getId() + "\" type=\"checkbox\" name=\"runIds\" value=\"" + run.getId() + "\" id=\"" + run.getId() + "\"/>','"
-           + run.getName() + "','"
-           + run.getAlias() + "','"
-           + (run.getStatus() != null && run.getStatus().getHealth() != null ? run.getStatus().getHealth().getKey() : "") + "','"
-           + (run.getPlatformType() != null ? run.getPlatformType().getKey() : "") + "']";
+    return "['<input class=\"chkboxruns\" id=\"" + run.getId() + "\" type=\"checkbox\" name=\"runIds\" value=\"" + run.getId() + "\" id=\""
+        + run.getId() + "\"/>','" + run.getName() + "','" + run.getAlias() + "','"
+        + (run.getStatus() != null && run.getStatus().getHealth() != null ? run.getStatus().getHealth().getKey() : "") + "','"
+        + (run.getPlatformType() != null ? run.getPlatformType().getKey() : "") + "']";
   }
 
   public JSONObject searchRunsByCreationDateandString(HttpSession session, JSONObject json) {
@@ -948,19 +866,18 @@ public class FlexReportingControllerHelperService {
     String status = json.getString("status");
     try {
       Collection<Run> runs = null;
-      if (searchStr != null && !searchStr.equals("")) {
+      if (!isStringEmptyOrNull(searchStr)) {
         runs = requestManager.listAllRunsBySearch(searchStr);
-      }
-      else {
+      } else {
         runs = requestManager.listAllRuns();
       }
 
       for (Run run : runs) {
         if ((platform.equals("all") || platform.equals(run.getPlatformType().getKey()))
-            && (status.equals("all") || (run.getStatus() != null && run.getStatus().getHealth() != null ? status.equals(run.getStatus().getHealth().getKey()) : true))) {
+            && (status.equals("all") || (run.getStatus() != null && run.getStatus().getHealth() != null
+                ? status.equals(run.getStatus().getHealth().getKey()) : true))) {
 
-          if (from != null && !from.equals("") &&
-              to != null && !to.equals("")) {
+          if (!isStringEmptyOrNull(from) && !isStringEmptyOrNull(to)) {
             if (run.getStatus() != null && run.getStatus().getCompletionDate() != null) {
 
               DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -968,13 +885,12 @@ public class FlexReportingControllerHelperService {
               Date endDate = df.parse(to);
               Date receivedDate = run.getStatus().getCompletionDate();
 
-              if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate) || receivedDate.equals(endDate)) {
+              if ((receivedDate.after(startDate) && receivedDate.before(endDate)) || receivedDate.equals(startDate)
+                  || receivedDate.equals(endDate)) {
                 jsonArray.add(runFormRowBuilder(run));
               }
             }
-          }
-          else if (runStartedFrom != null && !runStartedFrom.equals("") &&
-                   runStartedTo != null && !runStartedTo.equals("")) {
+          } else if (!isStringEmptyOrNull(runStartedFrom) && !isStringEmptyOrNull(runStartedTo)) {
             if (run.getStatus() != null && run.getStatus().getStartDate() != null) {
 
               DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
@@ -982,21 +898,20 @@ public class FlexReportingControllerHelperService {
               Date endDate = df.parse(runStartedTo);
               Date startedDate = run.getStatus().getStartDate();
 
-              if ((startedDate.after(startDate) && startedDate.before(endDate)) || startedDate.equals(startDate) || startedDate.equals(endDate)){
+              if ((startedDate.after(startDate) && startedDate.before(endDate)) || startedDate.equals(startDate)
+                  || startedDate.equals(endDate)) {
                 jsonArray.add(runFormRowBuilder(run));
               }
             }
-          }
-          else {
+          } else {
             jsonArray.add(runFormRowBuilder(run));
           }
         }
       }
       jsonObject.put("html", jsonArray);
       return jsonObject;
-    }
-    catch (Exception e) {
-      log.debug("Failed", e);
+    } catch (Exception e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -1019,12 +934,14 @@ public class FlexReportingControllerHelperService {
           if (run != null) {
             runs.add(run);
 
-            int count = platformTypeMap.containsKey(run.getPlatformType().getKey()) ? platformTypeMap.get(run.getPlatformType().getKey()) : 0;
+            int count = platformTypeMap.containsKey(run.getPlatformType().getKey()) ? platformTypeMap.get(run.getPlatformType().getKey())
+                : 0;
             count++;
             platformTypeMap.put(run.getPlatformType().getKey(), count);
 
             if (run.getStatus() != null && run.getStatus().getHealth() != null) {
-              int countQC = statusMap.containsKey(run.getStatus().getHealth().getKey()) ? statusMap.get(run.getStatus().getHealth().getKey()) : 0;
+              int countQC = statusMap.containsKey(run.getStatus().getHealth().getKey())
+                  ? statusMap.get(run.getStatus().getHealth().getKey()) : 0;
               countQC++;
               statusMap.put(run.getStatus().getHealth().getKey(), countQC);
             }
@@ -1054,9 +971,8 @@ public class FlexReportingControllerHelperService {
       response.put("reportTable", buildRunReport(runs));
       response.put("runsPartitionReport", buildRunPartitionReport(runs));
       return response;
-    }
-    catch (IOException e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
@@ -1064,10 +980,9 @@ public class FlexReportingControllerHelperService {
   public JSONArray buildRunReport(ArrayList<Run> runs) {
     JSONArray jsonArray = new JSONArray();
     for (Run run : runs) {
-      jsonArray.add("['" + (run.getName().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (run.getAlias().replace("+", "-")).replace("'", "\\'") + "','" +
-                    (run.getStatus() != null && run.getStatus().getHealth() != null ? run.getStatus().getHealth().getKey() : "") + "','" +
-                    run.getPlatformType().getKey() + "']");
+      jsonArray.add(JsonSanitizer.sanitize("[\"" + (run.getName().replace("+", "-")) + "\",\"" + (run.getAlias().replace("+", "-"))
+          + "\",\"" + (run.getStatus() != null && run.getStatus().getHealth() != null ? run.getStatus().getHealth().getKey() : "") + "\",\""
+          + run.getPlatformType().getKey() + "\"]"));
     }
     return jsonArray;
   }
@@ -1076,7 +991,8 @@ public class FlexReportingControllerHelperService {
     JSONArray jsonArray = new JSONArray();
     try {
       for (Run run : runs) {
-        Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager.listSequencerPartitionContainersByRunId(run.getId());
+        Collection<SequencerPartitionContainer<SequencerPoolPartition>> spcs = requestManager
+            .listSequencerPartitionContainersByRunId(run.getId());
         if (spcs.size() > 0) {
           for (SequencerPartitionContainer<SequencerPoolPartition> spc : spcs) {
 
@@ -1087,21 +1003,20 @@ public class FlexReportingControllerHelperService {
                   if (spp.getPool().getDilutions().size() > 0) {
                     Map<String, Integer> projectMap = new HashMap<String, Integer>();
                     for (Dilution dilution : spp.getPool().getDilutions()) {
-                      int count = projectMap.containsKey(dilution.getLibrary().getSample().getProject().getName()) ? projectMap.get(dilution.getLibrary().getSample().getProject().getName()) : 0;
+                      int count = projectMap.containsKey(dilution.getLibrary().getSample().getProject().getName())
+                          ? projectMap.get(dilution.getLibrary().getSample().getProject().getName()) : 0;
                       count++;
                       projectMap.put(dilution.getLibrary().getSample().getProject().getName(), count);
                     }
                     Map<String, Integer> projectMapDisplayed = new HashMap<String, Integer>();
                     for (Dilution dilution : spp.getPool().getDilutions()) {
                       if (!projectMapDisplayed.containsKey(dilution.getLibrary().getSample().getProject().getName())) {
-                        jsonArray.add("['" + run.getName() + "','" +
-                                      (run.getAlias().replace("+", "-")).replace("'", "\\'") + "','" +
-                                      (run.getStatus() != null ? LimsUtils.getDateAsString(run.getStatus().getStartDate()) : "") + "','" +
-                                      pool.getName() + "','" +
-                                      spp.getPartitionNumber() + "','" +
-                                      dilution.getLibrary().getSample().getProject().getName() + "','" +
-                                      projectMap.get(dilution.getLibrary().getSample().getProject().getName()) + "','" +
-                                      spp.getPool().getDilutions().size() + "']");
+                        jsonArray.add(JsonSanitizer.sanitize("[\"" + run.getName() + "\",\"" + (run.getAlias().replace("+", "-")) + "\",\""
+                            + (run.getStatus() != null ? LimsUtils.getDateAsString(run.getStatus().getStartDate()) : "") + "\",\""
+                            + pool.getName() + "\",\"" + spp.getPartitionNumber() + "\",\""
+                            + dilution.getLibrary().getSample().getProject().getName() + "\",\""
+                            + projectMap.get(dilution.getLibrary().getSample().getProject().getName()) + "\",\""
+                            + spp.getPool().getDilutions().size() + "\"]"));
                         projectMapDisplayed.put(dilution.getLibrary().getSample().getProject().getName(), 1);
                       }
                     }
@@ -1112,16 +1027,13 @@ public class FlexReportingControllerHelperService {
           }
         }
 
-
       }
       return jsonArray;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return jsonArray;
     }
   }
-
 
   public JSONObject d3graphRest(Long projectId) throws IOException {
     try {
@@ -1140,12 +1052,9 @@ public class FlexReportingControllerHelperService {
       runJSON.put("name", "Runs");
       runJSON.put("description", "");
       for (Run run : runs) {
-        if (run.getStatus() != null
-            && run.getStatus().getHealth() != null
-            && run.getStatus().getHealth().getKey().equals("Completed")) {
+        if (run.getStatus() != null && run.getStatus().getHealth() != null && run.getStatus().getHealth().getKey().equals("Completed")) {
           runsArray.add(JSONObject.fromObject("{'name': '" + run.getName() + "','description':'" + run.getAlias() + "','color': '1'}"));
-        }
-        else {
+        } else {
           runsArray.add(JSONObject.fromObject("{'name': '" + run.getName() + "','description':'" + run.getAlias() + "','color': '0'}"));
         }
       }
@@ -1171,7 +1080,8 @@ public class FlexReportingControllerHelperService {
           experimentJSON.put("name", "experiment");
           experimentJSON.put("description", "");
           for (Experiment e : experiments) {
-            experimentsArray.add(JSONObject.fromObject("{'name': '" + e.getName() + "','description':'" + e.getAlias() + "','color': '2'}"));
+            experimentsArray
+                .add(JSONObject.fromObject("{'name': '" + e.getName() + "','description':'" + e.getAlias() + "','color': '2'}"));
           }
           experimentJSON.put("children", experimentsArray);
           substudiesArray.add(experimentJSON);
@@ -1196,13 +1106,13 @@ public class FlexReportingControllerHelperService {
         Collection<Library> libraries = requestManager.listAllLibrariesBySampleId(sample.getId());
         if (libraries.size() == 0) {
           if (sample.getQcPassed()) {
-            samplesArray.add(JSONObject.fromObject("{'name': '" + sample.getName() + "','description':'" + sample.getAlias() + "','color': '1'}"));
+            samplesArray
+                .add(JSONObject.fromObject("{'name': '" + sample.getName() + "','description':'" + sample.getAlias() + "','color': '1'}"));
+          } else {
+            samplesArray
+                .add(JSONObject.fromObject("{'name': '" + sample.getName() + "','description':'" + sample.getAlias() + "','color': '0'}"));
           }
-          else {
-            samplesArray.add(JSONObject.fromObject("{'name': '" + sample.getName() + "','description':'" + sample.getAlias() + "','color': '0'}"));
-          }
-        }
-        else {
+        } else {
           JSONObject libraryJSON = new JSONObject();
           JSONArray librariesArray = new JSONArray();
 
@@ -1210,14 +1120,14 @@ public class FlexReportingControllerHelperService {
 
           for (Library library : libraries) {
             if (library.getLibraryQCs().size() > 0) {
-              librariesArray.add(JSONObject.fromObject("{'name': '" + library.getName() + "','description':'" + library.getAlias() + "','color': '1'}"));
-            }
-            else {
-              librariesArray.add(JSONObject.fromObject("{'name': '" + library.getName() + "','description':'" + library.getAlias() + "','color': '0'}"));
+              librariesArray.add(
+                  JSONObject.fromObject("{'name': '" + library.getName() + "','description':'" + library.getAlias() + "','color': '1'}"));
+            } else {
+              librariesArray.add(
+                  JSONObject.fromObject("{'name': '" + library.getName() + "','description':'" + library.getAlias() + "','color': '0'}"));
             }
           }
           libraryJSON.put("children", librariesArray);
-
 
           JSONObject subsampleJSON = new JSONObject();
           subsampleJSON.put("name", sample.getName());
@@ -1233,14 +1143,11 @@ public class FlexReportingControllerHelperService {
 
       projectJSON.put("children", projectChildrenArray);
       return projectJSON;
-    }
-    catch (IOException
-        e) {
-      log.debug("Failed", e);
+    } catch (IOException e) {
+      log.error("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
   }
-
 
   public void setSecurityManager(SecurityManager securityManager) {
     this.securityManager = securityManager;

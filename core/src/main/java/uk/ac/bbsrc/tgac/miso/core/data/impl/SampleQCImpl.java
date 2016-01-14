@@ -23,22 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractSampleQC;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedSampleException;
-
-import java.io.Serializable;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 public class SampleQCImpl extends AbstractSampleQC implements Serializable {
+  protected static final Logger log = LoggerFactory.getLogger(SampleQCImpl.class);
   /**
    * Construct a new SampleQCImpl
    */
@@ -48,29 +53,29 @@ public class SampleQCImpl extends AbstractSampleQC implements Serializable {
 
   /**
    * Construct a new SampleQC from a parent Sample, checking that the given User can read that Sample
-   *
-   * @param sample of type Sample
-   * @param user of type User
+   * 
+   * @param sample
+   *          of type Sample
+   * @param user
+   *          of type User
    */
   public SampleQCImpl(Sample sample, User user) {
     if (sample.userCanRead(user)) {
       try {
         setSample(sample);
+      } catch (MalformedSampleException e) {
+        log.error("constructor", e);
       }
-      catch (MalformedSampleException e) {
-        e.printStackTrace();
-      }
-      //setSecurityProfile(experiment.getSecurityProfile());
-    }
-    else {
-      //setSecurityProfile(new SecurityProfile(user));
+    } else {
     }
   }
 
+  @Override
   public boolean userCanRead(User user) {
     return true;
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return true;
   }

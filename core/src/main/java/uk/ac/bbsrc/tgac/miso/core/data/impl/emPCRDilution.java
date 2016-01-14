@@ -23,18 +23,19 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
+import java.io.Serializable;
+
 import com.eaglegenomics.simlims.core.SecurityProfile;
 import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
-
-import java.io.Serializable;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -51,8 +52,9 @@ public class emPCRDilution extends AbstractDilution implements Serializable {
 
   /**
    * Construct a new emPCRDilution with a SecurityProfile owned by the given User
-   *
-   * @param user of type User
+   * 
+   * @param user
+   *          of type User
    */
   public emPCRDilution(User user) {
     setSecurityProfile(new SecurityProfile(user));
@@ -64,8 +66,9 @@ public class emPCRDilution extends AbstractDilution implements Serializable {
 
   public void setEmPCR(emPCR emPCR) {
     this.emPCR = emPCR;
-  }  
+  }
 
+  @Override
   public Library getLibrary() {
     if (emPCR != null) {
       return emPCR.getLibraryDilution().getLibrary();
@@ -73,6 +76,7 @@ public class emPCRDilution extends AbstractDilution implements Serializable {
     return null;
   }
 
+  @Override
   public String getUnits() {
     return UNITS;
   }

@@ -23,23 +23,29 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.service.integration.illumina;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
-import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-
-import java.io.*;
-import java.util.Map;
+import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.service.integration.illumina
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 07-Mar-2011
  * @since 0.0.3
@@ -63,7 +69,7 @@ public class IlluminaCortexStatsHandler {
 
   public void parseStatsMessage(Message<Map<String, Map<String, byte[]>>> message) throws IOException {
     Map<String, Map<String, byte[]>> a = message.getPayload();
-    for (String type: a.keySet()) {
+    for (String type : a.keySet()) {
       Map<String, byte[]> b = a.get(type);
       for (String filename : b.keySet()) {
         log.info("Processing stats for: " + filename);
@@ -79,20 +85,16 @@ public class IlluminaCortexStatsHandler {
             while ((len = bis.read(buf)) > 0) {
               out.write(buf, 0, len);
             }
-          }
-          catch (IOException e) {
-            log.error("Could not write temporary file: " + outFile.getAbsolutePath());
-            e.printStackTrace();
-          }
-          finally {
+          } catch (IOException e) {
+            log.error("Could not write temporary file: " + outFile.getAbsolutePath(), e);
+          } finally {
             try {
               bis.close();
             } catch (IOException e) {
               // ignore
             }
           }
-        }
-        finally {
+        } finally {
           if (out != null) {
             out.close();
           }

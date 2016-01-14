@@ -17,7 +17,7 @@ MISO: An open source LIMS for small-to-large scale sequencing centres
 >
 > You should have received a copy of the GNU General Public License
 > along with MISO.  If not, see <http://www.gnu.org/licenses/>.
-> 
+>
 > You can follow MISO development on Twitter: @misolims (https://twitter.com/misolims), @froggleston (https://twitter.com/froggleston)
 
 For Full MISO Documentation please visit our documentation website:
@@ -30,7 +30,7 @@ VERSION 0.2.0 (Neon)
 1) BUILDING
 -----------
 
-You will need [Maven 2.2.1] [3] to build MISO (*NOTE Not Maven 3!*). Once you have grabbed the code and installed Maven, in the root of the project (you should see a pom.xml file and module directories like `analysis-server` and `core` etc) call:
+You will need [Maven 3.0.5] [3] to build MISO (*NOTE Not Maven 2!*). Once you have grabbed the code and installed Maven, in the root of the project (you should see a pom.xml file and module directories like `analysis-server` and `core` etc) call:
 
     mvn clean install -P external
 
@@ -47,8 +47,10 @@ All being well after a few minutes (it can take a while to download all the requ
 
 If you are upgrading from a previous version of MISO, you will need to follow these steps:
 
-* Backup your existing database and apply any database patches in https://repos.tgac.ac.uk/miso/latest/sql/patches
+* Backup your existing database
 * Stop Tomcat
+* Set a baseline for flyway (assuming you have only applied base_schema and miso_type_data patches) using `cd sqlstore && mvn flyway:baseline -Dflyway.baselineVersion=2 -Dflyway.baselineDescription="Base version"`
+* Update the database using `cd sqlstore && mvn -P external compile flyway:migrate`
 * Delete (or move) the old `<tomcat>/webapps/ROOT.war`
 * Delete the `<tomcat>webapps/ROOT` directory
 * Copy the newly built `miso-web/target/ROOT.war` to `<tomcat>/webapps`
@@ -61,14 +63,7 @@ Done!
 
 3.1 ) Setting up the MISO database
 
-You will need to install MySQL v5 or greater. You will then need the two latest MISO database dumps. These are available
-from our repository here:
-
-https://repos.tgac.ac.uk/miso/latest/sql/lims-schema.sql
-
-https://repos.tgac.ac.uk/miso/latest/sql/miso_type_data.sql
-
-Log in to your local MySQL install, and create a database called 'lims':
+You will need to install MySQL v5 or greater. Log in to your local MySQL install, and create a database called 'lims':
 
     CREATE DATABASE lims;
     USE lims;
@@ -86,8 +81,10 @@ database from your remote machine:
 
 Then populate the database with the two dumps by running the following commands at a shell prompt:
 
-    mysql -u tgaclims -p -D lims < lims-schema.sql
-    mysql -u tgaclims -p -D lims < miso_type_data.sql
+    cd sqlstore && mvn -P external compile flyway:migrate
+
+The database schema many need to be upgraded in future version. This command
+will apply the necessary changes to update an existing database.
 
 3.2 ) Setting up the MISO web application
 

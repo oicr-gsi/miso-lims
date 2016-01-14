@@ -23,24 +23,28 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
+import java.io.IOException;
+
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.event.manager.PoolAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.ProjectAlertManager;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.RunAlertManager;
-
-import java.io.IOException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 11/01/12
  * @since 0.1.4
  */
 @Aspect
 public class UserUpdateAspect {
+  protected static final Logger log = LoggerFactory.getLogger(UserUpdateAspect.class);
   private ProjectAlertManager projectAlertManager;
   private RunAlertManager runAlertManager;
   private PoolAlertManager poolAlertManager;
@@ -62,9 +66,8 @@ public class UserUpdateAspect {
       runAlertManager.updateGroupWatcher(userId);
       projectAlertManager.updateGroupWatcher(userId);
       poolAlertManager.updateGroupWatcher(userId);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("update aspect", e);
     }
   }
 }

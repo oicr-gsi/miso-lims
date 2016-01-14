@@ -23,14 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller.rest;
 
-import com.eaglegenomics.simlims.core.User;
+import java.io.IOException;
+import java.util.Collection;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
+
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.LibraryQC;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.data.SampleQC;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
@@ -42,12 +55,9 @@ import uk.ac.bbsrc.tgac.miso.core.util.jackson.SampleProjectAvoidanceMixin;
 import uk.ac.bbsrc.tgac.miso.core.util.jackson.UserInfoMixin;
 import uk.ac.bbsrc.tgac.miso.webapp.util.RestUtils;
 
-import java.io.IOException;
-import java.util.Collection;
-
 /**
  * A controller to handle all REST requests for Projects
- *
+ * 
  * @author Rob Davey
  * @date 01-Sep-2011
  * @since 0.1.0
@@ -73,8 +83,8 @@ public class ProjectRestController {
         return getProjectById(project.getId());
       }
       return RestUtils.error("No such project with that alias.", "projectAlias", projectAlias).toString();
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve project", ioe);
       return RestUtils.error("Cannot retrieve project: " + ioe.getMessage(), "projectAlias", projectAlias).toString();
     }
   }
@@ -90,9 +100,8 @@ public class ProjectRestController {
             for (Library l : requestManager.listAllLibrariesBySampleId(s.getId())) {
               try {
                 s.addLibrary(l);
-              }
-              catch (MalformedLibraryException e) {
-                e.printStackTrace();
+              } catch (MalformedLibraryException e) {
+                log.error("get project by id", e);
               }
             }
           }
@@ -101,9 +110,8 @@ public class ProjectRestController {
             for (SampleQC qc : requestManager.listAllSampleQCsBySampleId(s.getId())) {
               try {
                 s.addQc(qc);
-              }
-              catch (MalformedSampleQcException e) {
-                e.printStackTrace();
+              } catch (MalformedSampleQcException e) {
+                log.error("get project by id", e);
               }
             }
           }
@@ -114,8 +122,8 @@ public class ProjectRestController {
         return mapper.writeValueAsString(project);
       }
       return mapper.writeValueAsString(RestUtils.error("No such project with that ID.", "projectId", projectId.toString()));
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve project", ioe);
       return mapper.writeValueAsString(RestUtils.error("Cannot retrieve project: " + ioe.getMessage(), "projectId", projectId.toString()));
     }
   }
@@ -127,18 +135,16 @@ public class ProjectRestController {
       for (LibraryDilution dil : requestManager.listAllLibraryDilutionsByLibraryId(l.getId())) {
         try {
           l.addDilution(dil);
-        }
-        catch (MalformedDilutionException e) {
-          e.printStackTrace();
+        } catch (MalformedDilutionException e) {
+          log.error("get project libraries", e);
         }
       }
 
       for (LibraryQC qc : requestManager.listAllLibraryQCsByLibraryId(l.getId())) {
         try {
           l.addQc(qc);
-        }
-        catch (MalformedLibraryQcException e) {
-          e.printStackTrace();
+        } catch (MalformedLibraryQcException e) {
+          log.error("get project libraries", e);
         }
       }
     }

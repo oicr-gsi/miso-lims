@@ -23,16 +23,41 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.consumer.service.mechanism;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.RunImpl;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
+import uk.ac.bbsrc.tgac.miso.core.data.Status;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SequencerPartitionContainerImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ls454.LS454Run;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ls454.LS454Status;
@@ -46,29 +71,17 @@ import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
 import uk.ac.bbsrc.tgac.miso.integration.util.IntegrationUtils;
 import uk.ac.bbsrc.tgac.miso.tools.run.RunFolderConstants;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 03/02/12
  * @since 0.1.5
  */
-public class LS454NotificationMessageConsumerMechanism implements NotificationMessageConsumerMechanism<Message<Map<String, List<String>>>, Set<Run>> {
+public class LS454NotificationMessageConsumerMechanism
+    implements NotificationMessageConsumerMechanism<Message<Map<String, List<String>>>, Set<Run>> {
   protected static final Logger log = LoggerFactory.getLogger(LS454NotificationMessageConsumerMechanism.class);
 
   public boolean attemptRunPopulation = true;
@@ -106,24 +119,20 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
 
     StringBuilder sb = new StringBuilder();
 
-    for (JSONObject run : (Iterable<JSONObject>)runs) {
+    for (JSONObject run : (Iterable<JSONObject>) runs) {
       String runName = run.getString("runName");
       sb.append("Processing " + runName + "\n");
       log.debug("Processing " + runName);
 
       if (run.has("status")) {
         String runLog = "";
-        if (!"".equals(run.getString("status"))) {
+        if (!isStringEmptyOrNull(run.getString("status"))) {
           try {
             runLog = new String(IntegrationUtils.decompress(URLDecoder.decode(run.getString("status"), "UTF-8").getBytes()));
-          }
-          catch (UnsupportedEncodingException e) {
-            log.error("Cannot decode status runLog: " + e.getMessage());
-            e.printStackTrace();
-          }
-          catch (IOException e) {
-            log.error("Cannot decompress and decode incoming status: " + e.getMessage());
-            e.printStackTrace();
+          } catch (UnsupportedEncodingException e) {
+            log.error("Cannot decode status runLog", e);
+          } catch (IOException e) {
+            log.error("Cannot decompress and decode incoming status", e);
           }
         }
 
@@ -138,9 +147,9 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
             try {
               is.setInstrumentName(m.group(2));
               r = requestManager.getRunByAlias(runName);
-            }
-            catch(IOException ioe) {
-              log.warn("Cannot find run by this alias. This usually means the run hasn't been previously imported. If attemptRunPopulation is false, processing will not take place for this run!");
+            } catch (IOException ioe) {
+              log.warn(
+                  "Cannot find run by this alias. This usually means the run hasn't been previously imported. If attemptRunPopulation is false, processing will not take place for this run!");
             }
           }
 
@@ -151,7 +160,7 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                 r = new LS454Run();
                 r.setAlias(run.getString("runName"));
                 r.setDescription(m.group(3));
-                //TODO check this properly
+                // TODO check this properly
                 r.setPairedEnd(false);
 
                 if (run.has("fullPath")) {
@@ -175,37 +184,32 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                 if (run.has("completionDate")) {
                   try {
                     is.setCompletionDate(gsLogDateFormat.parse(run.getString("completionDate")));
-                  }
-                  catch (ParseException e) {
-                    log.error("Cannot parse "+runName+" completion date: " +e.getMessage());
-                    e.printStackTrace();
+                  } catch (ParseException e) {
+                    log.error("Cannot parse " + runName + " completion date", e);
                   }
                 }
 
                 if (sr != null) {
                   r.setSequencerReference(sr);
                   runsToSave.add(r);
-                }
-                else {
+                } else {
                   log.error("\\_ Cannot save " + is.getRunName() + ": no sequencer reference available.");
                 }
-              }
-              else {
+              } else {
                 log.debug("\\_ Updating existing run and status: " + is.getRunName());
 
                 r.setAlias(runName);
 
                 r.setPlatformType(PlatformType.LS454);
                 r.setDescription(m.group(3));
-                //TODO check this properly
+                // TODO check this properly
                 r.setPairedEnd(false);
 
                 if (r.getStatus() != null && run.has("status")) {
                   if (!r.getStatus().getHealth().equals(HealthType.Failed) && !r.getStatus().getHealth().equals(HealthType.Completed)) {
                     r.getStatus().setHealth(ht);
                   }
-                }
-                else {
+                } else {
                   if (run.has("status")) {
                     r.setStatus(is);
                   }
@@ -233,15 +237,13 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                 if (run.has("completionDate")) {
                   try {
                     r.getStatus().setCompletionDate(gsLogDateFormat.parse(run.getString("completionDate")));
-                  }
-                  catch (ParseException e) {
-                    log.error(e.getMessage());
-                    e.printStackTrace();
+                  } catch (ParseException e) {
+                    log.error("run JSON", e);
                   }
                 }
 
-                //update path if changed
-                if (run.has("fullPath") && !"".equals(run.getString("fullPath")) && r.getFilePath() != null && !"".equals(r.getFilePath())) {
+                // update path if changed
+                if (run.has("fullPath") && !isStringEmptyOrNull(run.getString("fullPath")) && !isStringEmptyOrNull(r.getFilePath())) {
                   if (!run.getString("fullPath").equals(r.getFilePath())) {
                     log.debug("Updating run file path:" + r.getFilePath() + " -> " + run.getString("fullPath"));
                     r.setFilePath(run.getString("fullPath"));
@@ -250,7 +252,8 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
 
                 // update status if run isn't completed or failed
                 if (!r.getStatus().getHealth().equals(HealthType.Completed) && !r.getStatus().getHealth().equals(HealthType.Failed)) {
-                  log.debug("Saving previously saved status: " + is.getRunName() + " (" + r.getStatus().getHealth().getKey() + " -> " + is.getHealth().getKey() + ")");
+                  log.debug("Saving previously saved status: " + is.getRunName() + " (" + r.getStatus().getHealth().getKey() + " -> "
+                      + is.getHealth().getKey() + ")");
                   r.setStatus(is);
                 }
               }
@@ -261,7 +264,7 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                     Document paramsDoc = SubmissionUtils.emptyDocument();
                     SubmissionUtils.transform(new UnicodeReader(run.getString("runparams")), paramsDoc);
 
-                    Element runInfo = (Element)paramsDoc.getElementsByTagName("run").item(0);
+                    Element runInfo = (Element) paramsDoc.getElementsByTagName("run").item(0);
                     String runDesc = runInfo.getElementsByTagName("shortName").item(0).getTextContent();
                     r.setDescription(runDesc);
 
@@ -275,9 +278,9 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                       requestManager.saveStatus(r.getStatus());
                     }
 
-                    List<SequencerPartitionContainer<SequencerPoolPartition>> fs = ((LS454Run)r).getSequencerPartitionContainers();
+                    List<SequencerPartitionContainer<SequencerPoolPartition>> fs = ((LS454Run) r).getSequencerPartitionContainers();
 
-                    Element ptp = (Element)paramsDoc.getElementsByTagName("ptp").item(0);
+                    Element ptp = (Element) paramsDoc.getElementsByTagName("ptp").item(0);
                     String ptpId = ptp.getElementsByTagName("id").item(0).getTextContent();
 
                     if (fs.isEmpty()) {
@@ -287,47 +290,33 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                         if (f.getPlatform() == null && r.getSequencerReference().getPlatform() != null) {
                           f.setPlatform(r.getSequencerReference().getPlatform());
                         }
-//                        else {
-//                          f.setPlatformType(PlatformType.LS454);
-//                        }
                         f.setPartitionLimit(numPartitions);
                         f.initEmptyPartitions();
                         f.setIdentificationBarcode(ptpId);
 
-                        log.debug("\\_ Created new SequencerPartitionContainer with "+f.getPartitions().size()+" partitions");
-                        ((RunImpl)r).addSequencerPartitionContainer(f);
+                        log.debug("\\_ Created new SequencerPartitionContainer with " + f.getPartitions().size() + " partitions");
+                        r.addSequencerPartitionContainer(f);
                       }
-                    }
-                    else {
+                    } else {
                       SequencerPartitionContainer f = fs.iterator().next();
                       log.debug("\\_ Got SequencerPartitionContainer " + f.getId());
                       if (f.getPlatform() == null && r.getSequencerReference().getPlatform() != null) {
                         f.setPlatform(r.getSequencerReference().getPlatform());
                       }
-//                      else {
-//                        f.setPlatformType(PlatformType.LS454);
-//                      }
-                      if (f.getIdentificationBarcode() == null || "".equals(f.getIdentificationBarcode())) {
+                      if (isStringEmptyOrNull(f.getIdentificationBarcode())) {
                         f.setIdentificationBarcode(ptpId);
                         long flowId = requestManager.saveSequencerPartitionContainer(f);
                         f.setId(flowId);
                       }
                     }
+                  } catch (ParserConfigurationException e) {
+                    log.error("run JSON", e);
+                  } catch (TransformerException e) {
+                    log.error("run JSON", e);
+                  } catch (ParseException e) {
+                    log.error("run JSON", e);
                   }
-                  catch (ParserConfigurationException e) {
-                    log.error(e.getMessage());
-                    e.printStackTrace();
-                  }
-                  catch (TransformerException e) {
-                    log.error(e.getMessage());
-                    e.printStackTrace();
-                  }
-                  catch (ParseException e) {
-                    log.error(e.getMessage());
-                    e.printStackTrace();
-                  }
-                }
-                else {
+                } else {
                   try {
                     String startDateStr = m.group(1);
                     DateFormat df = new SimpleDateFormat("yyyy'_'MM'_'dd'_'HH'_'mm'_'ss");
@@ -336,10 +325,8 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                       r.getStatus().setStartDate(startDate);
                       requestManager.saveStatus(r.getStatus());
                     }
-                  }
-                  catch (ParseException e) {
-                    log.error(e.getMessage());
-                    e.printStackTrace();
+                  } catch (ParseException e) {
+                    log.error("run JSON", e);
                   }
                 }
 
@@ -347,14 +334,11 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
                 runsToSave.add(r);
               }
             }
+          } catch (IOException e) {
+            log.error("run JSON", e);
           }
-          catch (IOException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-          }
-        }
-        else {
-          log.error("Error consuming run "+runName+". Please check the gsRunProcessor.log file for this run.");
+        } else {
+          log.error("Error consuming run " + runName + ". Please check the gsRunProcessor.log file for this run.");
         }
       }
     }
@@ -362,12 +346,10 @@ public class LS454NotificationMessageConsumerMechanism implements NotificationMe
     try {
       if (runsToSave.size() > 0) {
         int[] saved = requestManager.saveRuns(runsToSave);
-        log.info("Batch saved " + saved.length + " / "+ runs.size() + " runs");
+        log.info("Batch saved " + saved.length + " / " + runs.size() + " runs");
       }
-    }
-    catch (IOException e) {
-      log.error("Couldn't save run batch: " + e.getMessage());
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("Couldn't save run batch", e);
     }
 
     return updatedRuns;

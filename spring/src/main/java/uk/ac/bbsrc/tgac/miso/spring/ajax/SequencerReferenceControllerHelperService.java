@@ -23,31 +23,36 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Collection;
+
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
 import uk.ac.bbsrc.tgac.miso.core.data.Platform;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.SequencerReferenceImpl;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.Collection;
-
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -64,12 +69,11 @@ public class SequencerReferenceControllerHelperService {
       Collection<Platform> ps = requestManager.listAllPlatforms();
       StringBuilder sb = new StringBuilder();
       for (Platform p : ps) {
-        sb.append("<option value="+p.getPlatformId()+">"+p.getNameAndModel()+"</option>");
+        sb.append("<option value=" + p.getPlatformId() + ">" + p.getNameAndModel() + "</option>");
       }
       return JSONUtils.JSONObjectResponse("platforms", sb.toString());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("list platforms", e);
     }
     return JSONUtils.SimpleJSONError("Cannot list available platforms");
   }
@@ -78,21 +82,19 @@ public class SequencerReferenceControllerHelperService {
     try {
       Collection<SequencerReference> sr = requestManager.listAllSequencerReferences();
       StringBuilder sb = new StringBuilder();
-        JSONObject sequencers = new JSONObject();
-        JSONArray sequencers_list = new JSONArray();
+      JSONObject sequencers = new JSONObject();
+      JSONArray sequencers_list = new JSONArray();
       for (SequencerReference s : sr) {
-          JSONObject each_sequencer = new JSONObject();
-          each_sequencer.put("id",s.getId());
-          each_sequencer.put("name_model",s.getPlatform().getNameAndModel());
-          each_sequencer.put("name",s.getName());
-          sequencers_list.add(each_sequencer);
-//          sb.append("<option value="+s.getId()+">"+s.getPlatform().getNameAndModel()+" - "+s.getName()+"</option>");
+        JSONObject each_sequencer = new JSONObject();
+        each_sequencer.put("id", s.getId());
+        each_sequencer.put("name_model", s.getPlatform().getNameAndModel());
+        each_sequencer.put("name", s.getName());
+        sequencers_list.add(each_sequencer);
       }
-        sequencers.put("sequencers", sequencers_list);
+      sequencers.put("sequencers", sequencers_list);
       return sequencers;
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("list sequencers", e);
     }
     return JSONUtils.SimpleJSONError("Cannot list available sequencers");
   }
@@ -100,17 +102,15 @@ public class SequencerReferenceControllerHelperService {
   public JSONObject checkServerAvailability(HttpSession session, JSONObject json) {
     try {
 
-      if (json.has("server") && !json.get("server").equals("")) {
+      if (json.has("server") && !isStringEmptyOrNull(json.getString("server"))) {
         InetAddress i = InetAddress.getByName(json.getString("server"));
         if (i.isReachable(2000)) {
           return JSONUtils.JSONObjectResponse("html", "OK");
-        }
-        else {
+        } else {
           return JSONUtils.JSONObjectResponse("html", "FAIL");
         }
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.debug("Failed to check server availability: ", e);
       return JSONUtils.JSONObjectResponse("html", "FAIL");
     }
@@ -119,7 +119,7 @@ public class SequencerReferenceControllerHelperService {
 
   public JSONObject addSequencerReference(HttpSession session, JSONObject json) {
     try {
-      if (json.has("server") && !json.get("server").equals("")) {
+      if (json.has("server") && !isStringEmptyOrNull(json.getString("server"))) {
         InetAddress i = InetAddress.getByName(json.getString("server"));
         String name = json.getString("name");
         Platform p = requestManager.getPlatformById(json.getInt("platform"));
@@ -129,8 +129,7 @@ public class SequencerReferenceControllerHelperService {
         requestManager.saveSequencerReference(sr);
         return JSONUtils.SimpleJSONResponse("Saved successfully");
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.debug("Failed to add server: ", e);
       return JSONUtils.SimpleJSONError("Failed to add server");
     }
@@ -141,9 +140,8 @@ public class SequencerReferenceControllerHelperService {
     User user;
     try {
       user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("delete sequencer reference", e);
       return JSONUtils.SimpleJSONError("Error getting currently logged in user.");
     }
 
@@ -153,17 +151,14 @@ public class SequencerReferenceControllerHelperService {
         try {
           requestManager.deleteSequencerReference(requestManager.getSequencerReferenceById(refId));
           return JSONUtils.SimpleJSONResponse("Sequencer Reference deleted");
-        }
-        catch (IOException e) {
-          e.printStackTrace();
+        } catch (IOException e) {
+          log.error("cannot delete sequencer reference", e);
           return JSONUtils.SimpleJSONError("Cannot delete sequencer reference: " + e.getMessage());
         }
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONError("No Sequencer Reference specified to delete.");
       }
-    }
-    else {
+    } else {
       return JSONUtils.SimpleJSONError("Only admins can delete objects.");
     }
   }

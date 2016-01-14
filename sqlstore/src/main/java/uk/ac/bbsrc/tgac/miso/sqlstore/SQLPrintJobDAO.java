@@ -23,8 +23,17 @@
 
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.sql.Blob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Queue;
+
+import javax.sql.rowset.serial.SerialBlob;
+import javax.sql.rowset.serial.SerialException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,24 +42,17 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.core.data.AbstractPrintJob;
 import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.MisoPrintJob;
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
 import uk.ac.bbsrc.tgac.miso.core.manager.PrintManager;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
 import uk.ac.bbsrc.tgac.miso.core.store.PrintJobStore;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
-
-import javax.sql.rowset.serial.SerialBlob;
-import javax.sql.rowset.serial.SerialException;
-import java.io.*;
-import java.sql.Blob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
 
 /**
  * uk.ac.bbsrc.tgac.miso.sqlstore
@@ -64,23 +66,18 @@ import java.util.Queue;
 public class SQLPrintJobDAO implements PrintJobStore {
   private static final String TABLE_NAME = "PrintJob";
 
-  public static final String PRINT_JOB_SELECT =
-          "SELECT jobId, printServiceName, printDate, jobCreator_userId, printedElements, status " +
-          "FROM "+TABLE_NAME;
+  public static final String PRINT_JOB_SELECT = "SELECT jobId, printServiceName, printDate, jobCreator_userId, printedElements, status "
+      + "FROM " + TABLE_NAME;
 
-  public static final String PRINT_JOB_SELECT_BY_ID =
-          PRINT_JOB_SELECT + " WHERE jobId = ?";
+  public static final String PRINT_JOB_SELECT_BY_ID = PRINT_JOB_SELECT + " WHERE jobId = ?";
 
-  public static final String PRINT_JOB_SELECT_BY_SERVICE_NAME =
-          PRINT_JOB_SELECT + " WHERE printServiceName = ?";
+  public static final String PRINT_JOB_SELECT_BY_SERVICE_NAME = PRINT_JOB_SELECT + " WHERE printServiceName = ?";
 
-  public static final String PRINT_JOB_SELECT_BY_USER =
-          PRINT_JOB_SELECT + " WHERE jobCreator_userId = ?";  
+  public static final String PRINT_JOB_SELECT_BY_USER = PRINT_JOB_SELECT + " WHERE jobCreator_userId = ?";
 
-  public static final String PRINT_JOB_UPDATE =
-          "UPDATE "+TABLE_NAME+" " +
-          "SET printServiceName=:printServiceName, printDate=:printDate, jobCreator_userId=:jobCreator_userId, printedElements=:printedElements, status=:status " +
-          "WHERE jobId=:jobId";  
+  public static final String PRINT_JOB_UPDATE = "UPDATE " + TABLE_NAME + " "
+      + "SET printServiceName=:printServiceName, printDate=:printDate, jobCreator_userId=:jobCreator_userId, printedElements=:printedElements, status=:status "
+      + "WHERE jobId=:jobId";
 
   protected static final Logger log = LoggerFactory.getLogger(SQLPrintJobDAO.class);
   private JdbcTemplate template;
@@ -88,7 +85,7 @@ public class SQLPrintJobDAO implements PrintJobStore {
   @Autowired
   private PrintManager<MisoPrintService, ?> printManager;
   private SecurityManager securityManager;
-  
+
   public void setPrintManager(PrintManager printManager) {
     this.printManager = printManager;
   }
@@ -105,12 +102,13 @@ public class SQLPrintJobDAO implements PrintJobStore {
     this.template = template;
   }
 
+  @Override
   public long save(PrintJob printJob) throws IOException {
     MapSqlParameterSource params = new MapSqlParameterSource();
-    params.addValue("printServiceName", printJob.getPrintService().getName())
-            .addValue("printDate", printJob.getPrintDate())
-            .addValue("jobCreator_userId", printJob.getPrintUser().getUserId())
-            .addValue("status", printJob.getStatus());
+    params.addValue("printServiceName", printJob.getPrintService().getName());
+    params.addValue("printDate", printJob.getPrintDate());
+    params.addValue("jobCreator_userId", printJob.getPrintUser().getUserId());
+    params.addValue("status", printJob.getStatus());
 
     Blob barcodeBlob = null;
     try {
@@ -118,26 +116,20 @@ public class SQLPrintJobDAO implements PrintJobStore {
         byte[] rbytes = LimsUtils.objectToByteArray(printJob.getQueuedElements());
         barcodeBlob = new SerialBlob(rbytes);
         params.addValue("printedElements", barcodeBlob);
-      }
-      else {
+      } else {
         params.addValue("printedElements", null);
       }
-    }
-    catch (SerialException e) {
-      e.printStackTrace();
-    }
-    catch (SQLException e) {
-      e.printStackTrace();
+    } catch (SerialException e) {
+      log.error("print job save", e);
+    } catch (SQLException e) {
+      log.error("print job save", e);
     }
 
     if (printJob.getJobId() == AbstractPrintJob.UNSAVED_ID) {
-      SimpleJdbcInsert insert = new SimpleJdbcInsert(template)
-              .withTableName(TABLE_NAME)
-              .usingGeneratedKeyColumns("jobId");
+      SimpleJdbcInsert insert = new SimpleJdbcInsert(template).withTableName(TABLE_NAME).usingGeneratedKeyColumns("jobId");
       Number newId = insert.executeAndReturnKey(params);
       printJob.setJobId(newId.longValue());
-    }
-    else {
+    } else {
       params.addValue("jobId", printJob.getJobId());
       NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
       namedTemplate.update(PRINT_JOB_UPDATE, params);
@@ -145,8 +137,9 @@ public class SQLPrintJobDAO implements PrintJobStore {
     return printJob.getJobId();
   }
 
+  @Override
   public PrintJob get(long jobId) throws IOException {
-    List eResults = template.query(PRINT_JOB_SELECT_BY_ID, new Object[]{jobId}, new PrintJobMapper());
+    List eResults = template.query(PRINT_JOB_SELECT_BY_ID, new Object[] { jobId }, new PrintJobMapper());
     PrintJob e = eResults.size() > 0 ? (PrintJob) eResults.get(0) : null;
     return e;
   }
@@ -156,24 +149,28 @@ public class SQLPrintJobDAO implements PrintJobStore {
     return get(id);
   }
 
+  @Override
   public Collection<PrintJob> listAll() throws IOException {
     return template.query(PRINT_JOB_SELECT, new PrintJobMapper());
   }
 
   @Override
   public int count() throws IOException {
-    return template.queryForInt("SELECT count(*) FROM "+TABLE_NAME);
+    return template.queryForInt("SELECT count(*) FROM " + TABLE_NAME);
   }
 
+  @Override
   public List<PrintJob> listByUser(User user) throws IOException {
-    return template.query(PRINT_JOB_SELECT_BY_USER, new Object[]{user.getUserId()}, new PrintJobMapper());
-  }  
+    return template.query(PRINT_JOB_SELECT_BY_USER, new Object[] { user.getUserId() }, new PrintJobMapper());
+  }
 
+  @Override
   public List<PrintJob> listByPrintService(MisoPrintService service) throws IOException {
-    return template.query(PRINT_JOB_SELECT_BY_SERVICE_NAME, new Object[]{service.getName()}, new PrintJobMapper());
+    return template.query(PRINT_JOB_SELECT_BY_SERVICE_NAME, new Object[] { service.getName() }, new PrintJobMapper());
   }
 
   public class PrintJobMapper implements RowMapper<PrintJob> {
+    @Override
     public PrintJob mapRow(ResultSet rs, int rowNum) throws SQLException {
       try {
         MisoPrintJob printJob = new MisoPrintJob();
@@ -184,18 +181,16 @@ public class SQLPrintJobDAO implements PrintJobStore {
         Blob barcodeBlob = rs.getBlob("printedElements");
         if (barcodeBlob != null) {
           if (barcodeBlob.length() > 0) {
-            byte[] rbytes = barcodeBlob.getBytes(1, (int)barcodeBlob.length());
-            printJob.setQueuedElements((Queue<?>)LimsUtils.byteArrayToObject(rbytes));
+            byte[] rbytes = barcodeBlob.getBytes(1, (int) barcodeBlob.length());
+            printJob.setQueuedElements((Queue<?>) LimsUtils.byteArrayToObject(rbytes));
           }
         }
         printJob.setStatus(rs.getString("status"));
         return printJob;
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-      catch (ClassNotFoundException e) {
-        e.printStackTrace();
+      } catch (IOException e) {
+        log.error("print job row mapper", e);
+      } catch (ClassNotFoundException e) {
+        log.error("print job row mapper", e);
       }
       return null;
     }

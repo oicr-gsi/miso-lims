@@ -23,17 +23,23 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.printing;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.schema.BarcodableSchema;
 
-import java.util.*;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.schema.BarcodableSchema;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.printing
  * <p/>
  * Info
- *
+ * 
  * @author Xingdong Bian
  * @date 29/05/13
  * @since 0.2.0
@@ -48,14 +54,10 @@ public class MisoBarcodableSchemaResolverService implements BarcodableSchemaReso
       if (barcodableSchema.getName().equals(name)) {
         try {
           return barcodableSchema.getClass().newInstance();
-        }
-        catch (InstantiationException e) {
+        } catch (InstantiationException e) {
           log.error("Cannot create a new instance of '" + name + "'", e);
-          e.printStackTrace();
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
           log.error("Cannot create a new instance of '" + name + "'", e);
-          e.printStackTrace();
         }
       }
     }
@@ -65,7 +67,7 @@ public class MisoBarcodableSchemaResolverService implements BarcodableSchemaReso
 
   @Override
   public Collection<BarcodableSchema> getBarcodableSchemas() {
-    //lazily load available schemas
+    // lazily load available schemas
     if (contextMap == null) {
       ServiceLoader<BarcodableSchema> consumerLoader = ServiceLoader.load(BarcodableSchema.class);
       Iterator<BarcodableSchema> consumerIterator = consumerLoader.iterator();
@@ -76,11 +78,10 @@ public class MisoBarcodableSchemaResolverService implements BarcodableSchemaReso
 
         if (!contextMap.containsKey(p.getName())) {
           contextMap.put(p.getName(), p);
-        }
-        else {
+        } else {
           if (contextMap.get(p.getName()) != p) {
-            String msg = "Multiple different BarcodableSchemas with the same schema name " +
-                         "('" + p.getName() + "') are present on the classpath. Schema names must be unique.";
+            String msg = "Multiple different BarcodableSchemas with the same schema name " + "('" + p.getName()
+                + "') are present on the classpath. Schema names must be unique.";
             log.error(msg);
             throw new ServiceConfigurationError(msg);
           }

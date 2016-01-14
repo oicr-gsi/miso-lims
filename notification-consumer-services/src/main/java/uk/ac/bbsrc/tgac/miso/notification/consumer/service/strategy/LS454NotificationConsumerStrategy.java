@@ -23,23 +23,24 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.consumer.service.strategy;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.Message;
+
+import net.sourceforge.fluxion.spi.ServiceProvider;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
-import uk.ac.bbsrc.tgac.miso.notification.consumer.service.mechanism.LS454NotificationMessageConsumerMechanism;
 import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.NotificationConsumerStrategy;
-
-import java.util.List;
-import java.util.Map;
+import uk.ac.bbsrc.tgac.miso.notification.consumer.service.mechanism.LS454NotificationMessageConsumerMechanism;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.impl
  * <p/>
  * Implementation of a MISO notification system message consumer
- *
+ * 
  * @author Rob Davey
  * @date 03/02/12
  * @since 0.1.5
@@ -48,6 +49,7 @@ import java.util.Map;
 public class LS454NotificationConsumerStrategy implements NotificationConsumerStrategy {
   protected static final Logger log = LoggerFactory.getLogger(LS454NotificationConsumerStrategy.class);
 
+  @Override
   public String getName() {
     return "LS454NotificationConsumer";
   }

@@ -23,17 +23,11 @@
 
 package uk.ac.bbsrc.tgac.miso.sqlstore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.userdetails.User;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.*;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.SubmissionImpl;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.data.type.SubmissionActionType;
-import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,18 +35,33 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.User;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.data.Study;
+import uk.ac.bbsrc.tgac.miso.core.data.Submission;
+import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.EraExperimentDecorator;
+import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.EraRunDecorator;
+import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.EraSampleDecorator;
+import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.EraStudyDecorator;
+import uk.ac.bbsrc.tgac.miso.core.data.decorator.submission.era.EraSubmissionDecorator;
+import uk.ac.bbsrc.tgac.miso.core.data.impl.SubmissionImpl;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.data.type.SubmissionActionType;
+import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
 
 /**
- * Created by IntelliJ IDEA.
- * User: collesa
- * Date: 18/11/11
- * Time: 10:14
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: collesa Date: 18/11/11 Time: 10:14 To change this template use File | Settings | File Templates.
  */
 public class SubmissionAutomator extends LimsDAOTestCase {
   protected static final Logger log = LoggerFactory.getLogger(SubmissionAutomator.class);
@@ -64,9 +73,8 @@ public class SubmissionAutomator extends LimsDAOTestCase {
     try {
       super.setUp();
       log.debug("Super setup");
-    }
-    catch (Exception e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    } catch (Exception e) {
+      log.error("super setup", e);
     }
     log.debug("Child setup");
 
@@ -76,7 +84,7 @@ public class SubmissionAutomator extends LimsDAOTestCase {
       Collection<Sample> samples = getSampleDAO().listByProjectId(p.getProjectId());
       List<Run> runs = getRunDAO().listByProjectId(p.getProjectId());
 
-      //prints Project and sub-item details to console
+      // prints Project and sub-item details to console
       log.info("Testing Project: " + p.getName());
       log.info("No of studies: " + studies.size());
       log.info("No of samples: " + samples.size());
@@ -84,7 +92,7 @@ public class SubmissionAutomator extends LimsDAOTestCase {
 
       Document submissionDocument;
       for (Study study : studies) {
-        //creates study XMLs, saves them to file and then validates
+        // creates study XMLs, saves them to file and then validates
         log.debug("Validating XML for study: " + study.getName());
         submissionDocument = docBuilder.newDocument();
         new EraStudyDecorator(study, new Properties(), submissionDocument).buildSubmission();
@@ -94,11 +102,11 @@ public class SubmissionAutomator extends LimsDAOTestCase {
         log.debug("completed validation of " + studyFileName);
         submissionDocument = null;
 
-        //retrieves experiments related to this study
+        // retrieves experiments related to this study
         Collection<Experiment> experiments = getExperimentDAO().listByStudyId(study.getId());
         log.info("No of Experiments: " + experiments.size());
 
-        for (Experiment experiment : experiments) {   //creates experiment XML
+        for (Experiment experiment : experiments) { // creates experiment XML
           log.debug("Validating XML for experiment: " + experiment.getName());
           submissionDocument = docBuilder.newDocument();
           new EraExperimentDecorator(experiment, new Properties(), submissionDocument).buildSubmission();
@@ -110,7 +118,7 @@ public class SubmissionAutomator extends LimsDAOTestCase {
         }
       }
 
-      //Gets all samples associated with the project
+      // Gets all samples associated with the project
       for (Sample sample : samples) { // creates sample XML
         log.debug("Validating XML for sample: " + sample.getName());
         submissionDocument = docBuilder.newDocument();
@@ -121,10 +129,11 @@ public class SubmissionAutomator extends LimsDAOTestCase {
         log.debug("completed validation of " + sampleFileName);
         submissionDocument = null;
       }
-      //loops recursively through MISO runs and the chambers within them, building and validating SRA run xmls for each.
-      for (Run run : runs) {   // creates run XMLs from either chamber or lane objects
+      // loops recursively through MISO runs and the chambers within them, building and validating SRA run xmls for each.
+      for (Run run : runs) { // creates run XMLs from either chamber or lane objects
         log.debug("Validating XMLs for run: " + run.getName());
-        List<SequencerPartitionContainer<SequencerPoolPartition>> containers = getSequencerPartitionContainerDAO().listAllSequencerPartitionContainersByRunId(run.getId());
+        List<SequencerPartitionContainer<SequencerPoolPartition>> containers = getSequencerPartitionContainerDAO()
+            .listAllSequencerPartitionContainersByRunId(run.getId());
 
         PlatformType platform = run.getPlatformType();
         log.debug("Platform:" + platform);
@@ -142,7 +151,8 @@ public class SubmissionAutomator extends LimsDAOTestCase {
               log.debug("Experiments:" + partition.getPool().getExperiments());
               submissionDocument = docBuilder.newDocument();
               new EraRunDecorator(partition, new Properties(), submissionDocument).buildSubmission();
-              String chamberFileName = xmlPath + p.getProjectId() + run.getName() + "FC" + container.getId() + "Lane" + partition.getId() + ".xml";
+              String chamberFileName = xmlPath + p.getProjectId() + run.getName() + "FC" + container.getId() + "Lane" + partition.getId()
+                  + ".xml";
               SubmissionUtils.transform(submissionDocument, new File(chamberFileName));
               validateXML(chamberFileName, xsdPath + "SRA.run.xsd");
               log.debug("completed validation of " + chamberFileName);
@@ -152,7 +162,7 @@ public class SubmissionAutomator extends LimsDAOTestCase {
         }
       }
 
-      //creates submission xml
+      // creates submission xml
       Submission submission = new SubmissionImpl();
       submission.setName("testSub");
       submission.setAlias("testSubALias");
@@ -175,15 +185,14 @@ public class SubmissionAutomator extends LimsDAOTestCase {
       SubmissionUtils.transform(submissionDocument, new File(submissionFileName));
       validateXML(submissionFileName, xsdPath + "SRA.submission.xsd");
       submissionDocument = null;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.error("submit project", e);
     }
   }
 
   public static void validateXML(String xmlFile, String schema) throws Exception {
-    //Doesn't use the validator class like the other methods tried, but seems to work, ie
-    //picks up errors in XML documents.
+    // Doesn't use the validator class like the other methods tried, but seems to work, ie
+    // picks up errors in XML documents.
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -192,22 +201,18 @@ public class SubmissionAutomator extends LimsDAOTestCase {
       // create a SchemaFactory
       SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
 
-      factory.setSchema(schemaFactory.newSchema(new Source[]{new StreamSource(schema)}));
+      factory.setSchema(schemaFactory.newSchema(new Source[] { new StreamSource(schema) }));
 
       DocumentBuilder builder = factory.newDocumentBuilder();
-      // builder.setErrorHandler(new SimpleErrorHandler());
       File newFile = new File(xmlFile);
       builder.parse(newFile);
       log.info("Validation of " + xmlFile + " complete!");
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    catch (SAXException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("validate XML", e);
+    } catch (SAXException e) {
+      log.error("validate XML", e);
+    } catch (IOException e) {
+      log.error("validate XML", e);
     }
   }
 }

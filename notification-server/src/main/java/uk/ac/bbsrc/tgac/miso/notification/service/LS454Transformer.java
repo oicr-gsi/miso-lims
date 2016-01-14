@@ -23,30 +23,37 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.service;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import java.io.File;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.transform.TransformerException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.Message;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
 import uk.ac.bbsrc.tgac.miso.integration.util.IntegrationUtils;
 import uk.ac.bbsrc.tgac.miso.tools.run.RunFolderConstants;
 import uk.ac.bbsrc.tgac.miso.tools.run.util.FileSetTransformer;
 
-import javax.xml.transform.TransformerException;
-import java.io.File;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * uk.ac.bbsrc.tgac.miso.notification.util
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 16/12/11
  * @since 0.1.4
@@ -54,18 +61,18 @@ import java.util.regex.Pattern;
 public class LS454Transformer implements FileSetTransformer<String, String, File> {
   protected static final Logger log = LoggerFactory.getLogger(LS454Transformer.class);
 
-  private final Pattern runCompleteLogPattern = Pattern.compile(
-      "\\[([A-z]{3} [A-z]{3} \\d{2} \\d{2}:\\d{2}:\\d{2} \\d{4})\\].*Job complete.*"
-  );
+  private final Pattern runCompleteLogPattern = Pattern
+      .compile("\\[([A-z]{3} [A-z]{3} \\d{2} \\d{2}:\\d{2}:\\d{2} \\d{4})\\].*Job complete.*");
 
   public Map<String, String> transform(Message<Set<File>> message) {
     return transform(message.getPayload());
   }
 
+  @Override
   public Map<String, String> transform(Set<File> files) {
-    log.info("Processing "+files.size()+" 454 run directories...");
+    log.info("Processing " + files.size() + " 454 run directories...");
 
-    //TODO modify this to use a JSONObject instead of a Map
+    // TODO modify this to use a JSONObject instead of a Map
     HashMap<String, JSONArray> map = new HashMap<String, JSONArray>();
 
     map.put("Running", new JSONArray());
@@ -78,7 +85,7 @@ public class LS454Transformer implements FileSetTransformer<String, String, File
           JSONObject run = new JSONObject();
           run.put("status", "");
 
-          //there might be more than one signalProcessing/imageProcessingOnly dir, so get them all
+          // there might be more than one signalProcessing/imageProcessingOnly dir, so get them all
           List<File> imageDirs = new ArrayList<File>();
           List<File> signalDirs = new ArrayList<File>();
           for (File dir : rootFile.listFiles()) {
@@ -95,7 +102,7 @@ public class LS454Transformer implements FileSetTransformer<String, String, File
             }
           }
 
-          //only parse the most recent dirs
+          // only parse the most recent dirs
           File recentImageDir = null;
           if (imageDirs.size() > 0) {
             Collections.sort(imageDirs);
@@ -105,32 +112,29 @@ public class LS454Transformer implements FileSetTransformer<String, String, File
           File recentProcessingDir = null;
           if (signalDirs.size() > 0) {
             Collections.sort(signalDirs);
-            recentProcessingDir = signalDirs.get(signalDirs.size()-1);
+            recentProcessingDir = signalDirs.get(signalDirs.size() - 1);
           }
 
           String runName = rootFile.getName();
           run.put("runName", runName);
 
           try {
-            run.put("fullPath", rootFile.getCanonicalPath()); //follow symlinks!
+            run.put("fullPath", rootFile.getCanonicalPath()); // follow symlinks!
 
             if (recentImageDir != null) {
               File paramsFile = new File(recentImageDir, "dataRunParams.xml");
               if (paramsFile.exists()) {
                 try {
                   run.put("runparams", SubmissionUtils.transform(paramsFile));
-                }
-                catch (TransformerException e) {
-                  log.warn(runName+" :: Not adding dataRunParams.xml - cannot read");
+                } catch (TransformerException e) {
+                  log.warn(runName + " :: Not adding dataRunParams.xml - cannot read");
                 }
               }
+            } else {
+              log.error("No signalProcessing/fullProcessingAmplicons folder detected. Cannot process run " + runName + ".");
             }
-            else {
-              log.error("No signalProcessing/fullProcessingAmplicons folder detected. Cannot process run "+runName+".");
-            }
-          }
-          catch (IOException e) {
-            log.error(recentImageDir.getAbsolutePath()+" :: Unable to read");
+          } catch (IOException e) {
+            log.error(recentImageDir.getAbsolutePath() + " :: Unable to read");
           }
 
           try {
@@ -142,32 +146,26 @@ public class LS454Transformer implements FileSetTransformer<String, String, File
                 String compstat = URLEncoder.encode(new String(IntegrationUtils.compress(runLog.getBytes())), "UTF-8");
                 run.put("status", compstat);
 
-                //Matcher completeMatcher = Pattern.compile("^\\[([A-z]{3} [A-z]{3} \\d{2} \\d{2}:\\d{2}:\\d{2} \\d{4})\\].*Job complete\\.$").matcher(runLog);
                 Matcher completeMatcher = runCompleteLogPattern.matcher(runLog);
                 if (completeMatcher.find()) {
-                  log.debug(runName+" :: Completed");
+                  log.debug(runName + " :: Completed");
                   run.put("completionDate", completeMatcher.group(1));
                   map.get("Completed").add(run);
-                }
-                else {
-                  log.debug(runName+" :: Running");
+                } else {
+                  log.debug(runName + " :: Running");
                   map.get("Running").add(run);
                 }
-              }
-              else {
-                log.debug(runName+" :: Unknown");
+              } else {
+                log.debug(runName + " :: Unknown");
                 map.get("Unknown").add(run);
               }
+            } else {
+              log.error("No imageProcessingOnly folder detected. Cannot process run " + runName + ".");
             }
-            else {
-              log.error("No imageProcessingOnly folder detected. Cannot process run "+runName+".");
-            }
+          } catch (IOException e) {
+            log.error(recentProcessingDir.getAbsolutePath() + " :: Unable to process runLog", e);
           }
-          catch (IOException e) {
-            log.error(recentProcessingDir.getAbsolutePath()+" :: Unable to process runLog: " + e.getMessage());
-          }
-        }
-        else {
+        } else {
           log.error("Cannot read into run directory: " + rootFile.getAbsolutePath());
         }
       }

@@ -38,7 +38,7 @@ import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
 /**
  * A KitDescriptor handles information about a consumable element that is generally typed by a name, manufacturer and part number. Kits use
  * KitDescriptors, coupled with a lot number, to represent a real-world manifestation of a consumable kit.
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -60,13 +60,13 @@ public class KitDescriptor implements Serializable {
 
   @Enumerated(EnumType.STRING)
   private KitType kitType;
-
+  
   @Enumerated(EnumType.STRING)
   private PlatformType platformType;
 
   /**
    * Returns the kitDescriptorId of this KitDescriptor object.
-   *
+   * 
    * @return Long kitDescriptorId.
    */
   public Long getKitDescriptorId() {
@@ -75,7 +75,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the kitDescriptorId of this KitDescriptor object.
-   *
+   * 
    * @param kitDescriptorId
    *          kitDescriptorId.
    */
@@ -85,7 +85,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the name of this KitDescriptor object.
-   *
+   * 
    * @return String name.
    */
   public String getName() {
@@ -94,7 +94,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the name of this KitDescriptor object.
-   *
+   * 
    * @param name
    *          name.
    */
@@ -104,7 +104,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the version of this KitDescriptor object.
-   *
+   * 
    * @return Double version.
    */
   public Double getVersion() {
@@ -113,7 +113,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the version of this KitDescriptor object.
-   *
+   * 
    * @param version
    *          version.
    */
@@ -123,7 +123,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the manufacturer of this KitDescriptor object.
-   *
+   * 
    * @return String manufacturer.
    */
   public String getManufacturer() {
@@ -132,7 +132,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the manufacturer of this KitDescriptor object.
-   *
+   * 
    * @param manufacturer
    *          manufacturer.
    */
@@ -142,7 +142,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the partNumber of this KitDescriptor object.
-   *
+   * 
    * @return String partNumber.
    */
   public String getPartNumber() {
@@ -151,7 +151,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the partNumber of this KitDescriptor object.
-   *
+   * 
    * @param partNumber
    *          partNumber.
    */
@@ -161,7 +161,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the stockLevel of this KitDescriptor object.
-   *
+   * 
    * @return Integer stockLevel.
    */
   public Integer getStockLevel() {
@@ -170,7 +170,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the stockLevel of this KitDescriptor object.
-   *
+   * 
    * @param stockLevel
    *          stockLevel.
    */
@@ -199,7 +199,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the kitType of this KitDescriptor object.
-   *
+   * 
    * @return KitType kitType.
    */
   public KitType getKitType() {
@@ -208,10 +208,10 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the kitType of this KitDescriptor object.
-   *
+   * 
    * @param kitType
    *          kitType.
-   *
+   * 
    */
   public void setKitType(KitType kitType) {
     this.kitType = kitType;
@@ -219,7 +219,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Returns the platformType of this KitDescriptor object.
-   *
+   * 
    * @return PlatformType platformType.
    */
   public PlatformType getPlatformType() {
@@ -228,7 +228,7 @@ public class KitDescriptor implements Serializable {
 
   /**
    * Sets the platformType of this KitDescriptor object.
-   *
+   * 
    * @param platformType
    *          platformType.
    */

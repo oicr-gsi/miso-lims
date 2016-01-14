@@ -23,29 +23,35 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Queue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
 import uk.ac.bbsrc.tgac.miso.core.manager.PrintManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
 
-import java.io.IOException;
-import java.util.*;
-
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.controller
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.3
  */
@@ -75,7 +81,7 @@ public class PrinterController {
     this.printManager = printManager;
   }
 
-  @RequestMapping(value= "/admin/configuration/printers", method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/configuration/printers", method = RequestMethod.GET)
   public ModelAndView view(ModelMap model) throws IOException {
     model.put("barcodePrinters", printManager.listAllPrintServices());
     return new ModelAndView("/pages/viewPrinters.jsp", model);
@@ -89,9 +95,8 @@ public class PrinterController {
 
       Collection<? extends PrintJob> jobs = printManager.listPrintJobsByPrintService(ps);
       model.put("printJobs", jobs);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("view barcode printer", e);
     }
     return new ModelAndView("/pages/viewPrinters.jsp", model);
   }
@@ -102,29 +107,9 @@ public class PrinterController {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       Collection<? extends PrintJob> jobs = printManager.listPrintJobsByUser(user);
       model.put("userPrintJobs", jobs);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.error("my print jobs", e);
     }
     return new ModelAndView("/pages/viewPrinters.jsp", model);
   }
-
-  /*
-  @RequestMapping(value = "/barcode/{printerId}", method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("printer") PrinterReference pr,
-                              ModelMap model, SessionStatus session) throws IOException {
-    try {
-      requestManager.savePrinterReference(pr);
-      session.setComplete();
-      model.clear();
-      return "redirect:/miso/admin/configuration/printers";
-    }
-    catch (IOException ex) {
-      if (log.isDebugEnabled()) {
-        log.debug("Failed to save Barcode Printer", ex);
-      }
-      throw ex;
-    }
-  }
-  */
 }

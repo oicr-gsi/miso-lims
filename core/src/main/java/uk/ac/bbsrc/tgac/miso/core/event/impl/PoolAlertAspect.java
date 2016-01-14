@@ -23,20 +23,22 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
-import com.eaglegenomics.simlims.core.User;
+import java.io.IOException;
+
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.event.manager.PoolAlertManager;
-
-import java.io.IOException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 11/11/11
  * @since 0.1.6
@@ -56,9 +58,8 @@ public class PoolAlertAspect {
       if (user != null) {
         poolAlertManager.removeWatcher(pool, user.getUserId());
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("remove watcher", e);
     }
   }
 
@@ -67,29 +68,16 @@ public class PoolAlertAspect {
       if (user != null) {
         poolAlertManager.addWatcher(pool, user.getUserId());
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-  /*
-  public void update(Long poolId) {
-    try {
-      log.info("Update with poolId: " + poolId);
-      poolAlertManager.update(poolId);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("add watcher", e);
     }
   }
-*/
 
   public void update(Pool pool) {
     try {
       poolAlertManager.update(pool.getId());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("update pool alert aspect", e);
     }
   }
 }

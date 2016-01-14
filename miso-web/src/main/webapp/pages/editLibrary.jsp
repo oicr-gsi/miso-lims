@@ -36,6 +36,10 @@
 
 <script src="<c:url value='/scripts/stats_ajax.js?ts=${timestamp.time}'/>" type="text/javascript"></script>
 
+<script type="text/javascript" src="<c:url value='/scripts/parsley/parsley.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/scripts/library_validation.js?ts=${timestamp.time}'/>"></script>
+
+
 <div id="maincontent">
 <div id="contentcolumn">
 <c:if test="${library.id == 0}">
@@ -53,7 +57,7 @@
 <div id="tab-1">
 </c:if>
 
-<form:form action="/miso/library" method="POST" commandName="library" autocomplete="off" acceptCharset="utf-8">
+<form:form id="library-form" data-parsley-validate="" action="/miso/library" method="POST" commandName="library" autocomplete="off" acceptCharset="utf-8">
 <sessionConversation:insertSessionConversationId attributeName="library"/>
 <h1>
   <c:choose>
@@ -61,7 +65,7 @@
     <c:otherwise>Create</c:otherwise>
   </c:choose> Library
   <button type="button" class="fg-button ui-state-default ui-corner-all"
-          onclick="return validate_library(this.form);">Save
+          onclick="return validate_library();">Save
   </button>
 </h1>
 <div class="breadcrumbs">
@@ -107,6 +111,12 @@
 <div id="notediv" class="note" style="display:none;">A Library is the first step in constructing sequenceable
   material from an initial Sample. A Library is then diluted down to a Dilution, and put in a Pool.
 </div>
+
+<div class="bs-callout bs-callout-warning hidden">
+  <h2>Oh snap!</h2>
+  <p>This form seems to be invalid</p>
+</div>
+
 <h2>Library Information</h2>
 
 <div class="barcodes">
@@ -123,7 +133,7 @@
             <a onmouseover="mopen('locationBarcodeMenu')" onmouseout="mclosetime()">
               <span style="float:right; margin-top:6px;" class="ui-icon ui-icon-triangle-1-s"></span>
               <span id="locationBarcode" style="float:right; margin-top:6px; padding-bottom: 11px;">
-                  ${library.locationBarcode}
+                  ${sample.locationBarcode}
               </span>
             </a>
 
@@ -263,6 +273,12 @@
         <form:checkbox path="paired"/>
       </c:otherwise>
     </c:choose>
+  </td>
+</tr>
+<tr>
+  <td>Low Quality:</td>
+  <td>
+    <form:checkbox path="lowQuality"/>
   </td>
 </tr>
 <tr>
@@ -852,6 +868,7 @@
         <th>Run Name</th>
         <th>Run Alias</th>
         <th>Partitions</th>
+        <th>Status</th>
         <%-- GLT-201: Comment to remove 'Edit Column' --%>
         <th class="fit">Edit</th>
         <sec:authorize access="hasRole('ROLE_ADMIN')">
@@ -897,7 +914,7 @@
               </c:if>
             </c:forEach>
           </td>
-
+          <td>${run.status.health}</td>
           <%-- GLT-201: Comment to remove 'Edit Column' --%>
           <td class="misoicon" onclick="window.location.href='<c:url value="/miso/run/${run.id}"/>'">
             <span class="ui-icon ui-icon-pencil"/>
@@ -931,6 +948,29 @@
         });
       });
     </script>
+  </c:if>
+
+  <c:if test="${not empty library.changeLog}">
+    <br/>
+    <h1>Changes</h1>
+    <span style="clear:both">
+    <table class="list" id="changelog_table">
+      <thead>
+      <tr>
+      <th>Summary</th>
+      <th>Time</th>
+      </tr>
+      </thead>
+      <tbody>
+      <c:forEach items="${library.changeLog}" var="change">
+      <tr onMouseOver="this.className='highlightrow'" onMouseOut="this.className='normalrow'">
+        <td><b>${change.summary}</b></td>
+        <td>${change.time}</td>
+      </tr>
+      </c:forEach>
+      </tbody>
+    </table>
+    </span>
   </c:if>
 </c:if>
 
@@ -1015,6 +1055,7 @@
     </tbody>
   </table>
   <div id="pager"></div>
+
 </div>
 </div>
 
@@ -1299,10 +1340,8 @@ function setEditables(datatable) {
           var randomId = makeid();
           jQuery(nTr.cells[cell + 1]).html("<div id='" + randomId + "'></div>");
           for (var i = 0; i < json.numApplicableBarcodes; i++) {
-            //jQuery(nTr.cells[cell+1]).append("<span class='tagBarcodeSelectDiv' position='"+(i+1)+"' id='tagbarcodes"+(i+1)+"'>- <i>Select...</i></span>");
             jQuery('#' + randomId).append("<span class='tagBarcodeSelectDiv' position='" + (i + 1) + "' id='tagbarcodes" + (i + 1) + "'>- <i>Select...</i></span>");
             if (json.numApplicableBarcodes > 1 && i == 0) {
-              // jQuery(nTr.cells[cell+1]).append("|");
               jQuery('#' + randomId).append("|");
             }
           }

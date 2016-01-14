@@ -23,41 +23,29 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.manager;
 
-//import com.fasterxml.jackson.core.JsonGenerationException;
-//import com.fasterxml.jackson.databind.JsonMappingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.util.JSONUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import uk.ac.bbsrc.tgac.miso.notification.service.IlluminaTransformer;
-import uk.ac.bbsrc.tgac.miso.notification.util.NotificationUtils;
-import uk.ac.bbsrc.tgac.miso.tools.run.MultiFileQueueMessageSource;
 import uk.ac.bbsrc.tgac.miso.tools.run.RunFolderScanner;
 import uk.ac.bbsrc.tgac.miso.tools.run.util.FileSetTransformer;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 /**
  * uk.ac.bbsrc.tgac.miso.notification.manager
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 15/04/13
  * @since 0.2.0
@@ -91,18 +79,17 @@ public class NotificationRequestManager {
       String platformType = request.getString("platform").toLowerCase();
       Map<String, String> status = parseRunFolder(platformType, folder);
       if (status.isEmpty()) {
-        return "{'response':'No runs found with alias "+request.getString("run")+"'}";
+        return "{'response':'No runs found with alias " + request.getString("run") + "'}";
       }
 
       for (String s : status.keySet()) {
-        if (!"".equals(status.get(s))) {
+        if (!isStringEmptyOrNull(status.get(s))) {
           JSONArray runs = JSONArray.fromObject(status.get(s));
           if (!runs.isEmpty()) {
-            return "{'progress':'"+s+"'}";
+            return "{'progress':'" + s + "'}";
           }
-        }
-        else {
-          return "{'response':'No runs found with status "+s+" with alias "+request.getString("run")+"'}";
+        } else {
+          return "{'response':'No runs found with status " + s + " with alias " + request.getString("run") + "'}";
         }
       }
     }
@@ -116,7 +103,7 @@ public class NotificationRequestManager {
       String platformType = request.getString("platform").toLowerCase();
       Map<String, String> status = parseRunFolder(platformType, folder);
       for (String s : status.keySet()) {
-        if (!"".equals(status.get(s))) {
+        if (!isStringEmptyOrNull(status.get(s))) {
           log.debug("queryRunStatus: " + status.get(s));
           JSONArray runs = JSONArray.fromObject(status.get(s));
           if (!runs.isEmpty()) {
@@ -138,7 +125,7 @@ public class NotificationRequestManager {
       String platformType = request.getString("platform").toLowerCase();
       Map<String, String> status = parseRunFolder(platformType, folder);
       for (String s : status.keySet()) {
-        if (!"".equals(status.get(s))) {
+        if (!isStringEmptyOrNull(status.get(s))) {
           log.debug("queryRunInfo: " + status.get(s));
           JSONArray runs = JSONArray.fromObject(status.get(s));
           if (!runs.isEmpty()) {
@@ -160,7 +147,7 @@ public class NotificationRequestManager {
       String platformType = request.getString("platform").toLowerCase();
       Map<String, String> status = parseRunFolder(platformType, folder);
       for (String s : status.keySet()) {
-        if (!"".equals(status.get(s))) {
+        if (!isStringEmptyOrNull(status.get(s))) {
           log.debug("queryRunParameters: " + status.get(s));
           JSONArray runs = JSONArray.fromObject(status.get(s));
           if (!runs.isEmpty()) {
@@ -190,9 +177,8 @@ public class NotificationRequestManager {
           return run.getString("metrix");
         }
       }
-    }
-    else {
-      return "{\"error\":\"Cannot find run folder "+request.getString("run").replaceAll("('|\")", "\\\\$1")+"\"}";
+    } else {
+      return "{\"error\":\"Cannot find run folder " + request.getString("run").replaceAll("('|\")", "\\\\$1") + "\"}";
     }
     return "";
   }
@@ -200,9 +186,9 @@ public class NotificationRequestManager {
   private File lookupRunAliasPath(JSONObject request) {
     if (context != null && dataPaths != null) {
       String platformType = request.getString("platform").toLowerCase();
-      if (!"".equals(platformType) && platformType != null) {
+      if (!isStringEmptyOrNull(platformType)) {
         String runAlias = request.getString("run");
-        if (!"".equals(runAlias) && runAlias != null) {
+        if (!isStringEmptyOrNull(runAlias)) {
           RunFolderScanner rfs = (RunFolderScanner) context.getBean(platformType + "StatusRecursiveScanner");
           if (rfs != null) {
             for (File dataPath : dataPaths.get(platformType)) {
@@ -216,45 +202,39 @@ public class NotificationRequestManager {
         }
       }
       return null;
-    }
-    else {
+    } else {
       throw new IllegalStateException("ApplicationContext and/or datapaths not set. Cannot action requests on notification system.");
     }
   }
 
   private Map<String, String> parseRunFolder(String platformType, File path) throws IllegalStateException, IllegalArgumentException {
     if (context != null && dataPaths != null) {
-      if (!"".equals(platformType) && platformType != null) {
-        FileSetTransformer<String, String, File> fst = (FileSetTransformer<String, String, File>)context.getBean(platformType+"Transformer");
+      if (!isStringEmptyOrNull(platformType)) {
+        FileSetTransformer<String, String, File> fst = (FileSetTransformer<String, String, File>) context
+            .getBean(platformType + "Transformer");
         Set<File> fs = new HashSet<>();
         fs.add(path);
         return fst.transform(fs);
-      }
-      else {
+      } else {
         throw new IllegalArgumentException("No platformType set. Cannot parse run folder.");
       }
-    }
-    else {
+    } else {
       throw new IllegalStateException("ApplicationContext and/or datapaths not set. Cannot action requests on notification system.");
     }
   }
 
   private JSONArray parseIlluminaInterOpFolder(File path) throws IllegalStateException {
     if (context != null && dataPaths != null) {
-      IlluminaTransformer fst = (IlluminaTransformer)context.getBean("illuminaTransformer");
+      IlluminaTransformer fst = (IlluminaTransformer) context.getBean("illuminaTransformer");
       if (fst != null) {
         Set<File> fs = new HashSet<>();
         fs.add(path);
         return fst.transformInterOpOnly(fs);
-      }
-      else {
+      } else {
         throw new IllegalStateException("No IlluminaTransformer available");
       }
-    }
-    else {
+    } else {
       throw new IllegalStateException("ApplicationContext and/or datapaths not set. Cannot action requests on notification system.");
     }
   }
 }
-
-

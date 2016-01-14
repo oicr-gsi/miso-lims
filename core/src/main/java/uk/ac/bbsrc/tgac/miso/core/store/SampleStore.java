@@ -23,25 +23,30 @@
 
 package uk.ac.bbsrc.tgac.miso.core.store;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Boxable;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.NamingSchemeAware;
 
-import java.io.IOException;
-import java.util.Collection;
-
 /**
  * Defines a DAO interface for storing Samples
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 public interface SampleStore extends Store<Sample>, Cascadable, Remover<Sample>, NamingSchemeAware<Sample> {
+
   /**
    * List all Samples that match a search criteria
-   *
-   * @param query of type String
+   * 
+   * @param query
+   *          of type String
    * @return Collection<Sample>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<Sample> listBySearch(String query) throws IOException;
 
@@ -49,70 +54,103 @@ public interface SampleStore extends Store<Sample>, Cascadable, Remover<Sample>,
    * Retrieve a Sample from an underlying data store given a Sample ID barcode
    * <p/>
    * This method intends to retrieve objects in an 'ignorant' fashion, i.e.
-   *
-   * @param barcode of type String
+   * 
+   * @param barcode
+   *          of type String
    * @return Sample
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Sample getByBarcode(String barcode) throws IOException;
 
   /**
    * List all Samples related to a parent Project given a Project ID
-   *
-   * @param projectId of type long
+   * 
+   * @param projectId
+   *          of type long
    * @return Collection<Sample>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<Sample> listByProjectId(long projectId) throws IOException;
 
   /**
    * List all Samples related to an Experiment given an Experiment ID
-   *
-   * @param experimentId of type long
+   * 
+   * @param experimentId
+   *          of type long
    * @return Collection<Sample>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<Sample> listByExperimentId(long experimentId) throws IOException;
 
   /**
    * List all Samples by a given alias
-   *
-   * @param alias of type String
+   * 
+   * @param alias
+   *          of type String
    * @return Collection<Sample>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<Sample> listByAlias(String alias) throws IOException;
 
   /**
    * List all Samples that are part of a Submission given a Submission ID
-   *
-   * @param submissionId of type long
+   * 
+   * @param submissionId
+   *          of type long
    * @return Collection<Sample>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<Sample> listBySubmissionId(long submissionId) throws IOException;
-  
+
   /**
    * List all SampleTypes
-   *
+   * 
    * @return Collection<String>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   Collection<String> listAllSampleTypes() throws IOException;
 
   /**
    * List all persisted objects
-   *
+   * 
    * @return Collection<Sample>
-   * @throws IOException when the objects cannot be retrieved
+   * @throws IOException
+   *           when the objects cannot be retrieved
    */
   Collection<Sample> listAllWithLimit(long limit) throws IOException;
 
   /**
    * List all persisted objects
-   *
+   * 
    * @return Collection<Sample>
-   * @throws IOException when the objects cannot be retrieved
+   * @throws IOException
+   *           when the objects cannot be retrieved
    */
   Collection<Sample> listAllByReceivedDate(long limit) throws IOException;
+
+  /**
+   * List the Sample associated with the given positionId
+   * @param positionId
+   *          of type long
+   * @return Boxable
+   * @throws IOException
+   *           when
+   */
+  Boxable getByPositionId(long positionId);
+
+  /**
+   * List all Samples associated with identificationBarcodes from the given 
+   * identificationBarcode list
+   * 
+   * @return Collection<Sample
+   * @throws IOException
+   *           when the objects cannot be retrieved
+   */
+  Collection<Sample> getByBarcodeList(List<String> barcodeList) throws IOException;
 }

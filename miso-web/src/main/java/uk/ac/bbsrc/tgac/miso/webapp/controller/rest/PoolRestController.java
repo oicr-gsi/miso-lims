@@ -26,17 +26,24 @@ package uk.ac.bbsrc.tgac.miso.webapp.controller.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import com.eaglegenomics.simlims.core.User;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
+import com.eaglegenomics.simlims.core.User;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
@@ -44,16 +51,10 @@ import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.jackson.UserInfoMixin;
 import uk.ac.bbsrc.tgac.miso.webapp.util.RestUtils;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * A controller to handle all REST requests for Pools
- *
- * Created by IntelliJ IDEA.
- * User: bianx
- * Date: 17-Aug-2011
- * Time: 11:34:04
+ * 
+ * Created by IntelliJ IDEA. User: bianx Date: 17-Aug-2011 Time: 11:34:04
  */
 @Controller
 @RequestMapping("/rest/pool")
@@ -78,8 +79,8 @@ public class PoolRestController {
         return mapper.writeValueAsString(p);
       }
       return mapper.writeValueAsString(RestUtils.error("No such pool with that ID.", "poolId", poolId.toString()));
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve pool", ioe);
       return mapper.writeValueAsString(RestUtils.error("Cannot retrieve pool: " + ioe.getMessage(), "poolId", poolId.toString()));
     }
   }
@@ -117,6 +118,6 @@ public class PoolRestController {
     for (String name : types) {
       names.add("\"" + name + "\"");
     }
-    return "{"+LimsUtils.join(names, ",")+"}";
+    return "{" + LimsUtils.join(names, ",") + "}";
   }
 }

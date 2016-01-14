@@ -35,48 +35,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
 @Controller
 public class ListRequestsController {
-	protected static final Logger log = LoggerFactory.getLogger(ListRequestsController.class);
+  protected static final Logger log = LoggerFactory.getLogger(ListRequestsController.class);
 
-	@Autowired
-	private SecurityManager securityManager;
+  @Autowired
+  private SecurityManager securityManager;
 
-	public void setSecurityManager(SecurityManager securityManager) {
-		this.securityManager = securityManager;
-	}
+  public void setSecurityManager(SecurityManager securityManager) {
+    this.securityManager = securityManager;
+  }
 
-	@Autowired
-	private RequestManager requestManager;
+  @Autowired
+  private RequestManager requestManager;
 
-	public void setRequestManager(RequestManager requestManager) {
-		this.requestManager = requestManager;
-	}
+  public void setRequestManager(RequestManager requestManager) {
+    this.requestManager = requestManager;
+  }
 
-	@RequestMapping("/requests")
-	public ModelAndView listRequests(
-			@RequestParam(value = "projectId", required = true) long projectId,
-			ModelMap model) throws IOException {
-		try {
-			User user = securityManager
-					.getUserByLoginName(SecurityContextHolder.getContext()
-							.getAuthentication().getName());
-			Project project = requestManager.getProjectById(projectId);
-			if (!project.userCanRead(user)) {
-				throw new SecurityException("Permission denied.");
-			}
-			//return new ModelAndView("/pages/listRequests.jsp", "requests", requestManager.listAllRequests(user, project));
-            return null;
-		} catch (IOException ex) {
-			if (log.isDebugEnabled()) {
-				log.debug("Failed to list groups", ex);
-			}
-			throw ex;
-		}
-	}
+  @RequestMapping("/requests")
+  public ModelAndView listRequests(@RequestParam(value = "projectId", required = true) long projectId, ModelMap model) throws IOException {
+    try {
+      User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
+      Project project = requestManager.getProjectById(projectId);
+      if (!project.userCanRead(user)) {
+        throw new SecurityException("Permission denied.");
+      }
+      return null;
+    } catch (IOException ex) {
+      if (log.isDebugEnabled()) {
+        log.debug("Failed to list groups", ex);
+      }
+      throw ex;
+    }
+  }
 }

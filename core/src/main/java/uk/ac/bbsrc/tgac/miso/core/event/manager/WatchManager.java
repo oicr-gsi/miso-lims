@@ -23,29 +23,32 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.manager;
 
-import com.eaglegenomics.simlims.core.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Watchable;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.manager
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 23/02/12
  * @since 0.1.6
  */
 public class WatchManager {
   protected static final Logger log = LoggerFactory.getLogger(WatchManager.class);
+
   public void watch(Watchable w, User u) {
-    log.debug("Adding watcher "+u.getLoginName()+" to "+w.getWatchableIdentifier()+" via WatchManager");
+    log.debug("Adding watcher " + u.getLoginName() + " to " + w.getWatchableIdentifier() + " via WatchManager");
     w.addWatcher(u);
   }
 
   public void unwatch(Watchable w, User u) {
-    log.debug("Removing watcher "+u.getLoginName()+" from "+w.getWatchableIdentifier()+" via WatchManager");
+    log.debug("Removing watcher " + u.getLoginName() + " from " + w.getWatchableIdentifier() + " via WatchManager");
     w.removeWatcher(u);
   }
 }

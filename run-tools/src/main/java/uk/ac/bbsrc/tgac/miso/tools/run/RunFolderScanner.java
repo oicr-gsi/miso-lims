@@ -23,10 +23,6 @@
 
 package uk.ac.bbsrc.tgac.miso.tools.run;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.file.DefaultDirectoryScanner;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,11 +30,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.file.DefaultDirectoryScanner;
+
 /**
  * uk.ac.bbsrc.tgac.miso.tools.run
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 26/10/11
  * @since 0.1.2
@@ -61,8 +61,7 @@ public class RunFolderScanner extends DefaultDirectoryScanner {
         Matcher rm = runDirPattern.matcher(rootFile.getAbsolutePath());
         if (rm.matches()) {
           files.add(rootFile);
-        }
-        else {
+        } else {
           if (rm.find()) {
             files.addAll(Arrays.asList(listEligibleFiles(rootFile)));
           }

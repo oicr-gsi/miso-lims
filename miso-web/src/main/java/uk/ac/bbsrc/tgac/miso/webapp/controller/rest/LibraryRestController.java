@@ -23,13 +23,22 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller.rest;
 
-import com.eaglegenomics.simlims.core.User;
+import java.io.IOException;
+import java.util.Collection;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
+
+import com.eaglegenomics.simlims.core.User;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Library;
 import uk.ac.bbsrc.tgac.miso.core.data.Project;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
@@ -39,12 +48,9 @@ import uk.ac.bbsrc.tgac.miso.core.util.jackson.SampleRecursionAvoidanceMixin;
 import uk.ac.bbsrc.tgac.miso.core.util.jackson.UserInfoMixin;
 import uk.ac.bbsrc.tgac.miso.webapp.util.RestUtils;
 
-import java.io.IOException;
-import java.util.Collection;
-
 /**
  * A controller to handle all REST requests for Libraries
- *
+ * 
  * @author Rob Davey
  * @date 16-Aug-2011
  * @since 0.1.0
@@ -74,8 +80,8 @@ public class LibraryRestController {
         return mapper.writeValueAsString(l);
       }
       return mapper.writeValueAsString(RestUtils.error("No such library with that ID.", "libraryId", libraryId.toString()));
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve library", ioe);
       return mapper.writeValueAsString(RestUtils.error("Cannot retrieve library: " + ioe.getMessage(), "libraryId", libraryId.toString()));
     }
   }

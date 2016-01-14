@@ -23,26 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl;
 
-import com.eaglegenomics.simlims.core.SecurityProfile;
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.Deletable;
-import uk.ac.bbsrc.tgac.miso.core.data.Nameable;
-import uk.ac.bbsrc.tgac.miso.core.data.Pool;
-import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
-
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+import com.eaglegenomics.simlims.core.SecurityProfile;
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Deletable;
+import uk.ac.bbsrc.tgac.miso.core.data.Nameable;
+import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
+
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -61,7 +62,7 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
   private LibraryDilution libraryDilution;
   private SecurityProfile securityProfile;
 
-  //TODO implement interim pool
+  // TODO implement interim pool
   private emPCRPool interimPool;
 
   private Collection<emPCRDilution> emPCRDilutions = new HashSet<emPCRDilution>();
@@ -75,8 +76,9 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
 
   /**
    * Construct a new emPCR with a SecurityProfile owned by the given User
-   *
-   * @param user of type User
+   * 
+   * @param user
+   *          of type User
    */
   public emPCR(User user) {
     setSecurityProfile(new SecurityProfile(user));
@@ -142,6 +144,7 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
     this.pcrCreator = pcrCreator;
   }
 
+  @Override
   public String getName() {
     return name;
   }
@@ -175,60 +178,58 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
     sb.append(" : ");
     sb.append(getCreationDate());
     sb.append(" : ");
-    sb.append(getConcentration()+" "+getUnits());
+    sb.append(getConcentration() + " " + getUnits());
     return sb.toString();
   }
 
+  @Override
   public SecurityProfile getSecurityProfile() {
     return securityProfile;
   }
 
+  @Override
   public void setSecurityProfile(SecurityProfile profile) {
     this.securityProfile = profile;
   }
 
+  @Override
   public void inheritPermissions(SecurableByProfile parent) throws SecurityException {
     if (parent.getSecurityProfile().getOwner() != null) {
       setSecurityProfile(parent.getSecurityProfile());
-    }
-    else {
+    } else {
       throw new SecurityException("Cannot inherit permissions when parent object owner is not set!");
     }
-  }  
+  }
 
+  @Override
   public boolean userCanRead(User user) {
     return securityProfile.userCanRead(user);
   }
 
+  @Override
   public boolean userCanWrite(User user) {
     return securityProfile.userCanWrite(user);
   }
 
+  @Override
   public boolean isDeletable() {
     return getId() != emPCR.UNSAVED_ID;
   }
 
   /**
-   * Equivalency is based on getProjectId() if set, otherwise on name,
-   * description and creation date.
+   * Equivalency is based on getProjectId() if set, otherwise on name, description and creation date.
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null)
-      return false;
-    if (obj == this)
-      return true;
-    if (!(obj instanceof emPCR))
-      return false;
+    if (obj == null) return false;
+    if (obj == this) return true;
+    if (!(obj instanceof emPCR)) return false;
     emPCR them = (emPCR) obj;
     // If not saved, then compare resolved actual objects. Otherwise
     // just compare IDs.
-    if (getId() == emPCR.UNSAVED_ID
-        || them.getId() == emPCR.UNSAVED_ID) {
-      return getName().equals(them.getName()) &&
-             getConcentration().equals(them.getConcentration());
-    }
-    else {
+    if (getId() == emPCR.UNSAVED_ID || them.getId() == emPCR.UNSAVED_ID) {
+      return getName().equals(them.getName()) && getConcentration().equals(them.getConcentration());
+    } else {
       return getId() == them.getId();
     }
   }
@@ -236,9 +237,8 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
   @Override
   public int hashCode() {
     if (getId() != emPCR.UNSAVED_ID) {
-      return (int)getId();
-    }
-    else {
+      return (int) getId();
+    } else {
       int hashcode = -1;
       if (getName() != null) hashcode = 37 * hashcode + getName().hashCode();
       if (getConcentration() != null) hashcode = 37 * hashcode + getConcentration().hashCode();
@@ -248,7 +248,7 @@ public class emPCR implements SecurableByProfile, Comparable, Deletable, Nameabl
 
   @Override
   public int compareTo(Object o) {
-    emPCR t = (emPCR)o;
+    emPCR t = (emPCR) o;
     if (getId() < t.getId()) return -1;
     if (getId() > t.getId()) return 1;
     return 0;

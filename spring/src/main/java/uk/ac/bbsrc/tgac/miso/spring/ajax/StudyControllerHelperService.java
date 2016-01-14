@@ -23,28 +23,32 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import java.io.IOException;
+
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import com.google.json.JsonSanitizer;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
 import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.SubmissionManager;
-
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
 
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -74,9 +78,8 @@ public class StudyControllerHelperService {
     User user;
     try {
       user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("error getting currently logged in user", e);
       return JSONUtils.SimpleJSONError("Error getting currently logged in user.");
     }
 
@@ -86,17 +89,14 @@ public class StudyControllerHelperService {
         try {
           requestManager.deleteStudy(requestManager.getStudyById(studyId));
           return JSONUtils.SimpleJSONResponse("Study deleted");
-        }
-        catch (IOException e) {
-          e.printStackTrace();
+        } catch (IOException e) {
+          log.error("cannot delete study", e);
           return JSONUtils.SimpleJSONError("Cannot delete study: " + e.getMessage());
         }
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONError("No study specified to delete.");
       }
-    }
-    else {
+    } else {
       return JSONUtils.SimpleJSONError("Only admins can delete objects.");
     }
   }
@@ -106,19 +106,17 @@ public class StudyControllerHelperService {
       JSONObject j = new JSONObject();
       JSONArray jsonArray = new JSONArray();
       for (Study study : requestManager.listAllStudies()) {
-        jsonArray.add("['" + 
+        jsonArray.add(JsonSanitizer.sanitize("['" + 
                       TableHelper.hyperLinkify("/miso/study/" + study.getId(), 
                                                 study.getName(), true) + "','" +
                       TableHelper.hyperLinkify("/miso/study/" + study.getId(), 
                                                 study.getAlias()) + "','" +
                       study.getDescription() + "','" +
-                      study.getStudyType() + "','" + "']");
-                      //"<a href=\"/miso/study/" + study.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "']");
+                      study.getStudyType() + "','" + "']"));
       }
       j.put("array", jsonArray);
       return j;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }

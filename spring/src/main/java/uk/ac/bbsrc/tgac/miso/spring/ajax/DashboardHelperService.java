@@ -23,13 +23,17 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.codec.binary.Base64;
-import uk.ac.bbsrc.tgac.miso.core.data.Project;
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +41,19 @@ import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.InetOrgPerson;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.data.Study;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.UserImpl;
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
@@ -45,18 +61,11 @@ import uk.ac.bbsrc.tgac.miso.core.event.type.AlertLevel;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
 
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * uk.ac.bbsrc.tgac.miso.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Xingdong Bian
  * @author Rob Davey
  * @since 0.0.2
@@ -71,12 +80,12 @@ public class DashboardHelperService {
 
   public JSONObject checkUser(HttpSession session, JSONObject json) {
     String username = json.getString("username");
-    if (username != null && !username.equals("")) {
+    if (isStringEmptyOrNull(username)) {
       if (SecurityContextHolder.getContext().getAuthentication().getName().equals(username)) {
         try {
           User user = securityManager.getUserByLoginName(username);
           if (user == null) {
-            //user is authed, but doesn't exist in the LIMS DB. Save that user!
+            // user is authed, but doesn't exist in the LIMS DB. Save that user!
             User u = new UserImpl();
             Object o = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (o instanceof UserDetails) {
@@ -92,13 +101,11 @@ public class DashboardHelperService {
 
               if (details.getAuthorities().contains(new GrantedAuthorityImpl("ROLE_INTERNAL"))) {
                 u.setInternal(true);
-                u.setRoles(new String[]{"ROLE_INTERNAL"});
-              }
-              else if (details.getAuthorities().contains(new GrantedAuthorityImpl("ROLE_EXTERNAL"))) {
+                u.setRoles(new String[] { "ROLE_INTERNAL" });
+              } else if (details.getAuthorities().contains(new GrantedAuthorityImpl("ROLE_EXTERNAL"))) {
                 u.setExternal(true);
-                u.setRoles(new String[]{"ROLE_EXTERNAL"});
-              }
-              else {
+                u.setRoles(new String[] { "ROLE_EXTERNAL" });
+              } else {
                 log.warn("Unrecognised roles");
               }
 
@@ -108,13 +115,12 @@ public class DashboardHelperService {
               }
 
               securityManager.saveUser(u);
+            } else {
+              return JSONUtils.SimpleJSONError(
+                  "The UserDetailsService specified in the Spring config cannot support mapping of usernames to UserDetails objects");
             }
-            else {
-              return JSONUtils.SimpleJSONError("The UserDetailsService specified in the Spring config cannot support mapping of usernames to UserDetails objects");
-            }
-          }
-          else {
-            //the user isn't null, but LDAP is "newer" than the LIMS, i.e. LDAP pass changed but LIMS still the same
+          } else {
+            // the user isn't null, but LDAP is "newer" than the LIMS, i.e. LDAP pass changed but LIMS still the same
             Object o = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (o instanceof UserDetails) {
               UserDetails details = (UserDetails) o;
@@ -125,13 +131,11 @@ public class DashboardHelperService {
             }
           }
           return null;
-        }
-        catch (IOException e) {
-          e.printStackTrace();
+        } catch (IOException e) {
+          log.error("check user", e);
           return JSONUtils.SimpleJSONError("Something went wrong trying to get user information from the database: " + e.getMessage());
         }
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONError("Cannot check LIMS user database table if you are not authenticated as that user!");
       }
     }
@@ -143,30 +147,28 @@ public class DashboardHelperService {
     try {
       List<Project> projects;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
-        projects = new ArrayList<Project>(requestManager.listAllProjectsBySearch(searchStr));
-      }
-      else {
-        projects = new ArrayList<Project>(requestManager.listAllProjectsWithLimit(50));
+      if (!isStringEmptyOrNull(searchStr)) {
+        projects = new ArrayList<>(requestManager.listAllProjectsBySearch(searchStr));
+      } else {
+        projects = new ArrayList<>(requestManager.listAllProjectsWithLimit(50));
       }
 
       if (projects.size() > 0) {
         Collections.sort(projects);
         Collections.reverse(projects);
         for (Project p : projects) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/project/" + p.getProjectId() + "\"><div onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/project/" + p.getProjectId()
+              + "\"><div onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + p.getName() + "</b><br/>");
           b.append("Alias: <b>" + p.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
 
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -177,10 +179,9 @@ public class DashboardHelperService {
     try {
       List<Study> studies;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         studies = new ArrayList<Study>(requestManager.listAllStudiesBySearch(searchStr));
-      }
-      else {
+      } else {
         studies = new ArrayList<Study>(requestManager.listAllStudiesWithLimit(50));
       }
 
@@ -188,18 +189,17 @@ public class DashboardHelperService {
         Collections.sort(studies);
         Collections.reverse(studies);
         for (Study s : studies) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/study/" + s.getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/study/" + s.getId()
+              + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + s.getName() + "</b><br/>");
           b.append("Alias: <b>" + s.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -210,10 +210,9 @@ public class DashboardHelperService {
     try {
       List<Experiment> experiments;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         experiments = new ArrayList<Experiment>(requestManager.listAllExperimentsBySearch(searchStr));
-      }
-      else {
+      } else {
         experiments = new ArrayList<Experiment>(requestManager.listAllExperimentsWithLimit(50));
       }
 
@@ -221,18 +220,17 @@ public class DashboardHelperService {
         Collections.sort(experiments);
         Collections.reverse(experiments);
         for (Experiment e : experiments) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/experiment/" + e.getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/experiment/" + e.getId()
+              + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + e.getName() + "</b><br/>");
           b.append("Alias: <b>" + e.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -243,10 +241,9 @@ public class DashboardHelperService {
     try {
       List<Run> runs;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         runs = new ArrayList<Run>(requestManager.listAllRunsBySearch(searchStr));
-      }
-      else {
+      } else {
         runs = new ArrayList<Run>(requestManager.listAllRunsWithLimit(50));
       }
 
@@ -254,18 +251,17 @@ public class DashboardHelperService {
         Collections.sort(runs);
         Collections.reverse(runs);
         for (Run r : runs) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/run/" + r.getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/run/" + r.getId()
+              + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + r.getName() + "</b><br/>");
           b.append("Alias: <b>" + r.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -276,10 +272,9 @@ public class DashboardHelperService {
     try {
       List<LibraryDilution> libraryDilutions;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         libraryDilutions = new ArrayList<LibraryDilution>(requestManager.listAllLibraryDilutionsBySearchOnly(searchStr));
-      }
-      else {
+      } else {
         libraryDilutions = new ArrayList<LibraryDilution>(requestManager.listAllLibraryDilutionsWithLimit(50));
       }
 
@@ -289,21 +284,19 @@ public class DashboardHelperService {
         for (LibraryDilution ld : libraryDilutions) {
           if (ld != null) {
             if (ld.getLibrary() != null) {
-              b.append("<a class=\"dashboardresult\" href=\"/miso/library/" + ld.getLibrary().getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+              b.append("<a class=\"dashboardresult\" href=\"/miso/library/" + ld.getLibrary().getId()
+                  + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
               b.append("Name: <b>" + ld.getName() + "</b><br/>");
               b.append("From Library: <b>" + ld.getLibrary().getAlias() + "(" + ld.getLibrary().getName() + ")</b><br/>");
-//              b.append("From Sample: <b>" + ld.getLibrary().getSample().getAlias() + "(" + ld.getLibrary().getSample().getName() + ")</b><br/>");
               b.append("</div></a>");
             }
           }
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -314,14 +307,13 @@ public class DashboardHelperService {
     try {
       List<Library> libraries;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         if (LimsUtils.isBase64String(searchStr)) {
-          //Base64-encoded string, most likely a barcode image beeped in. decode and search
+          // Base64-encoded string, most likely a barcode image beeped in. decode and search
           searchStr = new String(Base64.decodeBase64(searchStr));
         }
         libraries = new ArrayList<Library>(requestManager.listAllLibrariesBySearch(searchStr));
-      }
-      else {
+      } else {
         libraries = new ArrayList<Library>(requestManager.listAllLibrariesWithLimit(50));
       }
 
@@ -329,18 +321,17 @@ public class DashboardHelperService {
         Collections.sort(libraries);
         Collections.reverse(libraries);
         for (Library l : libraries) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/library/" + l.getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/library/" + l.getId()
+              + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + l.getName() + "</b><br/>");
           b.append("Alias: <b>" + l.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -351,33 +342,31 @@ public class DashboardHelperService {
     try {
       List<Sample> samples;
       StringBuilder b = new StringBuilder();
-      if (!"".equals(searchStr)) {
+      if (!isStringEmptyOrNull(searchStr)) {
         if (LimsUtils.isBase64String(searchStr)) {
-          //Base64-encoded string, most likely a barcode image beeped in. decode and search
+          // Base64-encoded string, most likely a barcode image beeped in. decode and search
           searchStr = new String(Base64.decodeBase64(searchStr));
         }
-        samples = new ArrayList<Sample>(requestManager.listAllSamplesBySearch(searchStr));
-      }
-      else {
-        samples = new ArrayList<Sample>(requestManager.listAllSamplesWithLimit(50));
+        samples = new ArrayList<>(requestManager.listAllSamplesBySearch(searchStr));
+      } else {
+        samples = new ArrayList<>(requestManager.listAllSamplesWithLimit(50));
       }
 
       if (samples.size() > 0) {
         Collections.sort(samples);
         Collections.reverse(samples);
         for (Sample s : samples) {
-          b.append("<a class=\"dashboardresult\" href=\"/miso/sample/" + s.getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+          b.append("<a class=\"dashboardresult\" href=\"/miso/sample/" + s.getId()
+              + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
           b.append("Name: <b>" + s.getName() + "</b><br/>");
           b.append("Alias: <b>" + s.getAlias() + "</b><br/>");
           b.append("</div></a>");
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
@@ -390,10 +379,9 @@ public class DashboardHelperService {
       if (!requestManager.listUnreadAlertsByUserId(user.getUserId()).isEmpty()) {
         response.put("newAlerts", true);
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (IOException e) {
+      log.error("check alerts", e);
+      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
     return response;
   }
@@ -405,17 +393,15 @@ public class DashboardHelperService {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       List<Alert> alerts;
       if (json.has("showReadAlerts") && json.getBoolean("showReadAlerts")) {
-        alerts = new ArrayList<Alert>(requestManager.listAlertsByUserId(user.getUserId()));
-      }
-      else {
-        alerts = new ArrayList<Alert>(requestManager.listUnreadAlertsByUserId(user.getUserId()));
+        alerts = new ArrayList<>(requestManager.listAlertsByUserId(user.getUserId()));
+      } else {
+        alerts = new ArrayList<>(requestManager.listUnreadAlertsByUserId(user.getUserId()));
       }
       Collections.sort(alerts);
       for (Alert a : alerts) {
         if (a.getAlertLevel().equals(AlertLevel.CRITICAL) || a.getAlertLevel().equals(AlertLevel.HIGH)) {
           b.append("<div alertId='" + a.getAlertId() + "' class=\"dashboard error\">");
-        }
-        else {
+        } else {
           b.append("<div alertId='" + a.getAlertId() + "' class=\"dashboard\">");
         }
 
@@ -426,10 +412,9 @@ public class DashboardHelperService {
         }
         b.append("</div>");
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (IOException e) {
+      log.error("get alerts", e);
+      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
 
     return JSONUtils.JSONObjectResponse("html", b.toString());
@@ -450,8 +435,7 @@ public class DashboardHelperService {
         for (Alert a : alerts) {
           if (a.getAlertLevel().equals(AlertLevel.CRITICAL) || a.getAlertLevel().equals(AlertLevel.HIGH)) {
             b.append("<div alertId='" + a.getAlertId() + "' class=\"dashboard error\">");
-          }
-          else {
+          } else {
             b.append("<div alertId='" + a.getAlertId() + "' class=\"dashboard\">");
           }
 
@@ -459,14 +443,12 @@ public class DashboardHelperService {
           b.append(a.getAlertText() + "<br/>");
           b.append("</div>");
         }
+      } else {
+        return JSONUtils.SimpleJSONError("Failed: You do not have access to view system level alerts");
       }
-      else {
-        JSONUtils.SimpleJSONError("Failed: You do not have access to view system level alerts");
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (IOException e) {
+      log.error("get system alerts", e);
+      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
 
     return JSONUtils.JSONObjectResponse("html", b.toString());
@@ -480,14 +462,12 @@ public class DashboardHelperService {
       if (a.getAlertUser().equals(user)) {
         a.setAlertRead(true);
         requestManager.saveAlert(a);
+      } else {
+        return JSONUtils.SimpleJSONError("You do not have the rights to set this alert as read");
       }
-      else {
-        JSONUtils.SimpleJSONError("You do not have the rights to set this alert as read");
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (IOException e) {
+      log.error("set alert as read", e);
+      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }
@@ -501,15 +481,13 @@ public class DashboardHelperService {
         if (a.getAlertUser().equals(user)) {
           a.setAlertRead(true);
           requestManager.saveAlert(a);
-        }
-        else {
-          JSONUtils.SimpleJSONError("You do not have the rights to set this alert as read");
+        } else {
+          return JSONUtils.SimpleJSONError("You do not have the rights to set this alert as read");
         }
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
+    } catch (IOException e) {
+      log.error("set all alerts as read", e);
+      return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }
     return JSONUtils.SimpleJSONResponse("ok");
   }
@@ -522,20 +500,19 @@ public class DashboardHelperService {
       if (samples.size() > 0) {
         for (Sample s : samples) {
           if (s.getReceivedDate() != null) {
-            b.append("<a class=\"dashboardresult\" href=\"/miso/project/" + s.getProject().getId() + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
+            b.append("<a class=\"dashboardresult\" href=\"/miso/project/" + s.getProject().getId()
+                + "\"><div  onMouseOver=\"this.className=&#39dashboardhighlight&#39\" onMouseOut=\"this.className=&#39dashboard&#39\" class=\"dashboard\">");
             b.append("Name: <b>" + s.getProject().getName() + "</b><br/>");
             b.append("Alias: <b>" + s.getProject().getAlias() + "</b><br/>");
             b.append("Last Received: <b>" + LimsUtils.getDateAsString(s.getReceivedDate()) + "</b><br/>");
             b.append("</div>");
           }
         }
-      }
-      else {
+      } else {
         b.append("No matches");
       }
       return JSONUtils.JSONObjectResponse("html", b.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       log.debug("Failed", e);
       return JSONUtils.SimpleJSONError("Failed: " + e.getMessage());
     }

@@ -23,22 +23,23 @@
 
 package uk.ac.bbsrc.tgac.miso.task.demo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.fgpt.conan.model.ConanParameter;
-import uk.ac.ebi.fgpt.conan.model.ConanProcess;
-import uk.ac.ebi.fgpt.conan.service.exception.ProcessExecutionException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.ac.ebi.fgpt.conan.model.ConanParameter;
+import uk.ac.ebi.fgpt.conan.model.ConanProcess;
+import uk.ac.ebi.fgpt.conan.service.exception.ProcessExecutionException;
+
 /**
  * uk.ac.bbsrc.tgac.miso.task.lsf
  * <p/>
  * Test LSF process task
- *
+ * 
  * @author Rob Davey
  * @date 23-Jun-2011
  * @since 0.0.3
@@ -98,23 +99,25 @@ public class TestLsfProcess implements ConanProcess {
       log.info("Parameters set. Executing...");
       boolean foo = tlsfp.execute(testParams);
       log.info("Result: " + foo);
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       e.printStackTrace();
-    }
-    catch (ProcessExecutionException e) {
+    } catch (ProcessExecutionException e) {
       e.printStackTrace();
     }
   }
 
-  public boolean execute(Map<ConanParameter, String> parameters) throws IllegalArgumentException, ProcessExecutionException, InterruptedException {
+  @Override
+  public boolean execute(Map<ConanParameter, String> parameters)
+      throws IllegalArgumentException, ProcessExecutionException, InterruptedException {
     return new TestLsfTask().execute(parameters);
   }
 
+  @Override
   public String getName() {
     return "TestLsfProcess";
   }
 
+  @Override
   public Collection<ConanParameter> getParameters() {
     return new ArrayList<ConanParameter>();
   }

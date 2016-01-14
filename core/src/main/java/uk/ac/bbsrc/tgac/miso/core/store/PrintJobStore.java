@@ -23,16 +23,17 @@
 
 package uk.ac.bbsrc.tgac.miso.core.store;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
-
 import java.io.IOException;
 import java.util.List;
 
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
+
 /**
  * Defines a DAO interface for storing PrintJobs
- *
+ * 
  * @author Rob Davey
  * @date 01-Jul-2011
  * @since 0.0.3
@@ -40,19 +41,23 @@ import java.util.List;
 public interface PrintJobStore extends Store<PrintJob> {
   /**
    * List all {@link PrintJob} objects that belong to a given {@link User}
-   *
-   * @param user of type User
+   * 
+   * @param user
+   *          of type User
    * @return List<PrintJob>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   List<PrintJob> listByUser(User user) throws IOException;
 
   /**
    * List all {@link PrintJob} objects that were printed by a given {@link MisoPrintService}
-   *
-   * @param service of type MisoPrintService
+   * 
+   * @param service
+   *          of type MisoPrintService
    * @return List<PrintJob>
-   * @throws IOException when
+   * @throws IOException
+   *           when
    */
   List<PrintJob> listByPrintService(MisoPrintService service) throws IOException;
 }

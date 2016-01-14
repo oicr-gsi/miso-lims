@@ -23,15 +23,24 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller.rest;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.util.Collection;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.core.data.Run;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
 import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
@@ -41,12 +50,9 @@ import uk.ac.bbsrc.tgac.miso.core.util.jackson.ContainerRecursionAvoidanceMixin;
 import uk.ac.bbsrc.tgac.miso.core.util.jackson.UserInfoMixin;
 import uk.ac.bbsrc.tgac.miso.webapp.util.RestUtils;
 
-import java.io.IOException;
-import java.util.Collection;
-
 /**
  * A controller to handle all REST requests for Runs
- *
+ * 
  * @author Rob Davey
  * @date 01-Sep-2011
  * @since 0.1.0
@@ -80,8 +86,8 @@ public class RunRestController {
         return mapper.writeValueAsString(r);
       }
       return mapper.writeValueAsString(RestUtils.error("No such run with that ID.", "runId", runId.toString()));
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve run", ioe);
       return mapper.writeValueAsString(RestUtils.error("Cannot retrieve run: " + ioe.getMessage(), "runId", runId.toString()));
     }
   }
@@ -97,8 +103,8 @@ public class RunRestController {
         return mapper.writeValueAsString(r);
       }
       return mapper.writeValueAsString(RestUtils.error("No such run with that alias.", "runAlias", runAlias.toString()));
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
+      log.error("cannot retrieve run", ioe);
       return mapper.writeValueAsString(RestUtils.error("Cannot retrieve run: " + ioe.getMessage(), "runAlias", runAlias));
     }
   }
@@ -115,7 +121,7 @@ public class RunRestController {
     }
     return RestUtils.error("No such run with that alias.", "runAlias", runAlias.toString()).toString();
   }
-  
+
   @RequestMapping(method = RequestMethod.GET)
   public @ResponseBody String listAllRuns() throws IOException {
     Collection<Run> lr = requestManager.listAllRuns();

@@ -23,18 +23,20 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
+import java.util.Date;
+import java.util.Queue;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.util.Date;
-import java.util.Queue;
+
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
 
 /**
  * Skeleton implementation of a PrintJob
- *
+ * 
  * @author Rob Davey
  * @date 01-Jul-2011
  * @since 0.0.3
@@ -112,7 +114,7 @@ public class AbstractPrintJob implements PrintJob {
 
   @Override
   public int compareTo(Object o) {
-    PrintJob t = (PrintJob)o;
+    PrintJob t = (PrintJob) o;
     if (getJobId() < t.getJobId()) return -1;
     if (getJobId() > t.getJobId()) return 1;
     return 0;

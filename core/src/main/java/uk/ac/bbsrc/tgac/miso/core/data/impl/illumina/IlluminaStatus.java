@@ -23,31 +23,34 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.impl.illumina;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+
 import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
 import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.StringReader;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.impl.illumina
  * <p/>
  * TODO Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
 public class IlluminaStatus extends StatusImpl {
+  protected static final Logger log = LoggerFactory.getLogger(IlluminaStatus.class);
   String statusXml = null;
 
   public IlluminaStatus() {
@@ -74,8 +77,7 @@ public class IlluminaStatus extends StatusImpl {
         }
         setRunName(runName);
         setHealth(HealthType.Unknown);
-      }
-      else {
+      } else {
         String runStarted = statusDoc.getElementsByTagName("RunStarted").item(0).getTextContent();
         setStartDate(new SimpleDateFormat("EEEE, MMMMM dd, yyyy h:mm aaa").parse(runStarted));
         setInstrumentName(statusDoc.getElementsByTagName("InstrumentName").item(0).getTextContent());
@@ -83,15 +85,12 @@ public class IlluminaStatus extends StatusImpl {
         setHealth(HealthType.Unknown);
       }
       setXml(statusXml);
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
-    }
-    catch (TransformerException e) {
-      e.printStackTrace();
-    }
-    catch (ParseException e) {
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("parse status XML", e);
+    } catch (TransformerException e) {
+      log.error("parse status XML", e);
+    } catch (ParseException e) {
+      log.error("parse status XML", e);
     }
   }
 

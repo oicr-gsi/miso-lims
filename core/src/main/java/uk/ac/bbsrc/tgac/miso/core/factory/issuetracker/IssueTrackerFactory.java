@@ -23,17 +23,23 @@
 
 package uk.ac.bbsrc.tgac.miso.core.factory.issuetracker;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.ServiceLoader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.manager.IssueTrackerManager;
 
-import java.util.*;
+import uk.ac.bbsrc.tgac.miso.core.manager.IssueTrackerManager;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.factory.issuetracker
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 15/06/12
  * @since 0.1.6
@@ -53,12 +59,12 @@ public class IssueTrackerFactory {
         return manager;
       }
     }
-    log.warn("No issue manager which supports the '" + trackerType+ "' type was available on the classpath");
+    log.warn("No issue manager which supports the '" + trackerType + "' type was available on the classpath");
     return null;
   }
 
   public Collection<IssueTrackerManager> getTrackerManagers() {
-    //lazily load available issue tracker managers
+    // lazily load available issue tracker managers
     log.info("Grabbing available issue tracker managers...");
     if (managerMap == null) {
       log.info("...lazily");
@@ -71,11 +77,10 @@ public class IssueTrackerFactory {
 
         if (!managerMap.containsKey(p.getType())) {
           managerMap.put(p.getType(), p);
-        }
-        else {
+        } else {
           if (managerMap.get(p.getType()) != p) {
-            String msg = "Multiple different IssueTrackerManager with the same issue tracker type name " +
-                         "('" + p.getType() + "') are present on the classpath. Issue tracker types names must be unique.";
+            String msg = "Multiple different IssueTrackerManager with the same issue tracker type name " + "('" + p.getType()
+                + "') are present on the classpath. Issue tracker types names must be unique.";
             log.error(msg);
             throw new ServiceConfigurationError(msg);
           }

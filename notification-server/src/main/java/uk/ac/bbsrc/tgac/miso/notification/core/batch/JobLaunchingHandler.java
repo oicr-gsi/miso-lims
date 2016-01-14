@@ -25,7 +25,10 @@ package uk.ac.bbsrc.tgac.miso.notification.core.batch;
 
 import java.util.Map;
 
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -38,7 +41,7 @@ import org.springframework.batch.core.repository.JobRestartException;
  * uk.ac.bbsrc.tgac.miso.notification.handler
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 08-Dec-2010
  * @since 0.0.2
@@ -54,10 +57,8 @@ public class JobLaunchingHandler {
     this.jobLauncher = jobLauncher;
   }
 
-  public JobExecution launch(JobLaunchRequest request)
-          throws JobExecutionAlreadyRunningException, JobRestartException,
-                 JobInstanceAlreadyCompleteException, JobParametersInvalidException,
-                 NoSuchJobException {
+  public JobExecution launch(JobLaunchRequest request) throws JobExecutionAlreadyRunningException, JobRestartException,
+      JobInstanceAlreadyCompleteException, JobParametersInvalidException, NoSuchJobException {
     Job job = new SimpleJob(request.getJobName());
     JobParametersBuilder builder = new JobParametersBuilder();
     for (Map.Entry<String, String> entry : request.getJobParameters().entrySet()) {

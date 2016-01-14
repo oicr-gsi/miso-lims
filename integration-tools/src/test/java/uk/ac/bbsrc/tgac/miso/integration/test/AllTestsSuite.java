@@ -26,11 +26,13 @@ package uk.ac.bbsrc.tgac.miso.integration.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
+import uk.ac.bbsrc.tgac.miso.integration.test.visionmate.VisionMateScanTests;
+import uk.ac.bbsrc.tgac.miso.integration.test.visionmate.VisionMateScannerTests;
 /**
  * uk.ac.bbsrc.tgac.miso.integration.test
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 22-May-2012
  * @since 0.1.6
@@ -38,7 +40,8 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  //JargonTests.class
+  VisionMateScanTests.class,
+  VisionMateScannerTests.class
 })
 
 public class AllTestsSuite {

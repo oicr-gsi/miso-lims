@@ -23,19 +23,20 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.service.integration.illumina;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
-import java.util.Map;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.service.integration.illumina
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 07-Mar-2011
  * @since version

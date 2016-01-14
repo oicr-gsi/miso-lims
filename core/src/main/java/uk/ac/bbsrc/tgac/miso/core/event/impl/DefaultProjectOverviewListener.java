@@ -23,23 +23,21 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.event.Event;
 import uk.ac.bbsrc.tgac.miso.core.event.ResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.listener.MisoListener;
-import uk.ac.bbsrc.tgac.miso.core.event.listener.ProjectOverviewListener;
-import uk.ac.bbsrc.tgac.miso.core.event.model.ProjectOverviewEvent;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.impl
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 16/11/11
  * @since 0.1.3
@@ -54,6 +52,7 @@ public class DefaultProjectOverviewListener implements MisoListener {
     return responderServices;
   }
 
+  @Override
   public void setResponderServices(Collection<? extends ResponderService> responderServices) {
     this.responderServices = responderServices;
   }

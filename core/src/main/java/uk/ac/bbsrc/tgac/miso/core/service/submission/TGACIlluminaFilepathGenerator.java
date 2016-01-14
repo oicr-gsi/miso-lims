@@ -23,15 +23,7 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.submission;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.*;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.exception.SubmissionException;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -41,12 +33,21 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.sourceforge.fluxion.spi.ServiceProvider;
+import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.Poolable;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.SubmissionException;
+
 /**
- * Created by IntelliJ IDEA.
- * User: collesa
- * Date: 04/04/12
- * Time: 15:15
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: collesa Date: 04/04/12 Time: 15:15 To change this template use File | Settings | File Templates.
  */
 @ServiceProvider
 public class TGACIlluminaFilepathGenerator implements FilePathGenerator {
@@ -54,7 +55,8 @@ public class TGACIlluminaFilepathGenerator implements FilePathGenerator {
 
   String basePath = "";
 
-  public TGACIlluminaFilepathGenerator() {}
+  public TGACIlluminaFilepathGenerator() {
+  }
 
   public TGACIlluminaFilepathGenerator(String basePath) {
     this.basePath = basePath;
@@ -72,14 +74,12 @@ public class TGACIlluminaFilepathGenerator implements FilePathGenerator {
         Collection<Experiment> experiments = pool.getExperiments();
         Experiment experiment = experiments.iterator().next();
         StringBuilder filePath = new StringBuilder();
-        if (!"".equals(basePath)) {
-          filePath.append(partition.getSequencerPartitionContainer().getRun().getFilePath() + "/Data/Intensities/BaseCalls/PAP/Project_" +
-                            experiment.getStudy().getProject().getAlias() + "/Sample_" + l.getLibrary().getName() + "/" +
-                            l.getLibrary().getName());
-        }
-        else {
-          filePath.append(basePath + "/" + experiment.getStudy().getProject().getAlias() + "/Sample_" + l.getLibrary().getName() + "/" +
-                            l.getLibrary().getName());
+        if (!isStringEmptyOrNull(basePath)) {
+          filePath.append(partition.getSequencerPartitionContainer().getRun().getFilePath() + "/Data/Intensities/BaseCalls/PAP/Project_"
+              + experiment.getStudy().getProject().getAlias() + "/Sample_" + l.getLibrary().getName() + "/" + l.getLibrary().getName());
+        } else {
+          filePath.append(basePath + "/" + experiment.getStudy().getProject().getAlias() + "/Sample_" + l.getLibrary().getName() + "/"
+              + l.getLibrary().getName());
         }
         if (l.getLibrary().getTagBarcodes() != null && !l.getLibrary().getTagBarcodes().isEmpty()) {
           filePath.append("_");
@@ -91,12 +91,10 @@ public class TGACIlluminaFilepathGenerator implements FilePathGenerator {
         Set<File> files = new HashSet<File>();
         files.add(new File(filePath.toString()));
         return files;
-      }
-      else {
+      } else {
         throw new SubmissionException("partition.getPool=null!");
       }
-    }
-    else {
+    } else {
       throw new SubmissionException("Collection of experiments is empty");
     }
   }
@@ -104,27 +102,24 @@ public class TGACIlluminaFilepathGenerator implements FilePathGenerator {
   @Override
   public Set<File> generateFilePaths(SequencerPoolPartition partition) throws SubmissionException {
     Set<File> filePaths = new HashSet<File>();
-    if((partition.getSequencerPartitionContainer().getRun().getFilePath()) == null){
+    if ((partition.getSequencerPartitionContainer().getRun().getFilePath()) == null) {
       throw new SubmissionException("No valid run filepath!");
     }
 
     Pool<? extends Poolable> pool = partition.getPool();
     if (pool == null) {
       throw new SubmissionException("partition.getPool=null!");
-    }
-    else {
+    } else {
       Collection<Experiment> experiments = pool.getExperiments();
       if (experiments.isEmpty()) {
         throw new SubmissionException("Collection or experiments is empty");
-      }
-      else {
+      } else {
         Collection<? extends Dilution> libraryDilutions = pool.getDilutions();
         if (libraryDilutions.isEmpty()) {
           throw new SubmissionException("Collection of libraryDilutions is empty");
-        }
-        else {
+        } else {
           for (Dilution l : libraryDilutions) {
-            Set<File> files = generateFilePath(partition,l);
+            Set<File> files = generateFilePath(partition, l);
             filePaths.addAll(files);
           }
         }

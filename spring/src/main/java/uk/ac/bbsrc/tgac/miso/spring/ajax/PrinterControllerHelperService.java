@@ -23,22 +23,34 @@
 
 package uk.ac.bbsrc.tgac.miso.spring.ajax;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.*;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.Ajaxified;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
+import static uk.ac.bbsrc.tgac.miso.core.util.LimsUtils.isStringEmptyOrNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+
+import javax.servlet.http.HttpSession;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import net.sf.json.JSONObject;
+import net.sourceforge.fluxion.ajax.Ajaxified;
+import net.sourceforge.fluxion.ajax.util.JSONUtils;
 import uk.ac.bbsrc.tgac.miso.core.data.Barcodable;
-import uk.ac.bbsrc.tgac.miso.core.data.Platform;
 import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
-import uk.ac.bbsrc.tgac.miso.core.factory.barcode.BarcodeFactory;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.PrintManager;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.CustomPrintService;
@@ -48,17 +60,11 @@ import uk.ac.bbsrc.tgac.miso.core.service.printing.context.PrintContext;
 import uk.ac.bbsrc.tgac.miso.core.service.printing.schema.BarcodableSchema;
 import uk.ac.bbsrc.tgac.miso.core.util.PrintServiceUtils;
 
-import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.*;
-
 /**
  * uk.ac.bbsrc.tgac.miso.spring.ajax
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.3
  */
@@ -79,7 +85,7 @@ public class PrinterControllerHelperService {
   public JSONObject listAvailableServices(HttpSession session, JSONObject json) {
     try {
       StringBuilder sb = new StringBuilder();
-      if (json.has("serviceClass") && !"".equals(json.getString("serviceClass"))) {
+      if (json.has("serviceClass") && !isStringEmptyOrNull(json.getString("serviceClass"))) {
         Collection<MisoPrintService> ps = printManager.listPrintServicesByBarcodeableClass(Class.forName(json.getString("serviceClass")));
         if (ps.size() > 1) {
           sb.append("<option value=''>Select print service...</option>");
@@ -87,8 +93,7 @@ public class PrinterControllerHelperService {
         for (MisoPrintService p : ps) {
           if (p.isEnabled()) sb.append("<option value=" + p.getName() + ">" + p.getName() + "</option>");
         }
-      }
-      else {
+      } else {
         Collection<MisoPrintService> ps = printManager.listAllPrintServices();
         if (ps.size() > 1) {
           sb.append("<option value=''>Select print service...</option>");
@@ -98,13 +103,11 @@ public class PrinterControllerHelperService {
         }
       }
       return JSONUtils.JSONObjectResponse("services", sb.toString());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("list available services", e);
       return JSONUtils.SimpleJSONError("Cannot retrieve available print services");
-    }
-    catch (ClassNotFoundException e) {
-      e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+      log.error("list available services", e);
       return JSONUtils.SimpleJSONError("Cannot resolve the print service class: " + json.getString("serviceClass"));
     }
   }
@@ -150,18 +153,16 @@ public class PrinterControllerHelperService {
 
   public JSONObject getContextFields(HttpSession session, JSONObject json) {
     try {
-      if (json.has("contextName") && !json.get("contextName").equals("")) {
+      if (json.has("contextName") && !isStringEmptyOrNull(json.getString("contextName"))) {
         PrintContext p = printManager.getPrintContext(json.getString("contextName"));
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("contextFields", PrintServiceUtils.mapContextFieldsToJSON(p));
         return JSONUtils.JSONObjectResponse(map);
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONError("No context or invalid context name supplied");
       }
-    }
-    catch (IllegalAccessException e) {
-      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      log.error("get context fiedls", e);
       return JSONUtils.SimpleJSONError("Cannot get context fields for context: " + json.getString("contextName"));
     }
   }
@@ -169,17 +170,15 @@ public class PrinterControllerHelperService {
   public JSONObject checkPrinterAvailability(HttpSession session, JSONObject json) {
     try {
 
-      if (json.has("host") && !json.get("host").equals("")) {
+      if (json.has("host") && !isStringEmptyOrNull(json.getString("host"))) {
         InetAddress i = InetAddress.getByName(json.getString("host"));
         if (i.isReachable(2000)) {
           return JSONUtils.JSONObjectResponse("html", "OK");
-        }
-        else {
+        } else {
           return JSONUtils.JSONObjectResponse("html", "FAIL");
         }
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.debug("Failed to check printer availability: ", e);
       return JSONUtils.JSONObjectResponse("html", "FAIL");
     }
@@ -202,29 +201,25 @@ public class PrinterControllerHelperService {
       printService.setEnabled(true);
       if ("Custom".equals(json.getString("serviceFor"))) {
         printService.setPrintServiceFor(JSONObject.class);
-      }
-      else {
+      } else {
         printService.setPrintServiceFor(Class.forName(json.getString("serviceFor")).asSubclass(Barcodable.class));
       }
       printManager.storePrintService(printService);
       return JSONUtils.JSONObjectResponse("html", "OK");
-    }
-    catch (ClassNotFoundException e) {
-      e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+      log.error("add print service", e);
       return JSONUtils.SimpleJSONError("Cannot add printer service:" + e.getMessage());
-    }
-    catch (IllegalAccessException e) {
-      e.printStackTrace();
+    } catch (IllegalAccessException e) {
+      log.error("add print service", e);
       return JSONUtils.SimpleJSONError("Cannot add printer service." + e.getMessage());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("add print service", e);
       return JSONUtils.SimpleJSONError("Cannot add printer service." + e.getMessage());
     }
   }
 
   public JSONObject disablePrintService(HttpSession session, JSONObject json) {
-    if (json.has("printerName") && json.getString("printerName") != null && !"".equals(json.getString("printerName"))) {
+    if (json.has("printerName") && !isStringEmptyOrNull(json.getString("printerName"))) {
       String printerName = json.getString("printerName");
       try {
         MisoPrintService bps = printManager.getPrintService(printerName);
@@ -233,19 +228,17 @@ public class PrinterControllerHelperService {
           printManager.storePrintService(bps);
         }
         return JSONUtils.SimpleJSONResponse("Printer disabled");
-      }
-      catch (IOException e) {
-        e.printStackTrace();
+      } catch (IOException e) {
+        log.error("disable print service", e);
         return JSONUtils.SimpleJSONError("Cannot resolve printer with name: " + printerName + " : " + e.getMessage());
       }
-    }
-    else {
+    } else {
       return JSONUtils.SimpleJSONError("No such printer, or no printer specified to disable.");
     }
   }
 
   public JSONObject enablePrintService(HttpSession session, JSONObject json) {
-    if (json.has("printerName") && json.getString("printerName") != null && !"".equals(json.getString("printerName"))) {
+    if (json.has("printerName") && !isStringEmptyOrNull(json.getString("printerName"))) {
       String printerName = json.getString("printerName");
       try {
         MisoPrintService bps = printManager.getPrintService(printerName);
@@ -254,13 +247,11 @@ public class PrinterControllerHelperService {
           printManager.storePrintService(bps);
         }
         return JSONUtils.SimpleJSONResponse("Printer enabled");
-      }
-      catch (IOException e) {
-        e.printStackTrace();
+      } catch (IOException e) {
+        log.error("enable print service", e);
         return JSONUtils.SimpleJSONError("Cannot resolve printer with name: " + printerName + " : " + e.getMessage());
       }
-    }
-    else {
+    } else {
       return JSONUtils.SimpleJSONError("No such printer, or no printer specified to enable.");
     }
   }
@@ -274,10 +265,10 @@ public class PrinterControllerHelperService {
 
       response.put("hostname", "<input type='text' id='newhost-" + serviceName + "' value='" + bps.getPrintContext().getHost() + "'/>");
       response.put("edit", "<a href='javascript:void(0);' onclick='Print.ui.editPrinterService(\"" + serviceName + "\");'>Save</a>");
-      response.put("barcodableSchemas", "<select id='newschema-" + serviceName + "' name='printSchema'>" + listBarcodableSchemas(session, json).getString("barcodableSchemas") + "</select>");
+      response.put("barcodableSchemas", "<select id='newschema-" + serviceName + "' name='printSchema'>"
+          + listBarcodableSchemas(session, json).getString("barcodableSchemas") + "</select>");
       return response;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error("Unable to edit this printer service: ", e);
       return JSONUtils.SimpleJSONError("Unable to edit this printer service: " + e.getMessage());
     }
@@ -285,7 +276,7 @@ public class PrinterControllerHelperService {
 
   public JSONObject editPrinterService(HttpSession session, JSONObject json) {
     try {
-      if (json.has("serviceName") && !json.get("serviceName").equals("")) {
+      if (json.has("serviceName") && !isStringEmptyOrNull(json.getString("serviceName"))) {
         MisoPrintService bps = printManager.getPrintService(json.getString("serviceName"));
         if (bps != null) {
           PrintContext pc = bps.getPrintContext();
@@ -293,22 +284,19 @@ public class PrinterControllerHelperService {
           contextFields.put("host", json.getString("host"));
           PrintServiceUtils.mapJSONToContextFields(contextFields, pc);
           bps.setPrintContext(pc);
-          if (json.has("schema") && !json.get("schema").equals("")) {
+          if (json.has("schema") && !isStringEmptyOrNull(json.getString("schema"))) {
             BarcodableSchema barcodableSchema = printManager.getBarcodableSchema(json.getString("schema"));
             bps.setBarcodableSchema(barcodableSchema);
           }
           printManager.storePrintService(bps);
           return JSONUtils.SimpleJSONResponse("done");
-        }
-        else {
+        } else {
           return JSONUtils.SimpleJSONError("No printer service of name: " + json.getString("serviceName"));
         }
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONError("No printer service name supplied.");
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error("Failed to edit printer service: ", e);
       return JSONUtils.SimpleJSONError("Failed to edit printer service: " + e.getMessage());
     }
@@ -320,17 +308,14 @@ public class PrinterControllerHelperService {
         PrintJob pj = printManager.getPrintJob(json.getLong("jobId"));
         printManager.print(pj.getQueuedElements(), pj.getPrintService().getName(), pj.getPrintUser());
         return JSONUtils.SimpleJSONResponse("Print job " + pj + " reprinted successfully");
-      }
-      catch (IOException e) {
-        e.printStackTrace();
+      } catch (IOException e) {
+        log.error("cannot retrieve print job", e);
         return JSONUtils.SimpleJSONError("Cannot retrieve print job.");
-      }
-      catch (MisoPrintException e) {
-        e.printStackTrace();
+      } catch (MisoPrintException e) {
+        log.error("no such printer", e);
         return JSONUtils.SimpleJSONError("No such printer, or no printer specified.");
       }
-    }
-    else {
+    } else {
       return JSONUtils.SimpleJSONError("No print job specified to reprint.");
     }
   }
@@ -357,19 +342,16 @@ public class PrinterControllerHelperService {
       jsonObject.put("field2", line2);
       jsonObject.put("field3", line3);
 
-
       File f = mps.getLabelFor(jsonObject);
       if (f != null) thingsToPrint.add(f);
 
       PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
       return JSONUtils.SimpleJSONResponse("Job " + pj.getJobId() + " : Barcodes printed.");
-    }
-    catch (MisoPrintException e) {
-      e.printStackTrace();
+    } catch (MisoPrintException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
     }
   }
@@ -392,19 +374,16 @@ public class PrinterControllerHelperService {
       jsonObject.put("field1", line1);
       jsonObject.put("field2", line2);
 
-
       File f = mps.getLabelFor(jsonObject);
       if (f != null) thingsToPrint.add(f);
 
       PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
       return JSONUtils.SimpleJSONResponse("Job " + pj.getJobId() + " : Barcodes printed.");
-    }
-    catch (MisoPrintException e) {
-      e.printStackTrace();
+    } catch (MisoPrintException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
     }
   }
@@ -431,29 +410,24 @@ public class PrinterControllerHelperService {
           jsonObject.put("field1", code);
           jsonObject.put("field2", "1");
 
-
           File f = mps.getLabelFor(jsonObject);
           if (f != null) thingsToPrint.add(f);
 
           PrintJob pj = printManager.print(thingsToPrint, mps.getName(), user);
-          response  += "Job " + pj.getJobId() + " : Barcodes printed.\n";
+          response += "Job " + pj.getJobId() + " : Barcodes printed.\n";
         }
         return JSONUtils.SimpleJSONResponse(response);
-      }
-      else {
+      } else {
         return JSONUtils.SimpleJSONResponse("No barcode.");
       }
-    }
-    catch (MisoPrintException e) {
-      e.printStackTrace();
+    } catch (MisoPrintException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("failed to print barcodes", e);
       return JSONUtils.SimpleJSONError("Failed to print barcodes: " + e.getMessage());
     }
   }
-
 
   public void setSecurityManager(com.eaglegenomics.simlims.core.manager.SecurityManager securityManager) {
     this.securityManager = securityManager;

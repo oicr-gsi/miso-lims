@@ -23,15 +23,15 @@
 
 package uk.ac.bbsrc.tgac.miso.core.data.decorator;
 
-import uk.ac.bbsrc.tgac.miso.core.data.Submittable;
-
 import java.util.Properties;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Submittable;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.data.decorator
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */

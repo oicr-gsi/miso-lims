@@ -23,18 +23,18 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.tagbarcode;
 
+import java.util.Map;
+import java.util.Set;
+
 import net.sourceforge.fluxion.spi.Spi;
 import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
 import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.service.tagbarcode
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 28/06/12
  * @since 0.1.6
@@ -42,9 +42,14 @@ import java.util.Set;
 @Spi
 public interface TagBarcodeStrategy {
   String getName();
+
   PlatformType getPlatformType();
+
   int getNumApplicableBarcodes();
+
   Map<Integer, Set<TagBarcode>> getApplicableBarcodes();
+
   Set<TagBarcode> getApplicableBarcodesForPosition(int position);
+
   void reload();
 }

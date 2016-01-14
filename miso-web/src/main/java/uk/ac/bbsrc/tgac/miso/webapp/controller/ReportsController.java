@@ -23,6 +23,32 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.MetaDataAccessException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.ServletRequestUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.controller
  * <p/>
@@ -35,34 +61,18 @@ package uk.ac.bbsrc.tgac.miso.webapp.controller;
 import com.eaglegenomics.simlims.core.User;
 import com.eaglegenomics.simlims.core.manager.SecurityManager;
 import com.lowagie.text.Document;
+
 import net.sf.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.MetaDataAccessException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.ServletRequestUtils;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.servlet.ModelAndView;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractProject;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractRun;
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractSample;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.data.decorator.itext.ITextProjectDecorator;
 import uk.ac.bbsrc.tgac.miso.core.exception.ReportingException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.sqlstore.util.DbUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.sql.SQLException;
-import java.util.*;
 
 @RequestMapping("/reports")
 @Controller
@@ -114,8 +124,7 @@ public class ReportsController {
             new ITextProjectDecorator(projects, new Document(), baos).buildReport();
 
             response.setHeader("Expires", "0");
-            response.setHeader("Cache-Control",
-                               "must-revalidate, post-check=0, pre-check=0");
+            response.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
             response.setHeader("Pragma", "public");
             response.setContentType("application/pdf");
             response.setContentLength(baos.size());
@@ -123,39 +132,30 @@ public class ReportsController {
             baos.writeTo(os);
             os.flush();
             os.close();
-          }
-          else {
+          } else {
             throw new ReportingException("Unsupported report format");
           }
-        }
-        catch (ReportingException e) {
-          e.printStackTrace();
+        } catch (ReportingException e) {
+          log.error("project report", e);
         }
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("project report", e);
     }
   }
 
   @RequestMapping(value = "/projects", method = RequestMethod.GET)
   public void fireGetProjectsReport(ModelMap modelMap, HttpServletResponse response) {
-    //User user = null;
     String format = PDF;
     try {
-      //user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       try {
         if (format.equals(PDF)) {
           ByteArrayOutputStream baos = new ByteArrayOutputStream();
           List<Project> projects = new ArrayList<Project>(requestManager.listAllProjects());
           Document document = new Document();
-//          for (Project project : projects) {
-//            new ITextProjectDecorator(project, document, baos).buildReport();
-//          }
           new ITextProjectDecorator(projects, document, baos).buildReport();
           response.setHeader("Expires", "0");
-          response.setHeader("Cache-Control",
-                             "must-revalidate, post-check=0, pre-check=0");
+          response.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
           response.setHeader("Pragma", "public");
           response.setContentType("application/pdf");
           response.setContentLength(baos.size());
@@ -163,20 +163,16 @@ public class ReportsController {
           baos.writeTo(os);
           os.flush();
           os.close();
-        }
-        else {
+        } else {
           throw new ReportingException("Unsupported report format");
         }
+      } catch (ReportingException e) {
+        log.error("project report", e);
       }
-      catch (ReportingException e) {
-        e.printStackTrace();
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("project report", e);
     }
   }
-
 
   @RequestMapping(value = "/sample/{sampleId}")
   public void fireGetSampleReport(@PathVariable("sampleId") Long sampleId, ModelMap modelMap, HttpServletResponse response) {
@@ -193,19 +189,16 @@ public class ReportsController {
 
         try {
           if (format.equals(PDF)) {
-            System.out.println("not implemented");
-          }
-          else {
+            log.warn("not implemented");
+          } else {
             throw new ReportingException("Unsupported report format");
           }
-        }
-        catch (ReportingException e) {
-          e.printStackTrace();
+        } catch (ReportingException e) {
+          log.error("get sample report error", e);
         }
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("get sample report error", e);
     }
   }
 
@@ -217,18 +210,15 @@ public class ReportsController {
       user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       try {
         if (format.equals(PDF)) {
-          System.out.println("not implemented");
-        }
-        else {
+          log.warn("not implemented");
+        } else {
           throw new ReportingException("Unsupported report format");
         }
+      } catch (ReportingException e) {
+        log.error("get samples report error", e);
       }
-      catch (ReportingException e) {
-        e.printStackTrace();
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("get samples report error", e);
     }
   }
 
@@ -247,19 +237,16 @@ public class ReportsController {
 
         try {
           if (format.equals(PDF)) {
-            System.out.println("not implemented");
-          }
-          else {
+            log.warn("not implemented");
+          } else {
             throw new ReportingException("Unsupported report format");
           }
-        }
-        catch (ReportingException e) {
-          e.printStackTrace();
+        } catch (ReportingException e) {
+          log.error("get run report error", e);
         }
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("get run report error", e);
     }
   }
 
@@ -268,14 +255,12 @@ public class ReportsController {
     String format = PDF;
     try {
       if (format.equals(PDF)) {
-        System.out.println("not implemented");
-      }
-      else {
+        log.warn("not implemented");
+      } else {
         throw new ReportingException("Unsupported report format");
       }
-    }
-    catch (ReportingException e) {
-      e.printStackTrace();
+    } catch (ReportingException e) {
+      log.error("get runs report error", e);
     }
   }
 
@@ -283,12 +268,10 @@ public class ReportsController {
   public ModelAndView setupForm(ModelMap modelMap) {
     try {
       modelMap.put("tables", DbUtils.getTables(interfaceTemplate));
-    }
-    catch (MetaDataAccessException e) {
-      e.printStackTrace();
-    }
-    catch (SQLException e) {
-      e.printStackTrace();
+    } catch (MetaDataAccessException e) {
+      log.error("reports controller form", e);
+    } catch (SQLException e) {
+      log.error("reports controller form", e);
     }
     return new ModelAndView("/pages/reporting.jsp", modelMap);
   }
@@ -300,9 +283,8 @@ public class ReportsController {
       String j = ServletRequestUtils.getRequiredStringParameter(request, "json");
       JSONObject json = JSONObject.fromObject(j);
       log.info(json.toString());
-    }
-    catch (ServletRequestBindingException e) {
-      e.printStackTrace();
+    } catch (ServletRequestBindingException e) {
+      log.error("project report post", e);
     }
   }
 }

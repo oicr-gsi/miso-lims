@@ -338,28 +338,8 @@ Project.ui = {
             [0, "desc"]
           ],
           "sDom": '<l<"#toolbar">f>r<t<"fg-toolbar ui-widget-header ui-corner-bl ui-corner-br ui-helper-clearfix"ip>'
-          /*
-           ,
-
-           "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-
-           Fluxion.doAjax(
-           'projectControllerHelperService',
-           'checkOverviewByProjectId',
-           {
-           'projectId':aData[4],
-           'url':ajaxurl
-           },
-           {'doOnSuccess': function(json) {
-           jQuery('td:eq(4)', nRow).html(json.response);
-           }
-           }
-           );
-           }
-           */
         });
         jQuery("#toolbar").parent().addClass("fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix");
-        //jQuery("#toolbar").append("<button style=\"margin-left:5px;\" onclick=\"window.location.href='/miso/project/new';\" class=\"fg-button ui-state-default ui-corner-all\">Add Project</button>");
       }
       }
     );
@@ -723,24 +703,20 @@ Project.overview = {
               "<input type='text' name='numProposedSamples' id='numProposedSamples' class='text ui-widget-content ui-corner-all' />" +
               "</fieldset></form>");
 
-    jQuery(function () {
-      jQuery('#addProjectOverviewDialog').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-          "Add Overview": function () {
-            self.addProjectOverview(projectId, jQuery('#principalInvestigator').val(), jQuery('#numProposedSamples').val());
-            jQuery(this).dialog('close');
-          },
-          "Cancel": function () {
-            jQuery(this).dialog('close');
-          }
+    jQuery('#addProjectOverviewDialog').dialog({
+      width: 400,
+      modal: true,
+      resizable: false,
+      buttons: {
+        "Add Overview": function () {
+          self.addProjectOverview(projectId, jQuery('#principalInvestigator').val(), jQuery('#numProposedSamples').val());
+          jQuery(this).dialog('close');
+        },
+        "Cancel": function () {
+          jQuery(this).dialog('close');
         }
-      });
+      }
     });
-    jQuery('#addProjectOverviewDialog').dialog('open');
   },
 
   addProjectOverview: function (projectId, pi, nsamples) {
@@ -771,24 +747,20 @@ Project.overview = {
             "<input type='text' name='notetext' id='notetext' class='text ui-widget-content ui-corner-all' />" +
             "</fieldset></form>");
 
-    jQuery(function () {
-      jQuery('#addProjectOverviewNoteDialog').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-          "Add Note": function () {
-            self.addProjectOverviewNote(overviewId, jQuery('#internalOnly').val(), jQuery('#notetext').val());
-            jQuery(this).dialog('close');
-          },
-          "Cancel": function () {
-            jQuery(this).dialog('close');
-          }
+    jQuery('#addProjectOverviewNoteDialog').dialog({
+      width: 400,
+      modal: true,
+      resizable: false,
+      buttons: {
+        "Add Note": function () {
+          self.addProjectOverviewNote(overviewId, jQuery('#internalOnly').val(), jQuery('#notetext').val());
+          jQuery(this).dialog('close');
+        },
+        "Cancel": function () {
+          jQuery(this).dialog('close');
         }
-      });
+      }
     });
-    jQuery('#addProjectOverviewNoteDialog').dialog('open');
   },
 
   addProjectOverviewNote: function (overviewId, internalOnly, text) {
@@ -1136,13 +1108,6 @@ Project.issues = {
       }
     }
 
-    if (json.invalidIssues !== "undefined" && json.invalidIssues.length > 0) {
-      for (var i = 0; i < json.invalidIssues.length; i++) {
-        //var key = json.invalidIssues[i];
-
-      }
-    }
-
     jQuery('#issues').append("<input type='hidden' value='on' name='_issueKeys'/>");
   },
 
@@ -1359,36 +1324,32 @@ Project.barcode = {
                   json.services +
                   "</select></fieldset></form>");
 
-          jQuery(function () {
-            jQuery('#printServiceSelectDialog').dialog({
-              autoOpen: false,
-              width: 400,
-              modal: true,
-              resizable: false,
-              buttons: {
-                "Print": function () {
-                  Fluxion.doAjax(
-                    'projectControllerHelperService',
-                    'printSelectedSampleBarcodes',
-                    {
-                      'serviceName': jQuery('#serviceSelect').val(),
-                      'samples': samples,
-                      'url': ajaxurl
-                    },
-                    {
-                      'doOnSuccess': function (json) {
-                        alert(json.response);
-                      }
-                    });
-                  jQuery(this).dialog('close');
-                },
-                "Cancel": function () {
-                  jQuery(this).dialog('close');
-                }
+          jQuery('#printServiceSelectDialog').dialog({
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+              "Print": function () {
+                Fluxion.doAjax(
+                  'projectControllerHelperService',
+                  'printSelectedSampleBarcodes',
+                  {
+                    'serviceName': jQuery('#serviceSelect').val(),
+                    'samples': samples,
+                    'url': ajaxurl
+                  },
+                  {
+                    'doOnSuccess': function (json) {
+                      alert(json.response);
+                    }
+                  });
+                jQuery(this).dialog('close');
+              },
+              "Cancel": function () {
+                jQuery(this).dialog('close');
               }
-            });
+            }
           });
-          jQuery('#printServiceSelectDialog').dialog('open');
         },
         'doOnError': function (json) {
           alert(json.error);
@@ -1495,37 +1456,33 @@ Project.barcode = {
                   json.services +
                   "</select></fieldset></form>");
 
-          jQuery(function () {
-            jQuery('#printServiceSelectDialog').dialog({
-              autoOpen: false,
-              width: 400,
-              modal: true,
-              resizable: false,
-              buttons: {
-                "Print": function () {
-                  Fluxion.doAjax(
-                    'projectControllerHelperService',
-                    'printSelectedLibraryBarcodes',
-                    {
-                      'serviceName': jQuery('#serviceSelect').val(),
-                      'libraries': libraries,
-                      'url': ajaxurl
-                    },
-                    {
-                      'doOnSuccess': function (json) {
-                        alert(json.response);
-                      }
+          jQuery('#printServiceSelectDialog').dialog({
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+              "Print": function () {
+                Fluxion.doAjax(
+                  'projectControllerHelperService',
+                  'printSelectedLibraryBarcodes',
+                  {
+                    'serviceName': jQuery('#serviceSelect').val(),
+                    'libraries': libraries,
+                    'url': ajaxurl
+                  },
+                  {
+                    'doOnSuccess': function (json) {
+                      alert(json.response);
                     }
-                  );
-                  jQuery(this).dialog('close');
-                },
-                "Cancel": function () {
-                  jQuery(this).dialog('close');
-                }
+                  }
+                );
+                jQuery(this).dialog('close');
+              },
+              "Cancel": function () {
+                jQuery(this).dialog('close');
               }
-            });
+            }
           });
-          jQuery('#printServiceSelectDialog').dialog('open');
         },
         'doOnError': function (json) {
           alert(json.error);
@@ -1625,37 +1582,33 @@ Project.barcode = {
                   json.services +
                   "</select></fieldset></form>");
 
-          jQuery(function () {
-            jQuery('#printServiceSelectDialog').dialog({
-              autoOpen: false,
-              width: 400,
-              modal: true,
-              resizable: false,
-              buttons: {
-                "Print": function () {
-                  Fluxion.doAjax(
-                    'projectControllerHelperService',
-                    'printSelectedLibraryDilutionBarcodes',
-                    {
-                      'serviceName': jQuery('#serviceSelect').val(),
-                      'dilutions': dilutions,
-                      'url': ajaxurl
-                    },
-                    {
-                      'doOnSuccess': function (json) {
-                        alert(json.response);
-                      }
+          jQuery('#printServiceSelectDialog').dialog({
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+              "Print": function () {
+                Fluxion.doAjax(
+                  'projectControllerHelperService',
+                  'printSelectedLibraryDilutionBarcodes',
+                  {
+                    'serviceName': jQuery('#serviceSelect').val(),
+                    'dilutions': dilutions,
+                    'url': ajaxurl
+                  },
+                  {
+                    'doOnSuccess': function (json) {
+                      alert(json.response);
                     }
-                  );
-                  jQuery(this).dialog('close');
-                },
-                "Cancel": function () {
-                  jQuery(this).dialog('close');
-                }
+                  }
+                );
+                jQuery(this).dialog('close');
+              },
+              "Cancel": function () {
+                jQuery(this).dialog('close');
               }
-            });
+            }
           });
-          jQuery('#printServiceSelectDialog').dialog('open');
         },
         'doOnError': function (json) {
           alert(json.error);

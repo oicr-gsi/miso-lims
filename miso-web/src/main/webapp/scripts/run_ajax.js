@@ -75,7 +75,6 @@ Run.qc = {
       var column7 = $('runQcTable').rows[1].insertCell(-1);
       column7.innerHTML = "<input id='runQcDoNotProcess' name='runQcDoNotProcess' type='checkbox'/>";
       var column8 = $('runQcTable').rows[1].insertCell(-1);
-      //column8.innerHTML = "<a href='javascript:void(0);' onclick='Run.qc.addRunQC(\"runQcTable\");'/>Add</a>";
       column8.innerHTML = "<a href='javascript:void(0);' onclick='Run.qc.addRunQC(this);'/>Add</a>";
 
       Utils.ui.addMaxDatePicker("runQcDate", 0);
@@ -110,7 +109,6 @@ Run.qc = {
 
   addRunQC: function (row) {
     var a = [];
-    //jQuery(jQuery(row).parent().parent(), '.partitionOccupied', 'td', '.containerSummary').each(function() {
     jQuery('.partitionOccupied', jQuery(row).parent().parent()).each(function () {
       a.push({id: this.id});
     });
@@ -276,24 +274,20 @@ Run.ui = {
             "<input type='text' name='notetext' id='notetext' class='text ui-widget-content ui-corner-all' />" +
             "</fieldset></form>");
 
-    jQuery(function () {
-      jQuery('#addRunNoteDialog').dialog({
-         autoOpen: false,
-         width: 400,
-         modal: true,
-         resizable: false,
-         buttons: {
-           "Add Note": function () {
-             self.addRunNote(runId, jQuery('#internalOnly').val(), jQuery('#notetext').val());
-             jQuery(this).dialog('close');
-           },
-           "Cancel": function () {
-             jQuery(this).dialog('close');
-           }
-         }
-       });
+    jQuery('#addRunNoteDialog').dialog({
+      width: 400,
+      modal: true,
+      resizable: false,
+      buttons: {
+        "Add Note": function () {
+          self.addRunNote(runId, jQuery('#internalOnly').val(), jQuery('#notetext').val());
+          jQuery(this).dialog('close');
+        },
+        "Cancel": function () {
+          jQuery(this).dialog('close');
+        }
+      }
     });
-    jQuery('#addRunNoteDialog').dialog('open');
   },
 
   addRunNote: function (runId, internalOnly, text) {

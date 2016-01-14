@@ -23,36 +23,50 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import com.eaglegenomics.simlims.core.User;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import uk.ac.bbsrc.tgac.miso.core.data.AbstractPool;
+import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.emPCRDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.ls454.LS454Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.MalformedDilutionException;
 import uk.ac.bbsrc.tgac.miso.core.exception.MalformedLibraryException;
 import uk.ac.bbsrc.tgac.miso.core.factory.DataObjectFactory;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * com.eaglegenomics.miso.web
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -86,7 +100,7 @@ public class EditLS454PoolController {
 
   private List<? extends Dilution> populateAvailableDilutions(User user, Pool pool) throws IOException {
     ArrayList<emPCRDilution> libs = new ArrayList<emPCRDilution>();
-    for (Dilution l : requestManager.listAllEmPcrDilutionsByPlatform(PlatformType.LS454)) {
+    for (Dilution l : requestManager.listAllEmPCRDilutionsByPlatform(PlatformType.LS454)) {
       if (!pool.getDilutions().contains(l)) {
         if (l.userCanRead(user)) {
           libs.add((emPCRDilution) l);
@@ -97,7 +111,8 @@ public class EditLS454PoolController {
     return libs;
   }
 
-  public Collection<Experiment> populateExperiments(@RequestParam(value = "experimentId", required = false) Long experimentId, Pool p) throws IOException {
+  public Collection<Experiment> populateExperiments(@RequestParam(value = "experimentId", required = false) Long experimentId, Pool p)
+      throws IOException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       Collection<Experiment> es = new ArrayList<Experiment>();
@@ -107,15 +122,13 @@ public class EditLS454PoolController {
             if (e.getId() != experimentId) {
               es.add(e);
             }
-          }
-          else {
+          } else {
             es.add(e);
           }
         }
       }
       return es;
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to list experiments", ex);
       }
@@ -134,16 +147,14 @@ public class EditLS454PoolController {
   }
 
   @RequestMapping(value = "/{poolId}", method = RequestMethod.GET)
-  public ModelAndView setupForm(@PathVariable Long poolId,
-                                ModelMap model) throws IOException {
+  public ModelAndView setupForm(@PathVariable Long poolId, ModelMap model) throws IOException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       Pool pool = null;
       if (poolId == AbstractPool.UNSAVED_ID) {
         pool = dataObjectFactory.getLS454Pool(user);
         model.put("title", "New 454 Pool");
-      }
-      else {
+      } else {
         pool = requestManager.getPoolById(poolId);
         model.put("title", "454 Pool " + poolId);
       }
@@ -162,8 +173,7 @@ public class EditLS454PoolController {
       model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, pool, securityManager.listAllUsers()));
       model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, pool, securityManager.listAllGroups()));
       return new ModelAndView("/pages/editLS454Pool.jsp", model);
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to show 454 pool", ex);
       }
@@ -171,19 +181,16 @@ public class EditLS454PoolController {
     }
   }
 
-
   @RequestMapping(value = "/{poolId}/experiment/{experimentId}", method = RequestMethod.GET)
-  public ModelAndView setupFormWithExperiment(@PathVariable Long poolId,
-                                @PathVariable Long experimentId,
-                                ModelMap model) throws IOException {
+  public ModelAndView setupFormWithExperiment(@PathVariable Long poolId, @PathVariable Long experimentId, ModelMap model)
+      throws IOException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       Pool pool = null;
       if (poolId == AbstractPool.UNSAVED_ID) {
         pool = dataObjectFactory.getLS454Pool(user);
         model.put("title", "New Ls454 Pool");
-      }
-      else {
+      } else {
         pool = requestManager.getPoolById(poolId);
         model.put("title", "Ls454 Pool " + poolId);
       }
@@ -197,8 +204,7 @@ public class EditLS454PoolController {
 
       if (experimentId != null) {
         model.put("accessibleExperiments", populateExperiments(experimentId, pool));
-      }
-      else {
+      } else {
         model.put("accessibleExperiments", populateExperiments(null, pool));
       }
 
@@ -210,22 +216,16 @@ public class EditLS454PoolController {
       model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, pool, securityManager.listAllUsers()));
       model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, pool, securityManager.listAllGroups()));
       return new ModelAndView("/pages/editLs454Pool.jsp", model);
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to show Ls454 pool", ex);
       }
       throw ex;
     }
-//    catch (MalformedExperimentException e) {
-//      e.printStackTrace();
-//      throw new IOException(e);
-//    }
   }
 
   @RequestMapping(value = "/new/dilution/{dilutionId}", method = RequestMethod.GET)
-  public ModelAndView setupFormWithDilution(@PathVariable Long dilutionId,
-                                ModelMap model) throws IOException {
+  public ModelAndView setupFormWithDilution(@PathVariable Long dilutionId, ModelMap model) throws IOException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       LS454Pool pool = dataObjectFactory.getLS454Pool(user);
@@ -236,7 +236,7 @@ public class EditLS454PoolController {
       }
 
       if (dilutionId != null) {
-          emPCRDilution ed = requestManager.getEmPcrDilutionById(dilutionId);
+        emPCRDilution ed = requestManager.getEmPCRDilutionById(dilutionId);
         if (ed != null) {
           pool.addPoolableElement(ed);
         }
@@ -250,33 +250,28 @@ public class EditLS454PoolController {
       model.put("accessibleUsers", LimsSecurityUtils.getAccessibleUsers(user, pool, securityManager.listAllUsers()));
       model.put("accessibleGroups", LimsSecurityUtils.getAccessibleGroups(user, pool, securityManager.listAllGroups()));
       return new ModelAndView("/pages/editLS454Pool.jsp", model);
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to show 454 pool", ex);
       }
       throw ex;
-    }
-    catch (MalformedDilutionException e) {
-      e.printStackTrace();
+    } catch (MalformedDilutionException e) {
+      log.error("setup pool with dilution", e);
       throw new IOException(e);
     }
   }
 
-
   @RequestMapping(value = "/import", method = RequestMethod.POST)
   public String importEmPCRDilutionsToPool(HttpServletRequest request, ModelMap model) throws IOException {
-    LS454Pool p = (LS454Pool)model.get("pool");
+    LS454Pool p = (LS454Pool) model.get("pool");
     String[] dils = request.getParameterValues("importdilslist");
     for (String s : dils) {
-      emPCRDilution ld = requestManager.getEmPcrDilutionByBarcode(s);
+      emPCRDilution ld = requestManager.getEmPCRDilutionByBarcode(s);
       if (ld != null) {
         try {
           p.addPoolableElement(ld);
-        }
-        catch (MalformedDilutionException e) {
-          log.debug("Cannot add emPCR dilution "+s+" to pool " + p.getName());
-          e.printStackTrace();
+        } catch (MalformedDilutionException e) {
+          log.error("Cannot add emPCR dilution " + s + " to pool " + p.getName(), e);
         }
       }
     }
@@ -286,9 +281,8 @@ public class EditLS454PoolController {
   }
 
   @RequestMapping(method = RequestMethod.POST)
-  public String processSubmit(@ModelAttribute("pool") Pool pool,
-                              ModelMap model,
-                              SessionStatus session) throws IOException, MalformedLibraryException {
+  public String processSubmit(@ModelAttribute("pool") Pool pool, ModelMap model, SessionStatus session)
+      throws IOException, MalformedLibraryException {
     try {
       User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
       if (!pool.userCanWrite(user)) {
@@ -298,8 +292,7 @@ public class EditLS454PoolController {
       session.setComplete();
       model.clear();
       return "redirect:/miso/pool/ls454/" + pool.getId();
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       if (log.isDebugEnabled()) {
         log.debug("Failed to save 454 pool", ex);
       }

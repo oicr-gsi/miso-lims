@@ -23,16 +23,14 @@
 
 package uk.ac.bbsrc.tgac.miso.hibernatestore;
 
-import uk.ac.bbsrc.tgac.miso.core.store.Store;
-//import org.hibernate.HibernateException;
-//import org.hibernate.Session;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
-import org.springframework.transaction.annotation.Transactional;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.Lane;
-
 import java.io.IOException;
 import java.util.Collection;
+
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
+
+import uk.ac.bbsrc.tgac.miso.core.data.impl.Lane;
+import uk.ac.bbsrc.tgac.miso.core.store.Store;
 
 /**
  * com.eaglegenomics.miso.hibernatestore
@@ -43,16 +41,18 @@ import java.util.Collection;
  * @since 0.0.2
  */
 @Deprecated
-public class HibernateLaneStore  extends HibernateDaoSupport implements Store<Lane> {
+public class HibernateLaneStore extends HibernateDaoSupport implements Store<Lane> {
+  @Override
   @Transactional(readOnly = false)
   public long save(Lane lane) throws IOException {
     getHibernateTemplate().saveOrUpdate(lane);
     return lane.getId();
   }
 
+  @Override
   @Transactional(readOnly = true)
   public Lane get(long laneId) throws IOException {
-    return (Lane) getHibernateTemplate().get(Lane.class, laneId);
+    return getHibernateTemplate().get(Lane.class, laneId);
   }
 
   @Override
@@ -60,17 +60,10 @@ public class HibernateLaneStore  extends HibernateDaoSupport implements Store<La
     return get(id);
   }
 
+  @Override
   @Transactional(readOnly = true)
   @SuppressWarnings("unchecked")
   public Collection<Lane> listAll() throws IOException {
-/*    return (Collection<Lane>) getHibernateTemplate().execute(
-            new HibernateCallback() {
-              public Object doInHibernate(Session session)
-                      throws HibernateException {
-                return session.createQuery("from Lane").list(); 
-              }
-            });
-            */
     return null;
   }
 

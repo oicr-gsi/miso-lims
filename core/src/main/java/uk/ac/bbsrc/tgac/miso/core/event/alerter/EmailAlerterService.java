@@ -23,21 +23,23 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.alerter;
 
+import java.util.Properties;
+
+import javax.mail.MessagingException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.event.Alert;
 import uk.ac.bbsrc.tgac.miso.core.event.AlerterService;
 import uk.ac.bbsrc.tgac.miso.core.exception.AlertingException;
 import uk.ac.bbsrc.tgac.miso.core.util.EmailUtils;
 
-import javax.mail.MessagingException;
-import java.util.Properties;
-
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.service
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 29/09/11
  * @since 0.1.2
@@ -56,25 +58,16 @@ public class EmailAlerterService implements AlerterService {
     if (!mailProps.containsKey("mail.smtp.host")) {
       log.error("No SMTP host specified in the mail.properties configuration file. Cannot send email.");
       throw new AlertingException("No SMTP host specified in the mail.properties configuration file. Cannot send email.");
-    }
-    else {
-      String from = mailProps.getProperty("mail.from");
-      if (from == null || "".equals(from)) {
-        from = "miso@your.miso.server";
-      }
-
+    } else {
+      String from = mailProps.getProperty("mail.from", "miso@your.miso.server");
       String to = a.getAlertUser().getEmail();
       String subject = "MISO ALERT: " + a.getAlertTitle();
-      String text = "Hello " +
-                    a.getAlertUser().getFullName() +
-                    ",\n\nMISO would like to tell you about something:\n\n" +
-                    a.getAlertTitle() + " ("+a.getAlertDate()+")" +
-                    "\n\n" +
-                    a.getAlertText();
+      String text = "Hello " + a.getAlertUser().getFullName() + ",\n\nMISO would like to tell you about something:\n\n" + a.getAlertTitle()
+          + " (" + a.getAlertDate() + ")" + "\n\n" + a.getAlertText();
       try {
         EmailUtils.send(to, from, subject, text, mailProps);
       } catch (MessagingException e) {
-        log.error("Cannot send email to alert recipients:" + e.getMessage());
+        log.error("Cannot send email to alert recipients", e);
         throw new AlertingException("Cannot send email to alert recipients", e);
       }
     }

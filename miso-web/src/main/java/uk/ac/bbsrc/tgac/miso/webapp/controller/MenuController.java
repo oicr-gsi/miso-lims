@@ -23,8 +23,16 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -32,17 +40,16 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.integration.util.SignatureHelper;
 import uk.ac.bbsrc.tgac.miso.webapp.util.MisoWebUtils;
 
-import javax.servlet.ServletContext;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Map;
-
 @Controller
 public class MenuController implements ServletContextAware {
+  protected static final Logger log = LoggerFactory.getLogger(MenuController.class);
 
   ServletContext servletContext;
   @Autowired
@@ -77,17 +84,14 @@ public class MenuController implements ServletContextAware {
       model.put("apiKey", SignatureHelper.generatePrivateUserKey((user.getLoginName() + "::" + user.getPassword()).getBytes("UTF-8")));
       model.put("userGroups", groups.toString());
       return new ModelAndView("/pages/myAccount.jsp", model);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("my account menu", e);
       return new ModelAndView("/login.jsp", model);
-    }
-    catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
+    } catch (NoSuchAlgorithmException e) {
+      log.error("my account menu", e);
       return new ModelAndView("/login.jsp", model);
     }
   }
-
 
   public void setSecurityManager(com.eaglegenomics.simlims.core.manager.SecurityManager securityManager) {
     this.securityManager = securityManager;
@@ -103,12 +107,10 @@ public class MenuController implements ServletContextAware {
       }
       if (Arrays.asList(user.getRoles()).contains("ROLE_EXTERNAL") && !Arrays.asList(user.getRoles()).contains("ROLE_INTERNAL")) {
         return new ModelAndView("/pages/external/externalMain.jsp", model);
-      }
-      else {
+      } else {
         return new ModelAndView("/pages/mainMenu.jsp", model);
       }
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       return new ModelAndView("/login.jsp", model);
     }
   }

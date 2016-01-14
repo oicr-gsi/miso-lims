@@ -23,20 +23,21 @@
 
 package uk.ac.bbsrc.tgac.miso.core.event.impl;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.bbsrc.tgac.miso.core.event.Event;
 import uk.ac.bbsrc.tgac.miso.core.event.ResponderService;
 import uk.ac.bbsrc.tgac.miso.core.event.listener.MisoListener;
-
-import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.event.listener
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 20/10/11
  * @since 0.1.2
@@ -51,6 +52,7 @@ public class DefaultRunListener implements MisoListener {
     return responderServices;
   }
 
+  @Override
   public void setResponderServices(Collection<? extends ResponderService> responderServices) {
     this.responderServices = responderServices;
   }

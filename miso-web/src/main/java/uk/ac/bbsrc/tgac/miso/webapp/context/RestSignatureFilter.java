@@ -23,11 +23,9 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.context;
 
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.util.*;
+import java.util.Enumeration;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -48,6 +46,9 @@ import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
 import uk.ac.bbsrc.tgac.miso.core.security.util.LimsSecurityUtils;
 import uk.ac.bbsrc.tgac.miso.integration.util.SignatureHelper;
 
@@ -55,7 +56,7 @@ import uk.ac.bbsrc.tgac.miso.integration.util.SignatureHelper;
  * uk.ac.bbsrc.tgac.miso.webapp.context
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 09/02/12
  * @since 0.1.6
@@ -78,8 +79,9 @@ public class RestSignatureFilter extends OncePerRequestFilter {
 
   /**
    * Creates a new RestSignatureFilter instance with a defined SecurityContextRepository
-   *
-   * @param securityContextRepository of type SecurityContextRepository
+   * 
+   * @param securityContextRepository
+   *          of type SecurityContextRepository
    */
   public RestSignatureFilter(SecurityContextRepository securityContextRepository) {
     super();
@@ -91,9 +93,8 @@ public class RestSignatureFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  FilterChain filterChain) throws ServletException, IOException {
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
     User userdetails = null;
     com.eaglegenomics.simlims.core.User user = null;
     logger.debug("HEADERS: ");
@@ -117,16 +118,13 @@ public class RestSignatureFilter extends OncePerRequestFilter {
     if (loginName.equals("notification")) {
       logger.info("Incoming notification request");
       userdetails = new User("notification", "none", true, true, true, true, AuthorityUtils.createAuthorityList("ROLE_INTERNAL"));
-    }
-    else {
+    } else {
       logger.debug("Incoming user REST API request");
       user = securityManager.getUserByLoginName(loginName);
       if (user != null) {
         userdetails = LimsSecurityUtils.toUserDetails(user);
       }
     }
-
-    //String url = request.getHeader(SignatureHelper.URL_X_HEADER);
 
     String signature = request.getHeader(SignatureHelper.SIGNATURE_HEADER);
     if (signature == null) {
@@ -137,20 +135,14 @@ public class RestSignatureFilter extends OncePerRequestFilter {
     try {
       if (loginName.equals("notification")) {
         validSignature = SignatureHelper.validateSignature(request, SignatureHelper.PUBLIC_KEY, signature);
-      }
-      else {
+      } else {
         validSignature = SignatureHelper.validateSignature(request,
-                                                           SignatureHelper.generatePrivateUserKey(
-                                                             (user.getLoginName() + "::" + user.getPassword())
-                                                                     .getBytes("UTF-8")),
-                                                           signature);
+            SignatureHelper.generatePrivateUserKey((user.getLoginName() + "::" + user.getPassword()).getBytes("UTF-8")), signature);
       }
-    }
-    catch (InvalidKeyException e) {
-      e.printStackTrace();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (InvalidKeyException e) {
+      logger.error("filter", e);
+    } catch (Exception e) {
+      logger.error("filter", e);
     }
 
     try {
@@ -159,15 +151,15 @@ public class RestSignatureFilter extends OncePerRequestFilter {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "REST signature failed validation.");
       }
     } catch (Exception e) {
-      logger.error("UNABLE TO UNDERTAKE SIGNATURE VALIDATION");
-      e.printStackTrace();
+      logger.error("UNABLE TO UNDERTAKE SIGNATURE VALIDATION", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "The REST Security Server experienced an internal error.");
     }
 
     logger.debug("REST KEY OK. Security!");
 
     if (userdetails != null) {
-      PreAuthenticatedAuthenticationToken newAuthentication = new PreAuthenticatedAuthenticationToken(userdetails, userdetails.getPassword(), userdetails.getAuthorities());
+      PreAuthenticatedAuthenticationToken newAuthentication = new PreAuthenticatedAuthenticationToken(userdetails,
+          userdetails.getPassword(), userdetails.getAuthorities());
       newAuthentication.setAuthenticated(true);
       newAuthentication.setDetails(userdetails);
 
@@ -176,13 +168,11 @@ public class RestSignatureFilter extends OncePerRequestFilter {
         sc.setAuthentication(newAuthentication);
         SecurityContextHolder.getContextHolderStrategy().setContext(sc);
         logger.debug("Set context - chaining");
-      }
-      catch (AuthenticationException a) {
-        a.printStackTrace();
+      } catch (AuthenticationException a) {
+        logger.error("filter", a);
       }
       filterChain.doFilter(request, response);
-    }
-    else {
+    } else {
       throw new AuthenticationCredentialsNotFoundException("No valid user found to authenticate");
     }
   }

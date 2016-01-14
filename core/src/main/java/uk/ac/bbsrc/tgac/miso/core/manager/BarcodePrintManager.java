@@ -23,26 +23,27 @@
 
 package uk.ac.bbsrc.tgac.miso.core.manager;
 
-import com.eaglegenomics.simlims.core.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.MisoPrintJob;
-import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.PrintContextResolverService;
-import uk.ac.bbsrc.tgac.miso.core.service.printing.context.PrintContext;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.eaglegenomics.simlims.core.User;
+
+import uk.ac.bbsrc.tgac.miso.core.data.PrintJob;
+import uk.ac.bbsrc.tgac.miso.core.data.impl.MisoPrintJob;
+import uk.ac.bbsrc.tgac.miso.core.exception.MisoPrintException;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.MisoPrintService;
+import uk.ac.bbsrc.tgac.miso.core.service.printing.PrintContextResolverService;
+
 /**
  * uk.ac.bbsrc.tgac.miso.core.manager
  * <p/>
  * Manages specified MisoPrintServices and allows construction of a print job that will be persisted on print()
- *
+ * 
  * @author Rob Davey
  * @date 30-Jun-2011
  * @since 0.0.3
@@ -68,10 +69,8 @@ public class BarcodePrintManager extends AbstractPrintManager<Queue<File>> {
         try {
           long jobId = storePrintJob(job);
           job.setJobId(jobId);
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-          log.debug("Could not store print job");
+        } catch (IOException e) {
+          log.error("Could not store print job", e);
         }
 
         try {
@@ -84,25 +83,21 @@ public class BarcodePrintManager extends AbstractPrintManager<Queue<File>> {
 
           if (jobOK) {
             job.setStatus("OK");
-          }
-          else {
+          } else {
             job.setStatus("FAIL");
           }
 
           storePrintJob(job);
-        }
-        catch (IOException e) {
-          e.printStackTrace();
+        } catch (IOException e) {
+          log.error("Could not store print barcodes", e);
           throw new MisoPrintException("Could not print barcodes to " + printServiceName + ": " + e.getMessage(), e);
         }
         return job;
-      }
-      else {
+      } else {
         throw new MisoPrintException("No such PrintService: " + printServiceName);
       }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      log.error("Could not store print barcodes", e);
       throw new MisoPrintException("Cannot retrieve PrintService: " + printServiceName);
     }
   }

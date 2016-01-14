@@ -23,23 +23,31 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller.rest;
 
+import java.io.IOException;
+import java.util.Collection;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
-import java.io.IOException;
-import java.util.Collection;
+import uk.ac.bbsrc.tgac.miso.core.data.Experiment;
+import uk.ac.bbsrc.tgac.miso.core.data.Poolable;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 
 /**
  * uk.ac.bbsrc.tgac.miso.webapp.controller.rest
  * <p/>
  * Info
- *
+ * 
  * @author Xingdong Bian
  */
 @Controller
@@ -56,11 +64,10 @@ public class ContainerRestController {
   }
 
   @RequestMapping(value = "{containerBarcode}", method = RequestMethod.GET)
-  public
-  @ResponseBody
-  String jsonRest(@PathVariable String containerBarcode) throws IOException {
+  public @ResponseBody String jsonRest(@PathVariable String containerBarcode) throws IOException {
     StringBuilder sb = new StringBuilder();
-    Collection<SequencerPartitionContainer<SequencerPoolPartition>> sequencerPartitionContainerCollection = requestManager.listSequencerPartitionContainersByBarcode(containerBarcode);
+    Collection<SequencerPartitionContainer<SequencerPoolPartition>> sequencerPartitionContainerCollection = requestManager
+        .listSequencerPartitionContainersByBarcode(containerBarcode);
     int i = 0;
     for (SequencerPartitionContainer<SequencerPoolPartition> sequencerPartitionContainer : sequencerPartitionContainerCollection) {
       i++;
@@ -79,7 +86,7 @@ public class ContainerRestController {
           sb.append("{");
           sb.append("\"poolName\":\"" + partition.getPool().getName() + "\",");
           sb.append("\"poolDate\":\"" + partition.getPool().getCreationDate() + "\",");
-          //experiments
+          // experiments
           sb.append("\"experiments\":[");
           int ie = 0;
           for (Experiment experiment : partition.getPool().getExperiments()) {
@@ -92,7 +99,7 @@ public class ContainerRestController {
           }
           sb.append("],");
 
-          //dilutions
+          // dilutions
           sb.append("\"poolableElements\":[");
           int id = 0;
           for (Poolable poolable : partition.getPool().getPoolableElements()) {
@@ -106,8 +113,7 @@ public class ContainerRestController {
           }
           sb.append("]");
           sb.append("}");
-        }
-        else {
+        } else {
           sb.append("\"\"");
         }
         sb.append("}");

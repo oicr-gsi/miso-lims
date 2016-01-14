@@ -23,34 +23,34 @@
 
 package uk.ac.bbsrc.tgac.miso.core.util;
 
-import uk.ac.bbsrc.tgac.miso.core.data.*;
-
 import java.util.Map;
 import java.util.TreeMap;
+
+import uk.ac.bbsrc.tgac.miso.core.data.Dilution;
+import uk.ac.bbsrc.tgac.miso.core.data.Pool;
+import uk.ac.bbsrc.tgac.miso.core.data.Poolable;
+import uk.ac.bbsrc.tgac.miso.core.data.Run;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPartitionContainer;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerPoolPartition;
+import uk.ac.bbsrc.tgac.miso.core.data.TagBarcode;
 
 /**
  * uk.ac.bbsrc.tgac.miso.core.util
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 28/03/12
  * @since 0.1.6
  */
 public class RunProcessingUtils {
-  public static String buildIlluminaDemultiplexCSV(Run r, SequencerPartitionContainer<SequencerPoolPartition> f, String casavaVersion, String userName) {
+  public static String buildIlluminaDemultiplexCSV(Run r, SequencerPartitionContainer<SequencerPoolPartition> f, String casavaVersion,
+      String userName) {
     boolean newCasava = false;
 
     StringBuilder sb = new StringBuilder();
-    sb.append("FCID,")
-            .append("Lane,")
-            .append("SampleID,")
-            .append("SampleRef,")
-            .append("Index,")
-            .append("Description,")
-            .append("Control,")
-            .append("Recipe,")
-            .append("Operator");
+    sb.append("FCID,").append("Lane,").append("SampleID,").append("SampleRef,").append("Index,").append("Description,").append("Control,")
+        .append("Recipe,").append("Operator");
 
     if (casavaVersion.compareTo("1.7") >= 0) {
       newCasava = true;
@@ -58,8 +58,7 @@ public class RunProcessingUtils {
 
     if (newCasava) {
       sb.append(",Project\n");
-    }
-    else {
+    } else {
       sb.append("\n");
     }
 
@@ -69,14 +68,11 @@ public class RunProcessingUtils {
       if (p != null) {
         for (Dilution ld : p.getDilutions()) {
           count++;
-          sb.append(f.getIdentificationBarcode()).append(",")
-                  .append(l.getPartitionNumber()).append(",")
-                  //.append(ld.getLibrary().getSample().getName()).append(",")
-                  //.append(ld.getLibrary().getSample().getAlias().replaceAll("\\s", "")).append(",");
-                  .append(f.getId()).append("_").append(ld.getLibrary().getName()).append("_").append(ld.getName()).append(",")
-                  .append(ld.getLibrary().getSample().getAlias().replaceAll("\\s", "")).append(",");
+          sb.append(f.getIdentificationBarcode()).append(",").append(l.getPartitionNumber()).append(",").append(f.getId()).append("_")
+              .append(ld.getLibrary().getName()).append("_").append(ld.getName()).append(",")
+              .append(ld.getLibrary().getSample().getAlias().replaceAll("\\s", "")).append(",");
 
-          if (ld.getLibrary().getTagBarcodes() != null && !ld.getLibrary().getTagBarcodes().isEmpty() && p.getDilutions().size() > 1) {
+          if (ld.getLibrary().getTagBarcodes() != null && !ld.getLibrary().getTagBarcodes().isEmpty()) {
             Map<Integer, TagBarcode> barcodes = new TreeMap<Integer, TagBarcode>(ld.getLibrary().getTagBarcodes());
             int bcount = 1;
             for (Integer key : barcodes.keySet()) {
@@ -88,23 +84,17 @@ public class RunProcessingUtils {
               bcount++;
             }
             sb.append(",");
-          }
-          else {
+          } else {
             sb.append(",");
           }
 
-          sb.append(ld.getLibrary().getDescription()).append(",")
-                  .append("N").append(",")
-                  .append("NA").append(",")
-                  .append(userName);
+          sb.append(ld.getLibrary().getDescription()).append(",").append("N").append(",").append("NA").append(",").append(userName);
 
           if (newCasava) {
             sb.append(",").append(ld.getLibrary().getSample().getProject().getAlias().replaceAll("\\s", "")).append("\n");
-          }
-          else {
+          } else {
             sb.append("\n");
           }
-          //.append("00").append(String.valueOf(count)).append("\n");
         }
       }
     }

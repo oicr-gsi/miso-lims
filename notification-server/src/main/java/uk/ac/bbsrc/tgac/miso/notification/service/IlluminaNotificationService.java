@@ -23,14 +23,11 @@
 
 package uk.ac.bbsrc.tgac.miso.notification.service;
 
-import org.springframework.batch.core.configuration.DuplicateJobException;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.integration.Message;
-import uk.ac.bbsrc.tgac.miso.notification.core.batch.JobLaunchRequest;
-import uk.ac.bbsrc.tgac.miso.notification.util.NotificationUtils;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,34 +35,46 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.batch.core.configuration.DuplicateJobException;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.integration.Message;
+
+import uk.ac.bbsrc.tgac.miso.notification.core.batch.JobLaunchRequest;
+import uk.ac.bbsrc.tgac.miso.notification.util.NotificationUtils;
+
 /**
  * uk.ac.bbsrc.tgac.miso.notification.handler
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 07-Dec-2010
  * @since version
  */
 @Deprecated
 public class IlluminaNotificationService {
+  protected static final Logger log = LoggerFactory.getLogger(IlluminaNotificationService.class);
   public JobLaunchRequest filesToJobRequest(Set<File> files) {
     Map<String, String> params = new HashMap<String, String>();
     String regex = ".*/([\\d]+_[A-z0-9]+_[\\d]+_[A-z0-9_]*)/.*";
     Pattern p = Pattern.compile(regex);
-    for (File f :files) {
+    for (File f : files) {
       Matcher m = p.matcher(f.getAbsolutePath());
       if (m.matches()) {
         params.put(m.group(1), f.getAbsolutePath());
-      }        
+      }
     }
-    return new JobLaunchRequest("job"+files.hashCode(), params);
+    return new JobLaunchRequest("job" + files.hashCode(), params);
   }
 
   public Set<Resource> filesToResources(Set<File> files) throws DuplicateJobException {
     Set<Resource> resources = new HashSet<Resource>();
     for (File f : files) {
-      System.out.println("Converting file " + f.getName() + " to resource...");
+      log.info("Converting file " + f.getName() + " to resource...");
       resources.add(new FileSystemResource(f));
     }
 
@@ -83,12 +92,10 @@ public class IlluminaNotificationService {
       }
       br.close();
       hm.put("statusXml", sb.toString());
-    }
-    catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
+    } catch (FileNotFoundException e) {
+      log.warn("handle status XML", e);
+    } catch (IOException e) {
+      log.warn("handle status XML", e);
     }
     return NotificationUtils.buildSimplePostMessage(hm);
   }

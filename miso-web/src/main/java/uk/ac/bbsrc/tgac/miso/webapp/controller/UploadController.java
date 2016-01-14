@@ -23,43 +23,49 @@
 
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
-import com.eaglegenomics.simlims.core.User;
-import com.eaglegenomics.simlims.core.manager.SecurityManager;
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sourceforge.fluxion.ajax.util.JSONUtils;
-import org.codehaus.jackson.Version;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
-import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import uk.ac.bbsrc.tgac.miso.core.data.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.eaglegenomics.simlims.core.User;
+import com.eaglegenomics.simlims.core.manager.SecurityManager;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import uk.ac.bbsrc.tgac.miso.core.data.Library;
+import uk.ac.bbsrc.tgac.miso.core.data.LibraryQC;
+import uk.ac.bbsrc.tgac.miso.core.data.Plate;
+import uk.ac.bbsrc.tgac.miso.core.data.Project;
+import uk.ac.bbsrc.tgac.miso.core.data.Sample;
+import uk.ac.bbsrc.tgac.miso.core.data.SampleQC;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.PlatePool;
+import uk.ac.bbsrc.tgac.miso.core.manager.FilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.MisoFilesManager;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.MisoNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.util.FormUtils;
 import uk.ac.bbsrc.tgac.miso.core.util.LimsUtils;
-import uk.ac.bbsrc.tgac.miso.core.manager.FilesManager;
 import uk.ac.bbsrc.tgac.miso.core.util.jackson.SampleRecursionAvoidanceMixin;
 import uk.ac.bbsrc.tgac.miso.webapp.service.forms.MisoFormsService;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
 
 @Controller
 @RequestMapping("/upload")
@@ -107,12 +113,12 @@ public class UploadController {
   }
 
   public void uploadFile(Class type, String qualifier, MultipartFile fileItem) throws IOException {
-    File dir = new File(filesManager.getFileStorageDirectory() + File.separator + type.getSimpleName().toLowerCase() + File.separator + qualifier);
+    File dir = new File(
+        filesManager.getFileStorageDirectory() + File.separator + type.getSimpleName().toLowerCase() + File.separator + qualifier);
     if (LimsUtils.checkDirectory(dir, true)) {
       log.info("Attempting to store " + dir.toString() + File.separator + fileItem.getOriginalFilename());
       fileItem.transferTo(new File(dir + File.separator + fileItem.getOriginalFilename().replaceAll("\\s", "_")));
-    }
-    else {
+    } else {
       throw new IOException("Cannot upload file - check that the directory specified in miso.properties exists and is writable");
     }
   }
@@ -120,7 +126,6 @@ public class UploadController {
   public void uploadFile(Object type, String qualifier, MultipartFile fileItem) throws IOException {
     uploadFile(type.getClass(), qualifier, fileItem);
   }
-
 
   @RequestMapping(value = "/project", method = RequestMethod.POST)
   public void uploadProjectDocument(MultipartHttpServletRequest request) throws IOException {
@@ -146,8 +151,7 @@ public class UploadController {
         misoFormsService.importSampleDeliveryFormSamples(samples, taxonCheck);
       }
       return "redirect:/miso/project/" + projectId;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.error("SAMPLE IMPORT FAIL:", e);
       throw new IOException(e);
     }
@@ -176,13 +180,8 @@ public class UploadController {
 
         request.getSession(false).setAttribute("bulksamples", o);
       }
-    }
-    catch (Exception e) {
-      log.error("SAMPLE IMPORT FAIL:" + e.getMessage());
-      //JSONObject o = new JSONObject();
-      //o.put("bulkerror", "Cannot import bulk spreadsheet: " + e.getMessage());
-      //log.error(o.toString());
-      //request.getSession(false).setAttribute("bulkerror", o);
+    } catch (Exception e) {
+      log.error("SAMPLE IMPORT FAIL", e);
     }
   }
 
@@ -198,15 +197,13 @@ public class UploadController {
         uploadFile(Project.class, projectId, fileItem);
         File f = filesManager.getFile(Project.class, projectId, fileItem.getOriginalFilename().replaceAll("\\s+", "_"));
         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-        //Map<String, Pool<Plate<LinkedList<Library>, Library>>> pooledPlates = FormUtils.importPlateInputSpreadsheet(f, user, requestManager, libraryNamingScheme);
         Map<String, PlatePool> pooledPlates = FormUtils.importPlateInputSpreadsheet(f, user, requestManager, libraryNamingScheme);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(Sample.class, SampleRecursionAvoidanceMixin.class);
 
         String s = mapper.writerWithType(new TypeReference<Collection<PlatePool>>() {
-        })
-            .writeValueAsString(pooledPlates.values());
+        }).writeValueAsString(pooledPlates.values());
         a.add(JSONArray.fromObject(s));
       }
       o.put("pools", a);
@@ -216,9 +213,8 @@ public class UploadController {
 
       PrintWriter out = response.getWriter();
       out.println("<input type='hidden' id='uploadresponsebody' value='" + o.toString() + "'/>");
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.error("upload project plate", e);
     }
   }
 
@@ -232,15 +228,13 @@ public class UploadController {
         uploadFile(Plate.class, "forms", fileItem);
         File f = filesManager.getFile(Plate.class, "forms", fileItem.getOriginalFilename().replaceAll("\\s+", "_"));
         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
-        //Map<String, Pool<Plate<LinkedList<Library>, Library>>> pooledPlates = FormUtils.importPlateInputSpreadsheet(f, user, requestManager, libraryNamingScheme);
         Map<String, PlatePool> pooledPlates = FormUtils.importPlateInputSpreadsheet(f, user, requestManager, libraryNamingScheme);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.getSerializationConfig().addMixInAnnotations(Sample.class, SampleRecursionAvoidanceMixin.class);
 
         String s = mapper.writerWithType(new TypeReference<Collection<PlatePool>>() {
-        })
-            .writeValueAsString(pooledPlates.values());
+        }).writeValueAsString(pooledPlates.values());
         a.add(JSONArray.fromObject(s));
       }
       o.put("pools", a);
@@ -250,9 +244,8 @@ public class UploadController {
 
       PrintWriter out = response.getWriter();
       out.println("<input type='hidden' id='uploadresponsebody' value='" + o.toString() + "'/>");
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.error("upload plate input", e);
     }
   }
 
@@ -269,9 +262,8 @@ public class UploadController {
       response.setContentType("text/html");
       PrintWriter out = response.getWriter();
       out.println("<input type='hidden' id='uploadresponsebody' value='" + jsonArray + "'/>");
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.error("upload sample sheet", e);
     }
   }
 
@@ -292,7 +284,7 @@ public class UploadController {
     }
 
     catch (Exception e) {
-      e.printStackTrace();
+      log.error("upload library pool sheet", e);
     }
   }
 
@@ -330,10 +322,8 @@ public class UploadController {
       log.debug(o.toString());
 
       request.getSession(false).setAttribute("barcodes", o);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       log.debug("UPLOAD FAIL:", e);
-      //return JSONUtils.SimpleJSONError("Upload failed: "+e.getMessage());
     }
   }
 

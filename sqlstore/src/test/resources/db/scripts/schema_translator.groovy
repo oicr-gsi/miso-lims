@@ -15,7 +15,7 @@ final String basedir = "${project.basedir}"
 final File productionSchemaDir = new File(basedir + '/src/main/resources/db/migration/')
 println('Translating schema files from ' + productionSchemaDir.getAbsolutePath() + '...')
 final String productionScriptPattern = '^V\\d{4}_.*\\.sql$'
-final String testSchemaDir = basedir + '/target/test-classes/db/migration/'
+final String testSchemaDir = basedir + '/target/test-classes/db/test_migration/'
 
 Files.createDirectories(Paths.get(testSchemaDir))
 for (File file : productionSchemaDir.listFiles()) {
@@ -30,6 +30,8 @@ for (File file : productionSchemaDir.listFiles()) {
         .replaceAll('DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'AS CURRENT_TIMESTAMP') // syntax difference, same result
         .replaceAll('\\\\\'', '\'\'') // escape single quotes as '' instead of '/
         .replaceAll('(\'ROLE_[^\']*\')', 'RAWTOHEX($1)') // RAWTOHEX function to write BLOB fields
+        .replaceAll('(?s)CREATE TRIGGER.*;', '') // Delete triggers
+        .replaceAll('(?s)--StartNoTest(.*?)--EndNoTest', '--') // Delete blocks containing non-standard delimiters
         
     Files.write(dstPath, translated.getBytes(), StandardOpenOption.CREATE)
     println("Wrote translated schema file: " + dstPath.toAbsolutePath().toString())

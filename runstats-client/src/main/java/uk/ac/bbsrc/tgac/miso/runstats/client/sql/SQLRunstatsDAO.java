@@ -23,18 +23,18 @@
 
 package uk.ac.bbsrc.tgac.miso.runstats.client.sql;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import uk.ac.bbsrc.tgac.miso.runstats.client.RunstatsStore;
-
 import java.io.IOException;
-import java.lang.Deprecated;
 import java.util.Collection;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import uk.ac.bbsrc.tgac.miso.runstats.client.RunstatsStore;
 
 /**
  * uk.ac.bbsrc.tgac.miso.runstats.client.sql
  * <p/>
  * Info
- *
+ * 
  * @author Rob Davey
  * @date 27/10/11
  * @since 0.1.2

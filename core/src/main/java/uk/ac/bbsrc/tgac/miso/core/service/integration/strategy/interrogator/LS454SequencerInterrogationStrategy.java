@@ -23,34 +23,6 @@
 
 package uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.interrogator;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.xml.XMLSerializer;
-import net.sourceforge.fluxion.spi.ServiceProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
-import uk.ac.bbsrc.tgac.miso.core.data.Status;
-import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
-import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
-import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
-import uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.interrogator.MisoPerlDaemonInterrogationMechanism;
-import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
-import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
-import uk.ac.bbsrc.tgac.miso.core.service.integration.contract.InterrogationResult;
-import uk.ac.bbsrc.tgac.miso.core.service.integration.contract.impl.MisoPerlDaemonQuery;
-import uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.InterrogationMechanism;
-import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.SequencerInterrogationStrategy;
-import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,11 +31,42 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import net.sf.json.JSON;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.xml.XMLSerializer;
+import net.sourceforge.fluxion.spi.ServiceProvider;
+import uk.ac.bbsrc.tgac.miso.core.data.SequencerReference;
+import uk.ac.bbsrc.tgac.miso.core.data.Status;
+import uk.ac.bbsrc.tgac.miso.core.data.impl.StatusImpl;
+import uk.ac.bbsrc.tgac.miso.core.data.type.HealthType;
+import uk.ac.bbsrc.tgac.miso.core.data.type.PlatformType;
+import uk.ac.bbsrc.tgac.miso.core.exception.InterrogationException;
+import uk.ac.bbsrc.tgac.miso.core.service.integration.contract.InterrogationResult;
+import uk.ac.bbsrc.tgac.miso.core.service.integration.contract.impl.MisoPerlDaemonQuery;
+import uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.InterrogationMechanism;
+import uk.ac.bbsrc.tgac.miso.core.service.integration.mechanism.interrogator.MisoPerlDaemonInterrogationMechanism;
+import uk.ac.bbsrc.tgac.miso.core.service.integration.strategy.SequencerInterrogationStrategy;
+import uk.ac.bbsrc.tgac.miso.core.util.SubmissionUtils;
+import uk.ac.bbsrc.tgac.miso.core.util.UnicodeReader;
+
 /**
- * A concrete implementation of a SequencerInterrogationStrategy that can make queries and parse results, supported by a MisoPerlDaemonInterrogationMechanism, to a 454 sequencer.
+ * A concrete implementation of a SequencerInterrogationStrategy that can make queries and parse results, supported by a
+ * MisoPerlDaemonInterrogationMechanism, to a 454 sequencer.
  * <p/>
- * Methods in this class are not usually called explicitly, but via a {@link SequencerInterrogator} that has wrapped up this strategy to a SequencerReference.
- *
+ * Methods in this class are not usually called explicitly, but via a {@link SequencerInterrogator} that has wrapped up this strategy to a
+ * SequencerReference.
+ * 
  * @author Rob Davey
  * @since 0.0.2
  */
@@ -75,10 +78,12 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
   private static final MisoPerlDaemonQuery completeRunsQuery = new MisoPerlDaemonQuery("454", "complete");
   private static final MisoPerlDaemonQuery incompleteRunsQuery = new MisoPerlDaemonQuery("454", "running");
 
+  @Override
   public boolean isStrategyFor(SequencerReference sr) {
     return (sr.getPlatform().getPlatformType().equals(PlatformType.LS454));
   }
 
+  @Override
   public List<Status> listAllStatus(SequencerReference sr) throws InterrogationException {
     List<Status> s = new ArrayList<Status>();
     JSONObject response = JSONObject.fromObject(doQuery(sr, new MisoPerlDaemonInterrogationMechanism(), statusQuery).parseResult());
@@ -90,8 +95,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
             StatusImpl status = new StatusImpl();
             if (j.has("complete") && j.getString("complete").equals("true")) {
               status.setHealth(HealthType.Completed);
-            }
-            else {
+            } else {
               status.setHealth(HealthType.Running);
             }
 
@@ -103,22 +107,19 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
             Node n = statusDoc.getElementsByTagName("run").item(0);
             for (int i = 0; i < n.getChildNodes().getLength(); i++) {
               Node child = n.getChildNodes().item(i);
-              if(child instanceof Element && ((Element) child).getTagName().equals("id")) {
+              if (child instanceof Element && ((Element) child).getTagName().equals("id")) {
                 status.setRunName(child.getTextContent());
               }
             }
             s.add(status);
-          }
-          catch (ParserConfigurationException e) {
-            e.printStackTrace();
+          } catch (ParserConfigurationException e) {
+            log.error("list all statuses", e);
             throw new InterrogationException(e.getMessage());
-          }
-          catch (ParseException e) {
-            e.printStackTrace();
+          } catch (ParseException e) {
+            log.error("list all statuses", e);
             throw new InterrogationException(e.getMessage());
-          }
-          catch (TransformerException e) {
-            e.printStackTrace();
+          } catch (TransformerException e) {
+            log.error("list all statuses", e);
             throw new InterrogationException(e.getMessage());
           }
         }
@@ -127,13 +128,15 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
     return s;
   }
 
+  @Override
   public List<Status> listAllStatusBySequencerName(SequencerReference sr, String name) throws InterrogationException {
     return null;
   }
 
   @Override
   public List<String> listRunsByHealthType(SequencerReference sr, HealthType healthType) throws InterrogationException {
-    String response = doQuery(sr, new MisoPerlDaemonInterrogationMechanism(), new MisoPerlDaemonQuery("454", healthType.getKey().toLowerCase())).parseResult();
+    String response = doQuery(sr, new MisoPerlDaemonInterrogationMechanism(),
+        new MisoPerlDaemonQuery("454", healthType.getKey().toLowerCase())).parseResult();
     List<String> s = new ArrayList<String>();
     if (response != null) {
       String[] ss = response.split(",");
@@ -150,6 +153,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
     return s;
   }
 
+  @Override
   public List<String> listAllCompleteRuns(SequencerReference sr) throws InterrogationException {
     String response = doQuery(sr, new MisoPerlDaemonInterrogationMechanism(), completeRunsQuery).parseResult();
     List<String> s = new ArrayList<String>();
@@ -168,6 +172,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
     return s;
   }
 
+  @Override
   public List<String> listAllIncompleteRuns(SequencerReference sr) throws InterrogationException {
     String response = doQuery(sr, new MisoPerlDaemonInterrogationMechanism(), incompleteRunsQuery).parseResult();
     List<String> s = new ArrayList<String>();
@@ -186,6 +191,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
     return s;
   }
 
+  @Override
   public Status getRunStatus(SequencerReference sr, String runName) throws InterrogationException {
     MisoPerlDaemonQuery runStatusQuery = new MisoPerlDaemonQuery("454", runName, "status");
 
@@ -199,8 +205,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
             StatusImpl status = new StatusImpl();
             if (j.has("complete") && j.getString("complete").equals("true")) {
               status.setHealth(HealthType.Completed);
-            }
-            else {
+            } else {
               status.setHealth(HealthType.Running);
             }
             Document statusDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
@@ -211,7 +216,7 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
             Node n = statusDoc.getElementsByTagName("run").item(0);
             for (int i = 0; i < n.getChildNodes().getLength(); i++) {
               Node child = n.getChildNodes().item(i);
-              if(child instanceof Element && ((Element) child).getTagName().equals("id")) {
+              if (child instanceof Element && ((Element) child).getTagName().equals("id")) {
                 status.setRunName(child.getTextContent());
               }
             }
@@ -219,22 +224,20 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
           }
         }
       }
-    }
-    catch (ParserConfigurationException e) {
-      e.printStackTrace();
+    } catch (ParserConfigurationException e) {
+      log.error("get run status", e);
       throw new InterrogationException(e.getMessage());
-    }
-    catch (ParseException e) {
-      e.printStackTrace();
+    } catch (ParseException e) {
+      log.error("get run status", e);
       throw new InterrogationException(e.getMessage());
-    }
-    catch (TransformerException e) {
-      e.printStackTrace();
+    } catch (TransformerException e) {
+      log.error("get run status", e);
       throw new InterrogationException(e.getMessage());
     }
     return null;
   }
 
+  @Override
   public JSONObject getRunInformation(SequencerReference sr, String runName) throws InterrogationException {
     MisoPerlDaemonQuery runInfoQuery = new MisoPerlDaemonQuery("454", runName, "status");
 
@@ -251,26 +254,24 @@ public class LS454SequencerInterrogationStrategy implements SequencerInterrogati
             if (!info.isEmpty()) {
               if (info.isArray()) {
                 json.put("response", info);
-              }
-              else {
-                return (JSONObject)info;
+              } else {
+                return (JSONObject) info;
               }
             }
           }
         }
       }
-    }
-    catch (InterrogationException ie) {
-      ie.printStackTrace();
+    } catch (InterrogationException ie) {
+      log.error("get run information", ie);
     }
     return json;
   }
 
-  private InterrogationResult<String> doQuery(SequencerReference sr, InterrogationMechanism mechanism, MisoPerlDaemonQuery query) throws InterrogationException {
+  private InterrogationResult<String> doQuery(SequencerReference sr, InterrogationMechanism mechanism, MisoPerlDaemonQuery query)
+      throws InterrogationException {
     log.info("Pushing query: " + query.generateQuery());
     InterrogationResult<String> result = mechanism.doQuery(sr, query);
     log.info("Consuming result: " + result.parseResult());
     return result;
   }
 }
-
