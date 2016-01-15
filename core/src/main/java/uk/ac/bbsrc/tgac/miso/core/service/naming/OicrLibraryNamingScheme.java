@@ -26,7 +26,7 @@ public class OicrLibraryNamingScheme implements RequestManagerAwareNamingScheme<
   private RequestManager requestManager;
 
   public static final String DEFAULT_NAME_REGEX = "([A-Z]{3})([0-9]+)";
-  public static final String DEFAULT_ALIAS_REGEX = "([A-Z]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFE])_(SE|PE|MP|\\?\\?)_(nn|\\d{2,3}|\\dK)_(TS|EX|CH|BS|WG|TR|WT|SM|MR|\\?\\?)";
+  public static final String DEFAULT_ALIAS_REGEX = "([A-Z]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFE])_(SE|PE|MP|\\?\\?)_(nn|\\d{2,4}|\\dK)_(TS|EX|CH|BS|WG|TR|WT|SM|MR|\\?\\?)";
 
   public OicrLibraryNamingScheme() {
     allowDuplicateMap.put("name", false);
