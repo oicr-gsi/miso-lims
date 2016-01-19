@@ -20,8 +20,6 @@
  *
  * *********************************************************************
  */
-var projectArray;
-var tableLoadCounter = 0;
 
 var Tissue = Tissue || {
   getTissueOrigins: function () {
@@ -69,7 +67,7 @@ var Tissue = Tissue || {
     tableBody.innerHTML = null;
     
     var data;
-    if (xhr.responseText) {
+    if (xhr.status == 200) {
       data = JSON.parse(xhr.responseText);
       data.sort(function (a,b) {
         return (a.alias > b.alias) ? 1 : ((b.alias > a.alias) ? -1 : 0);
@@ -77,10 +75,10 @@ var Tissue = Tissue || {
     } // else collection is empty, so add only the "Add New" button
     if (data) {
       for (var i=0; i<data.length; i++) {
-        id = data[i]["id"];
-        alias = data[i]["alias"];
-        description = data[i]["description"];
-        endpoint = "/miso/rest/"+ endpointWord +"/" + id;
+        id = data[i].id;
+        alias = data[i].alias;
+        description = data[i].description;
+        endpoint = data[i].url;
         
         table.push('<tr class="'+option+'"><td>');
         table.push(Options.createTextInput(option+'_alias_'+id, alias));
@@ -97,21 +95,36 @@ var Tissue = Tissue || {
     table.push(Options.createButton('New '+word, "Tissue.createNewRow('"+option+"')", 'newOrigin'));
     table.push('</td></tr>');
     tableBody.innerHTML = table.join('');
-    tableLoadCounter += 1;
+    Options.tableLoadCounter += 1;
     
-    if (tableLoadCounter > 6) { // if tables have all already been loaded once
+    if (Options.tableLoadCounter > Options.tablesOnPage) { // if tables have all already been loaded once
       Options.displayCheckmark(tableBody.parentElement.id);
     }
   },
   
-  update: function (endpoint, id, option) {
+  update: function (endpoint, id, option, givenMethod) {
     var alias = document.getElementById(option+'_alias_'+ id).value;
     var description = document.getElementById(option+'_description_'+id).value;
     if (!alias || !description) {
       alert("Neither alias nor description can be blank.");
       return null;
     }
-    Options.makeXhrRequest('PUT', endpoint, Options.reloadTable, JSON.stringify({ 'alias': alias, 'description': description }), option);
+    method = givenMethod || 'PUT';
+    Options.makeXhrRequest(method, endpoint, Options.reloadTable, JSON.stringify({ 'alias': alias, 'description': description }), option);
+  },
+  
+  addNew: function (option) {
+    var endpoint = '/miso/rest/';
+    if (option == 'TO') {
+      endpoint += 'tissueorigin';
+    } else if (option == 'TC') {
+      endpoint += 'tissuetype'; 
+    } else if (option == 'TM') {
+      endpoint += 'tissuematerial'; 
+    } else if (option == 'SP') {
+      endpoint += 'samplepurpose';
+    }
+    Tissue.update(endpoint, 'new', option, 'POST');
   },
   
   createNewRow: function (option) {
@@ -127,26 +140,6 @@ var Tissue = Tissue || {
 
     document.getElementById('new'+option+'RowButton').insertAdjacentHTML('beforebegin', row.join(''));
     document.getElementById(option+'_alias_new').focus();
-  },
-  
-  addNew: function (option) {
-    var alias = document.getElementById(option+'_alias_new').value;
-    var description = document.getElementById(option+'_description_new').value;
-    if (alias == '' || description == '') {
-      alert("Neither alias nor description can be blank.");
-      return null;
-    }
-    var collection;
-    if (option == 'TO') {
-      collection = 'tissueorigin';
-    } else if (option == 'TC') {
-      collection = 'tissuetype'; 
-    } else if (option == 'TM') {
-      collection = 'tissuematerial'; 
-    } else if (option == 'SP') {
-      collection = 'samplepurpose';
-    }
-    Options.makeXhrRequest('POST', '/miso/rest/'+collection, Options.reloadTable, JSON.stringify({ 'alias': alias, 'description': description }), option);
   }
 };
 
@@ -158,14 +151,8 @@ var QC = QC || {
   createQcDetailsTable: function (xhr) {
     var tableBody = document.getElementById('allQcDetails');
     tableBody.innerHTML = null;
-    console.log("in create QCD"); /////////////////
     
     var data;
-
-    console.log("data: " + typeof data);
-    console.log(data);
-    console.log("xhr: ");
-    console.log(xhr);
     if (xhr.status == 200) {
       data = JSON.parse(xhr.responseText);
       data.sort(function (a, b){
@@ -174,16 +161,15 @@ var QC = QC || {
     } // else collection is empty, so render only the "Add New" button
    
     var table = [];
-    console.log("i can has tabl"); //////////////
     var id, status, description, note, endpoint;
 
     if (data) {
       for (var i=0; i<data.length; i++) {
-        id = data[i]["id"];
-        status = data[i]["status"];
-        description = data[i]["description"];
-        note = data[i]["noteRequired"];
-        endpoint = "/miso/rest/qcpasseddetail/" + id;
+        id = data[i].id;
+        status = data[i].status;
+        description = data[i].description;
+        note = data[i].noteRequired;
+        endpoint = data[i].url;
   
         table.push('<tr class="QC"><td>');
         table.push(Options.createTextInput('QC_description_'+id, description));
@@ -198,15 +184,13 @@ var QC = QC || {
         table.push('</td></tr>');
       }
     }
-    console.log("about to add new QCD row"); ///////////
     table.push('<tr id="newQCRowButton" class="QC"><td>');
     table.push(Options.createButton('New QC Details', 'QC.createNewRow()', 'newDetails'));
     table.push('</td></tr>');
     tableBody.innerHTML = table.join('');
-    console.log("added new QCD row"); ///////////
-    tableLoadCounter += 1;
+    Options.tableLoadCounter += 1;
     
-    if (tableLoadCounter > 6) { // if tables have all already been loaded once
+    if (Options.tableLoadCounter > Options.tablesOnPage) { // if tables have all already been loaded once
       Options.displayCheckmark(tableBody.parentElement.id);
     }
   },
@@ -230,15 +214,20 @@ var QC = QC || {
     return select.join('');
   },
   
-  update: function (endpoint, id) {
+  update: function (endpoint, id, givenMethod) {
     var description = document.getElementById('QC_description_'+id).value;
     var status = document.getElementById('QC_status_'+id).value;
     var note = document.getElementById('QC_note_'+id).value;
-    if (!status || !description || !note) {
-      alert("Neither status, description nor note required can be blank.");
+    if (!description || !note) { //status can be blank, for QC Passed=Unknown
+      alert("Neither description nor note required can be blank.");
       return null;
     }
-    Options.makeXhrRequest('PUT', endpoint, Options.reloadTable, JSON.stringify({ 'status': status, 'description': description, 'noteRequired': note }), 'QC');
+    var method = givenMethod || 'PUT';
+    Options.makeXhrRequest(method, endpoint, Options.reloadTable, JSON.stringify({ 'status': status, 'description': description, 'noteRequired': note }), 'QC');
+  },
+  
+  addNew: function() {
+    QC.update('/miso/rest/qcpasseddetail', 'new', 'POST');
   },
   
   createNewRow: function () {
@@ -256,27 +245,18 @@ var QC = QC || {
 
     document.getElementById('newQCRowButton').insertAdjacentHTML('beforebegin', row.join(''));
     document.getElementById('QC_status_new').focus();
-  },
-  
-  addNew: function() {
-    var description = document.getElementById('QC_description_new').value;
-    var status = document.getElementById('QC_status_new').value;
-    var note = document.getElementById('QC_note_new').value;
-    if (!description || !note) { //status can be blank, for QC Passed=Unknown
-      alert("Neither description nor note required can be blank.");
-      return null;
-    }
-    Options.makeXhrRequest('POST', '/miso/rest/qcpasseddetail', Options.reloadTable, JSON.stringify({ 'status': status, 'description': description, 'noteRequired': note }), 'QC');
   }
 };
 
 var Subproject = Subproject || {
-  getSubprojects: function (xhr) {
-    Options.makeXhrRequest('GET', '/miso/rest/project', Subproject.listProjects, xhr);
+  projectArray: null,
+  
+  getProjects: function () {
+    Options.makeXhrRequest('GET', '/miso/rest/project', Subproject.listProjects);
   },
   
   listProjects: function (pxhr) {
-    projectArray = JSON.parse(pxhr.response).sort(function (a, b) {
+    Subproject.projectArray = JSON.parse(pxhr.response).sort(function (a, b) {
       return (a.alias > b.alias) ? 1 : ((b.alias > a.alias) ? -1 : 0);
     });
     Options.makeXhrRequest('GET', '/miso/rest/subprojects', Subproject.createSubprojectTable);
@@ -287,24 +267,24 @@ var Subproject = Subproject || {
     tableBody.innerHTML = null;
 
     var data;
-    if (xhr.responseText) {
+    if (xhr.status == 200) {
       data = JSON.parse(xhr.response).sort(function (a, b) {
         return (a.alias > b.alias) ? 1 : ((b.alias > a.alias) ? -1 : 0);
       });
-    }    
+    } // else collection is empty, so render only the "Add New" button   
 
     var table = [];
-    var id, alias, description, project, priority, endpoint, tr, td, aliasInput, descriptionInput, parentProjectInput, priorityInput, updateButton, td2, deleteButton, newRowButton;
+    var id, alias, description, project, priority, endpoint;
     
     if (data) {
       for (var i=0; i<data.length; i++) {
-        id = data[i]["id"];
-        alias = data[i]["alias"];
-        description = data[i]["description"];
-        projectId = data[i]["parentProjectId"];
-        projectName = projectArray.filter(function(p) { return p.projectId == projectId; })[0].alias;
-        priority = data[i]["priority"];
-        endpoint = "/miso/rest/subproject/" + id;
+        id = data[i].id;
+        alias = data[i].alias;
+        description = data[i].description;
+        projectId = data[i].parentProjectId;
+        projectName = Subproject.projectArray.filter(function(p) { return p.projectId == projectId; })[0].alias;
+        priority = data[i].priority;
+        endpoint = data[i].url;
   
         table.push('<tr class="subP"><td>');
         table.push('<b><span id="subP_parentProject_'+id+'">'+ projectName +'</span></b>'); // not editable after creation
@@ -325,9 +305,9 @@ var Subproject = Subproject || {
     table.push(Options.createButton('New Subproject', 'Subproject.createNewRow()', 'newDetails'));
     table.push('</td></tr>');
     tableBody.innerHTML = table.join('');
-    tableLoadCounter += 1;
+    Options.tableLoadCounter += 1;
     
-    if (tableLoadCounter > 6) { // if tables have all already been loaded once
+    if (Options.tableLoadCounter > Options.tablesOnPage) { // if tables have all already been loaded once
       Options.displayCheckmark(tableBody.parentElement.id);
     }
   },
@@ -336,10 +316,10 @@ var Subproject = Subproject || {
     var selectedProjectId = projectId || '';
     var select = [];
     select.push('<select id="'+ idValue +'">');
-    for (var j=0;j<projectArray.length;j++) {
-      select.push('<option value="'+ projectArray[j]["projectId"] +'"');
-      if (projectArray[j]["projectId"] == selectedProjectId) select.push(' selected=""');
-      select.push('>'+ projectArray[j]["alias"] +'</option>');
+    for (var j=0;j<Subproject.projectArray.length;j++) {
+      select.push('<option value="'+ Subproject.projectArray[j]["projectId"] +'"');
+      if (Subproject.projectArray[j]["projectId"] == selectedProjectId) select.push(' selected=""');
+      select.push('>'+ Subproject.projectArray[j]["alias"] +'</option>');
     }
     select.push('</select>');
     return select.join('');
@@ -362,7 +342,21 @@ var Subproject = Subproject || {
       alert("Neither alias, description, nor priority can be blank.");
       return null;
     }
-    Options.makeXhrRequest('PUT', endpoint, Options.reloadTable, JSON.stringify({ 'alias': alias, 'description': description, 'priority': priority }), 'SubP');
+    Options.makeXhrRequest('PUT', endpoint, Options.reloadTable, 
+        JSON.stringify({ 'alias': alias, 'description': description, 'priority': priority }), 'SubP');
+  },
+  
+  addNew: function() {
+    var alias = document.getElementById('subP_alias_new').value;
+    var description = document.getElementById('subP_description_new').value;
+    var parentProjectId = document.getElementById('subP_parentProject_new').value;
+    var priority = document.getElementById('subP_priority_new').value;
+    if (!alias || !description || !parentProjectId || !priority) {
+      alert("Neither alias, description, project nor priority can be blank.");
+      return null;
+    }
+    Options.makeXhrRequest('POST', '/miso/rest/subproject', Options.reloadTable, 
+        JSON.stringify({ 'alias': alias, 'description': description, 'parentProjectId': parentProjectId, 'priority': priority}), 'SubP');
   },
   
   createNewRow: function () {
@@ -382,22 +376,123 @@ var Subproject = Subproject || {
 
     document.getElementById('newSubpRowButton').insertAdjacentHTML('beforebegin', row.join(''));
     document.getElementById('subP_alias_new').focus();
+  }
+};
+
+var Hierarchy = Hierarchy || {
+  categoriesArray: [],
+  data: null,
+  
+  getSampleCategories: function () {
+    Options.makeXhrRequest('GET', '/miso/rest/samplecategories', Hierarchy.getSampleClasses);  
   },
   
-  addNew: function() {
-    var alias = document.getElementById('subP_alias_new').value;
-    var description = document.getElementById('subP_description_new').value;
-    var parentProjectId = document.getElementById('subP_parentProject_new').value;
-    var priority = document.getElementById('subP_priority_new').value;
-    if (!alias || !description || !parentProjectId || !priority) {
-      alert("Neither alias, description, project nor priority can be blank.");
-      return null;
+  getSampleClasses: function (cxhr) {
+    Hierarchy.categoriesArray = JSON.parse(cxhr.response);
+    Options.makeXhrRequest('GET', '/miso/rest/sampleclasses', Hierarchy.createSampleClassesTable);
+  },
+  
+  createSampleClassesTable: function (xhr) {
+    var tableBody = document.getElementById('allClasses');
+    tableBody.innerHTML = null;
+    
+    if (xhr.status == 200) {
+      Hierarchy.data = {};
+      // data = { category1: [], category2: [], ... }
+      for (var i=0; i<Hierarchy.categoriesArray.length; i++) {
+        Hierarchy.data[Hierarchy.categoriesArray[i].alias] = [];
+      }
+      
+      var response = JSON.parse(xhr.response);
+      
+      // data = { category1: [class1, class3], category2: [class2], ... }
+      for (i=0; i<response.length; i++) {
+        Hierarchy.data[response[i].sampleCategory].push(response[i]);
+      }
+    } // else collection is empty, so render only the "Add New" button
+    
+    var table = [];
+    var id, alias, category, endpoint;
+    
+    if (Hierarchy.data) {
+      for (var key in Hierarchy.data) {
+        for (i=0; i<Hierarchy.data[key].length; i++) {
+          id = Hierarchy.data[key][i].id;
+          alias = Hierarchy.data[key][i].alias;
+          category = Hierarchy.data[key][i].sampleCategory;
+          endpoint = Hierarchy.data[key][i].url;
+          
+          table.push('<tr class="sampleClass"><td>');
+          table.push(Options.createTextInput('class_alias_'+id, alias));
+          table.push('</td><td>');
+          table.push(Hierarchy.createCategorySelect('class_category_'+ id, category));
+          table.push('</td><td>');
+          table.push(Options.createButton('Update', "Hierarchy.update('"+endpoint+"', "+id+")"));
+          table.push('</td><td>');
+          table.push(Options.createButton('Delete', "Options.confirmDelete('"+endpoint+"')"));
+          table.push('</td></tr>');
+        } 
+      }
     }
-    Options.makeXhrRequest('POST', '/miso/rest/subproject', Options.reloadTable, JSON.stringify({ 'alias': alias, 'description': description, 'parentProjectId': parentProjectId, 'priority': priority}), 'SubP');
+    table.push('<tr id="newClassRowButton" class="sampleClass"></td>');
+    table.push(Options.createButton('New Class', 'Hierarchy.createNewRow()', 'newClass'));
+    table.push('</td></tr>');
+    tableBody.innerHTML = table.join('');
+    Options.tableLoadCounter += 1;
+    
+    if (Options.tableLoadCounter > Options.tablesOnPage) { // if tables have all already been loaded once
+      Options.displayCheckmark(tableBody.parentElement.id);
+    }
+  },
+  
+  createCategorySelect: function (idValue, category) {
+    var select = [];
+    select.push('<select id="'+ idValue +'">');
+    var categories = Hierarchy.categoriesArray;
+    for (var i=0; i<categories.length; i++) {
+      select.push('<option value="'+ categories[i].alias +'"');
+      if (categories[i].alias == category) select.push(' selected=""');
+      select.push('>'+ categories[i].alias + '</option>');
+    }
+    select.push('</select>');
+    return select.join('');
+  },
+  
+  update: function (endpoint, id, givenMethod) {
+    var alias = document.getElementById('class_alias_'+id).value;
+    var category = document.getElementById('class_category_'+id).value;
+    if (!alias || !category) {
+      alert("Neither class nor category can be blank.");
+      return false;
+    }
+    var method = givenMethod || 'PUT';
+    Options.makeXhrRequest(method, endpoint, Options.reloadTable, JSON.stringify({ 'alias': alias, 'sampleCategory': category }), 'Cl');
+  },
+  
+  addNew: function () {
+    Hierarchy.update('/miso/rest/sampleclass', 'new', 'POST');
+  },
+  
+  createNewRow: function () {
+    var row = [];
+    
+    row.push('<tr><td>');
+    row.push(Options.createTextInput('class_alias_new'));
+    row.push('</td><td>');
+    row.push(Hierarchy.createCategorySelect('class_category_new')); // don't pass in category value because none is selected
+    row.push('</td><td>');
+    row.push(Options.createButton('Add', 'Hierarchy.addNew()'));
+    row.push('</td></tr>');
+    
+    document.getElementById('newClassRowButton').insertAdjacentHTML('beforebegin', row.join(''));
+    document.getElementById('class_alias_new').focus();
   }
 };
 
 var Options = Options || {
+  tableLoadCounter: 0,
+  tablesOnPage: 7,
+  
   makeXhrRequest: function (method, endpoint, callback, data, callbackarg) {
     var expectedStatus;
     var unauthorizedStatus = 401;
@@ -459,8 +554,11 @@ var Options = Options || {
       reloadTableFunc = QC.getQcDetails;
       table = document.getElementById('allQcDetailsTable');
     } else if (option == 'SubP') {
-      reloadTableFunc = Subproject.getSubprojects;
+      reloadTableFunc = Subproject.getProjects;
       table = document.getElementById('allSubprojectsTable');
+    } else if (option == 'Cl') {
+      reloadTableFunc = Hierarchy.getSampleCategories;
+      table = document.getElementById('allClassesTable');
     }
     reloadTableFunc();
   },

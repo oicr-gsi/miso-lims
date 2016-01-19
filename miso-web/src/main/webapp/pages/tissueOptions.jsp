@@ -33,13 +33,25 @@
 
 <script src="<c:url value='/scripts/datatables_utils.js?ts=${timestamp.time}'/>" type="text/javascript"></script>
 <script src="<c:url value='/scripts/natural_sort.js?ts=${timestamp.time}'/>" type="text/javascript"></script>
-<script src="<c:url value='/scripts/tissueOptions_ajax.js'/>" type="text/javascript"></script>
+
+<script src="<c:url value='/scripts/tissueOptions_ajax.js?ts=${timestamp.time}'/>" type="text/javascript"></script>
 
 <div id="maincontent">
 <div id="contentcolumn">
 
-  <h1>Tissue Options</h1>
+  <h1>Institute Options</h1>
   
+  <ul>
+    <li><a href="#origins">Tissue Origins</a></li>
+    <li><a href="#conditions">Tissue Conditions</a></li>
+    <li><a href="#materials">Tissue Materials</a></li>
+    <li><a href="#purposes">Sample Purposes</a></li>
+    <li><a href="#qcDetails">QC Details</a></li>
+    <li><a href="#subprojects">Subprojects</a></li>
+    <li><a href="#classes">Sample Classes</a></li>
+  </ul>
+  
+  <div class="sectionDivider"></div>
   <h2 id="origins">Tissue Origins</h2>
   <div>
 	  <table id="allOriginsTable" class="tissueOptionsTable clear">
@@ -117,6 +129,19 @@
       <tbody id="allSubprojects"></tbody>
     </table>
   </div>
+  
+  <div class="sectionDivider"></div>
+  <h2 id="classes">Sample Classes</h2>
+  <div>
+    <table id="allClassesTable" class= "tissueOptionsTable clear">
+      <thead>
+        <tr>
+          <th>Class</th><th>Category</th>
+        </tr>
+      </thead>
+      <tbody id="allClasses"></tbody>
+    </table>
+  </div>
 
 </div>
 </div>
@@ -128,7 +153,8 @@
     Tissue.getTissueMaterials();
     Tissue.getSamplePurposes();
     QC.getQcDetails();
-    Subproject.getSubprojects();
+    Subproject.getProjects();
+    Hierarchy.getSampleCategories();
   });
 </script>
   
