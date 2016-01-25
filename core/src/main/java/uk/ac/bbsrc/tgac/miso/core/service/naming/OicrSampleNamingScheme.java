@@ -6,11 +6,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.fluxion.spi.ServiceProvider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.sourceforge.fluxion.spi.ServiceProvider;
 import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.exception.MisoNamingException;
 import uk.ac.bbsrc.tgac.miso.core.manager.RequestManager;
@@ -21,11 +20,11 @@ public class OicrSampleNamingScheme implements RequestManagerAwareNamingScheme<S
   protected static final Logger log = LoggerFactory.getLogger(OicrSampleNamingScheme.class);
 
   public static final String NAME_REGEX = "([A-Z]{3})([0-9]+)";
-  public static final String ALIAS_REGEX = "([A-Z]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFE])_(nn|\\d{2})_(\\d{1,2})-(\\d{1,2})_(D|R)(_S?\\d{1,2})?";
+  public static final String ALIAS_REGEX = "([A-Z]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFET])_(nn|\\d{2})_(\\d{1,2})-(\\d{1,2})_(D|R)(_S?\\d{1,2})?";
 
-  private Map<String, Boolean> allowDuplicateMap = new HashMap<String, Boolean>();
-  private Map<String, Pattern> validationMap = new HashMap<String, Pattern>();
-  private Map<String, NameGenerator<Sample>> customNameGeneratorMap = new HashMap<String, NameGenerator<Sample>>();
+  private final Map<String, Boolean> allowDuplicateMap = new HashMap<String, Boolean>();
+  private final Map<String, Pattern> validationMap = new HashMap<String, Pattern>();
+  private final Map<String, NameGenerator<Sample>> customNameGeneratorMap = new HashMap<String, NameGenerator<Sample>>();
   private RequestManager requestManager;
 
   public OicrSampleNamingScheme() {
