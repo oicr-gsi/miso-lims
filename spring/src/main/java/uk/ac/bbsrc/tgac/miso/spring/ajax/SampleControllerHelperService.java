@@ -184,6 +184,7 @@ public class SampleControllerHelperService {
               news.setSampleType(type);
               news.setLocationBarcode(locationBarcode);
               news.setIdentificationBarcode(identificationBarcode);
+              news.setLastModifier(user);
 
               if (j.has("receivedDate") && !isStringEmptyOrNull(j.getString("receivedDate"))) {
                 Date date = df.parse(j.getString("receivedDate"));
@@ -670,11 +671,11 @@ public class SampleControllerHelperService {
 
     return JSONUtils.SimpleJSONResponse("Note saved successfully");
   }
-  
+
   public JSONObject changeSampleIdBarcode(HttpSession session, JSONObject json) {
     Long sampleId = json.getLong("sampleId");
     String idBarcode = json.getString("identificationBarcode");
-    
+
     try {
       if (!isStringEmptyOrNull(idBarcode)) {
         User user = securityManager.getUserByLoginName(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -689,7 +690,7 @@ public class SampleControllerHelperService {
       log.debug("Could not change Sample identificationBarcode: " + e.getMessage());
       return JSONUtils.SimpleJSONError(e.getMessage());
     }
-    
+
     return JSONUtils.SimpleJSONResponse("New Identification Barcode successfully assigned.");
   }
 
@@ -775,6 +776,7 @@ public class SampleControllerHelperService {
       JSONObject j = new JSONObject();
       JSONArray jsonArray = new JSONArray();
       for (Sample sample : requestManager.listAllSamples()) {
+        String identificationBarcode = sample.getIdentificationBarcode();
         jsonArray.add("['" + 
                       TableHelper.hyperLinkify("/miso/sample/" + sample.getId(), 
                                                 sample.getName(), true) + "','" +
@@ -784,7 +786,7 @@ public class SampleControllerHelperService {
                       (sample.getQcPassed() != null ? sample.getQcPassed().toString() : "") + "','" +
                       getSampleLastQC(sample.getId()) + "','" +
                       "<a href=\"/miso/sample/" + sample.getId() + "\"><span class=\"ui-icon ui-icon-pencil\"></span></a>" + "','" +
-                      (sample.getIdentificationBarcode() != null ? sample.getIdentificationBarcode() : "") + "','" +
+                      (isStringEmptyOrNull(identificationBarcode) ? "" : identificationBarcode) + "','" +
                       "']");
       }
       j.put("array", jsonArray);
@@ -802,7 +804,7 @@ public class SampleControllerHelperService {
 
   public String getSampleLastQC(Long sampleId) {
     try {
-     String sampleQCValue = "NA";
+      String sampleQCValue = "NA";
       Collection<SampleQC> sampleQCs = requestManager.listAllSampleQCsBySampleId(sampleId);
       if (sampleQCs.size() > 0) {
         List<SampleQC> list = new ArrayList(sampleQCs);

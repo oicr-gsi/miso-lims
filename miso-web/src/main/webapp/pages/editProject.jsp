@@ -44,7 +44,7 @@
 <h1><c:choose><c:when
     test="${project.id != 0}">Edit</c:when><c:otherwise>Create</c:otherwise></c:choose>
   Project
-  <button type="button" class="fg-button ui-state-default ui-corner-all" onclick="return validate_project();">
+  <button type="button" class="fg-button ui-state-default ui-corner-all" onclick="return Project.validateProject();">
     Save
   </button>
 </h1>
@@ -125,7 +125,7 @@
         <c:when test="${(project.securityProfile.owner.loginName eq SPRING_SECURITY_CONTEXT.authentication.principal.username)
                         or fn:contains(SPRING_SECURITY_CONTEXT.authentication.principal.authorities,'ROLE_ADMIN')}">
           <div id="progressButtons">
-          <form:radiobuttons id="progress" path="progress"/>
+            <form:radiobuttons id="progress" path="progress"/>
           </div>
         </c:when>
         <c:otherwise>
@@ -143,6 +143,14 @@
     </td>
   </tr>
 </table>
+
+<script type="text/javascript">
+  jQuery(document).ready(function () {
+    // Attaches a Parsley form validator
+    Validate.attachParsley('#project-form');
+  });
+</script>
+
 <div id="printServiceSelectDialog" title="Select a Printer"></div>
 
 <div id="projectoverviews">
