@@ -47,9 +47,11 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import uk.ac.bbsrc.tgac.miso.core.data.SampleClass;
+import uk.ac.bbsrc.tgac.miso.core.data.SampleValidRelationship;
 import uk.ac.bbsrc.tgac.miso.dto.Dtos;
 import uk.ac.bbsrc.tgac.miso.dto.SampleClassDto;
 import uk.ac.bbsrc.tgac.miso.service.SampleClassService;
+import uk.ac.bbsrc.tgac.miso.service.SampleValidRelationshipService;
 
 @Controller
 @RequestMapping("/rest")
@@ -60,6 +62,8 @@ public class SampleClassController extends RestController {
 
   @Autowired
   private SampleClassService sampleClassService;
+  @Autowired
+  private SampleValidRelationshipService sampleValidRelationshipService;
 
   @RequestMapping(value = "/sampleclass/{id}", method = RequestMethod.GET, produces = { "application/json" })
   @ResponseBody
@@ -78,15 +82,15 @@ public class SampleClassController extends RestController {
   private static SampleClassDto writeUrls(SampleClassDto sampleClassDto, UriComponentsBuilder uriBuilder) {
     URI baseUri = uriBuilder.build().toUri();
     sampleClassDto.setUrl(
-        UriComponentsBuilder.fromUri(baseUri).replacePath("/rest/sampleclass/{id}").buildAndExpand(sampleClassDto.getId()).toUriString());
+        UriComponentsBuilder.fromUri(baseUri).path("/rest/sampleclass/{id}").buildAndExpand(sampleClassDto.getId()).toUriString());
     sampleClassDto.setCreatedByUrl(
-        UriComponentsBuilder.fromUri(baseUri).replacePath("/rest/user/{id}").buildAndExpand(sampleClassDto.getCreatedById()).toUriString());
+        UriComponentsBuilder.fromUri(baseUri).path("/rest/user/{id}").buildAndExpand(sampleClassDto.getCreatedById()).toUriString());
     sampleClassDto.setUpdatedByUrl(
-        UriComponentsBuilder.fromUri(baseUri).replacePath("/rest/user/{id}").buildAndExpand(sampleClassDto.getUpdatedById()).toUriString());
+        UriComponentsBuilder.fromUri(baseUri).path("/rest/user/{id}").buildAndExpand(sampleClassDto.getUpdatedById()).toUriString());
     return sampleClassDto;
   }
 
-  @RequestMapping(value = "/sampleclasss", method = RequestMethod.GET, produces = { "application/json" })
+  @RequestMapping(value = "/sampleclasses", method = RequestMethod.GET, produces = { "application/json" })
   @ResponseBody
   public Set<SampleClassDto> getSampleClasss(UriComponentsBuilder uriBuilder, HttpServletResponse response) {
     Set<SampleClass> sampleClasss = sampleClassService.getAll();
@@ -126,6 +130,13 @@ public class SampleClassController extends RestController {
   @RequestMapping(value = "/sampleclass/{id}", method = RequestMethod.DELETE)
   @ResponseBody
   public ResponseEntity<?> deleteSampleClass(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+    // first delete all SampleValidRelationships which reference this Class (as parent or child)
+    for (SampleValidRelationship relationship : sampleValidRelationshipService.getAll()) {
+      if (relationship.getChild().getSampleClassId().equals(id) || relationship.getParent().getSampleClassId().equals(id)) {
+        sampleValidRelationshipService.delete(relationship.getSampleValidRelationshipId());
+      }
+    }
+    // then delete the Class itself
     sampleClassService.delete(id);
     return new ResponseEntity<>(HttpStatus.OK);
   }

@@ -1908,3 +1908,21 @@ h2.tissue {
 .clear {
 	clear: both;
 }
+
+.corner-padding {
+	padding: 1%;
+}
+
+table.default-table {
+	font-size: 110%;
+}
+
+tr.relationship th,
+tr.relationship td {
+	padding: 2% 0%;
+	white-space: nowrap;
+}
+
+tr.relationship th {
+	text-align: center;
+}
