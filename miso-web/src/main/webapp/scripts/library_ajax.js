@@ -617,7 +617,6 @@ Library.barcode = {
             "<input type='text' name='locationBarcodeInput' id='locationBarcodeInput' class='text ui-widget-content ui-corner-all'/>" +
             "</fieldset></form>");
 
-    jQuery(function () {
       jQuery('#changeLibraryLocationDialog').dialog({
         autoOpen: false,
         width: 400,
