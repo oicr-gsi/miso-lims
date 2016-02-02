@@ -20,7 +20,7 @@ public class OicrSampleNamingScheme implements RequestManagerAwareNamingScheme<S
   protected static final Logger log = LoggerFactory.getLogger(OicrSampleNamingScheme.class);
 
   public static final String NAME_REGEX = "([A-Z]{3})([0-9]+)";
-  public static final String ALIAS_REGEX = "([A-Z]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFET])_(nn|\\d{2})_(\\d{1,2})-(\\d{1,2})_(D|R)(_S?\\d{1,2})?";
+  public static final String ALIAS_REGEX = "([A-Z\\d]{3,5})_([0-9]{3,4}|[0-9][CR][0-9]{1,2})_(nn|[A-Z]{1}[a-z]{1})_([nRPXMCFETO])_(nn|\\d{2})_(\\d{1,2})-(\\d{1,2})_(D|R)(_S?\\d{1,2})?";
 
   private final Map<String, Boolean> allowDuplicateMap = new HashMap<String, Boolean>();
   private final Map<String, Pattern> validationMap = new HashMap<String, Pattern>();
