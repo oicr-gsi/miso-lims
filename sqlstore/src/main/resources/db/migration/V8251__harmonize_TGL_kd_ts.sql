@@ -13,11 +13,11 @@ UPDATE TargetedSequencing SET kitDescriptorId = (SELECT kitDescriptorId FROM Kit
 -- if any libraries use a kit that is inappropriate for the newly-changed targeted sequencing values, update the kits.
 UPDATE LibraryAdditionalInfo SET kitDescriptorId = (
   SELECT kitDescriptorId FROM TargetedSequencing WHERE alias = 'Agilent SureSelect Human All Exon V6 Cosmic')
-WHERE libraryId = (SELECT library_libraryId FROM LibraryDilution WHERE targetedSequencingId IN (SELECT targetedSequencingId FROM TargetedSequencing 
+WHERE libraryId IN (SELECT library_libraryId FROM LibraryDilution WHERE targetedSequencingId IN (SELECT targetedSequencingId FROM TargetedSequencing 
 WHERE alias = 'Agilent SureSelect Human All Exon V6 Cosmic'));
 
 UPDATE LibraryAdditionalInfo SET kitDescriptorId = (
   SELECT kitDescriptorId FROM TargetedSequencing WHERE alias = 'Agilent SureSelect Human All Exon V5 + UTRs')
-WHERE libraryId = (SELECT library_libraryId FROM LibraryDilution WHERE targetedSequencingId IN (SELECT targetedSequencingId FROM TargetedSequencing 
+WHERE libraryId IN (SELECT library_libraryId FROM LibraryDilution WHERE targetedSequencingId IN (SELECT targetedSequencingId FROM TargetedSequencing 
 WHERE alias = 'Agilent SureSelect Human All Exon V5 + UTRs'));
 --EndNoTest
