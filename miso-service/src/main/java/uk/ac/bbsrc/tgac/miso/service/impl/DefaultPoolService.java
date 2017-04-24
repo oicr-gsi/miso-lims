@@ -197,6 +197,7 @@ public class DefaultPoolService implements PoolService, AuthorizedPaginatedDataS
 
     if (pool.getId() == PoolImpl.UNSAVED_ID) {
       pool.setName(generateTemporaryName());
+      loadPooledElements(pool.getPoolableElementViews(), pool);
       poolStore.save(pool);
 
       if (autoGenerateIdBarcodes) {
@@ -220,14 +221,8 @@ public class DefaultPoolService implements PoolService, AuthorizedPaginatedDataS
       original.setReadyToRun(pool.getReadyToRun());
 
       Set<String> originalItems = extractDilutionNames(original.getPoolableElementViews());
-
-      Set<PoolableElementView> pooledElements = new HashSet<>();
-      for (PoolableElementView dilution : pool.getPoolableElementViews()) {
-        pooledElements.add(poolableElementViewService.get(dilution.getDilutionId()));
-      }
-      original.setPoolableElementViews(pooledElements);
-
-      Set<String> updatedItems = extractDilutionNames(pooledElements);
+      loadPooledElements(pool, original);
+      Set<String> updatedItems = extractDilutionNames(original.getPoolableElementViews());
 
       Set<String> added = new TreeSet<>(updatedItems);
       added.removeAll(originalItems);
@@ -253,6 +248,25 @@ public class DefaultPoolService implements PoolService, AuthorizedPaginatedDataS
     long id = poolStore.save(pool);
     if (poolAlertManager != null) poolAlertManager.update(pool);
     return id;
+  }
+
+  private void loadPooledElements(Collection<PoolableElementView> source, Pool target) throws IOException {
+    Set<PoolableElementView> pooledElements = new HashSet<>();
+    for (PoolableElementView dilution : source) {
+      PoolableElementView v = null;
+      if (dilution.getDilutionId() != null) {
+        v = poolableElementViewService.get(dilution.getDilutionId());
+      } else if (dilution.getPreMigrationId() != null) {
+        v = poolableElementViewService.getByPreMigrationId(dilution.getPreMigrationId());
+      }
+      if (v == null) throw new IllegalStateException("Pool contains an unsaved dilution");
+      pooledElements.add(v);
+    }
+    target.setPoolableElementViews(pooledElements);
+  }
+
+  private void loadPooledElements(Pool source, Pool target) throws IOException {
+    loadPooledElements(source.getPoolableElementViews(), target);
   }
 
   private Set<String> extractDilutionNames(Set<PoolableElementView> dilutions) {

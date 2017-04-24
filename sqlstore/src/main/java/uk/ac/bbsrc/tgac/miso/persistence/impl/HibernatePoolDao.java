@@ -187,11 +187,8 @@ public class HibernatePoolDao implements PoolStore, HibernatePaginatedDataSource
   @Override
   public List<Pool> listByProjectId(long projectId) throws IOException {
     Criteria idCriteria = currentSession().createCriteria(PoolImpl.class, "p");
-    idCriteria.createAlias("p.pooledElements", "dilution");
-    idCriteria.createAlias("dilution.library", "library");
-    idCriteria.createAlias("library.sample", "sample");
-    idCriteria.createAlias("sample.project", "project");
-    idCriteria.add(Restrictions.eq("project.id", projectId));
+    idCriteria.createAlias("p.pooledElementViews", "dilution");
+    idCriteria.add(Restrictions.eq("dilution.projectId", projectId));
     idCriteria.setProjection(Projections.distinct(Projections.property("p.id")));
     @SuppressWarnings("unchecked")
     List<Long> ids = idCriteria.list();
