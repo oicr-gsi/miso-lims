@@ -314,16 +314,13 @@ public class HibernateRunDao implements RunStore, HibernatePaginatedDataSource<R
     criteria.createAlias("containers", "container");
     criteria.createAlias("container.partitions", "partition");
     criteria.createAlias("partition.pool", "pool");
-    criteria.createAlias("pool.pooledElements", "dilution");
-    criteria.createAlias("dilution.library", "library");
-    criteria.createAlias("library.sample", "sample");
-    criteria.createAlias("sample.project", "project");
+    criteria.createAlias("pool.pooledElementViews", "dilution");
     HibernatePaginatedDataSource.super.restrictPaginationByProjectId(criteria, projectId);
   }
 
   @Override
   public String getProjectColumn() {
-    return "project.id";
+    return "dilution.projectId";
   }
 
   @Override

@@ -32,7 +32,7 @@ public class PoolableElementView implements Serializable, Comparable<PoolableEle
   private static final long serialVersionUID = 1L;
 
   @Id
-  private Long dilutionId;
+  private long dilutionId = LibraryDilution.UNSAVED_ID;
 
   private String dilutionName;
 
@@ -161,11 +161,11 @@ public class PoolableElementView implements Serializable, Comparable<PoolableEle
     this.indices = indices;
   }
 
-  public Long getDilutionId() {
+  public long getDilutionId() {
     return dilutionId;
   }
 
-  public void setDilutionId(Long dilutionId) {
+  public void setDilutionId(long dilutionId) {
     this.dilutionId = dilutionId;
   }
 

@@ -22,6 +22,7 @@ import com.eaglegenomics.simlims.core.manager.SecurityManager;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Pool;
 import uk.ac.bbsrc.tgac.miso.core.data.PoolQC;
+import uk.ac.bbsrc.tgac.miso.core.data.impl.LibraryDilution;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.PoolImpl;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.changelog.PoolChangeLog;
 import uk.ac.bbsrc.tgac.miso.core.data.impl.view.PoolableElementView;
@@ -66,6 +67,10 @@ public class DefaultPoolService implements PoolService, AuthorizedPaginatedDataS
   private SecurityManager securityManager;
   @Autowired
   private PoolableElementViewService poolableElementViewService;
+
+  public void setAutoGenerateIdBarcodes(boolean autoGenerateIdBarcodes) {
+    this.autoGenerateIdBarcodes = autoGenerateIdBarcodes;
+  }
 
   public void setAuthorizationManager(AuthorizationManager authorizationManager) {
     this.authorizationManager = authorizationManager;
@@ -254,7 +259,7 @@ public class DefaultPoolService implements PoolService, AuthorizedPaginatedDataS
     Set<PoolableElementView> pooledElements = new HashSet<>();
     for (PoolableElementView dilution : source) {
       PoolableElementView v = null;
-      if (dilution.getDilutionId() != null) {
+      if (dilution.getDilutionId() != LibraryDilution.UNSAVED_ID) {
         v = poolableElementViewService.get(dilution.getDilutionId());
       } else if (dilution.getPreMigrationId() != null) {
         v = poolableElementViewService.getByPreMigrationId(dilution.getPreMigrationId());

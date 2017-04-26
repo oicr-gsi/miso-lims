@@ -282,7 +282,7 @@ public class HibernatePoolDao implements PoolStore, HibernatePaginatedDataSource
 
   @Override
   public String getProjectColumn() {
-    return "project.id";
+    return "dilution.projectId";
   }
 
   @Override
@@ -300,10 +300,7 @@ public class HibernatePoolDao implements PoolStore, HibernatePaginatedDataSource
 
   @Override
   public void restrictPaginationByProjectId(Criteria criteria, long projectId) {
-    criteria.createAlias("pooledElements", "dilution");
-    criteria.createAlias("dilution.library", "library");
-    criteria.createAlias("library.sample", "sample");
-    criteria.createAlias("sample.project", "project");
+    criteria.createAlias("pooledElementViews", "dilution");
     HibernatePaginatedDataSource.super.restrictPaginationByProjectId(criteria, projectId);
   }
 
