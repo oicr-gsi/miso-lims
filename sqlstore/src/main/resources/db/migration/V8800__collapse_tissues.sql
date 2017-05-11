@@ -1,3 +1,4 @@
+-- StartNoTest
 INSERT INTO SampleClass(alias, sampleCategory, suffix, createdBy, creationDate, updatedBy, lastUpdated, dnaseTreatable)
   VALUES ('Tissue', 'Tissue', NULL, (SELECT userId FROM User WHERE loginName = 'admin'), CURRENT_TIMESTAMP, (SELECT userId FROM User WHERE loginName = 'admin'), CURRENT_TIMESTAMP, FALSE);
 SET @tissueId = LAST_INSERT_ID();
@@ -18,3 +19,4 @@ DELETE FROM SampleValidRelationship WHERE childId IN (SELECT sampleClassId FROM 
 DELETE FROM SampleValidRelationship WHERE parentId IN (SELECT sampleClassId FROM SampleClass WHERE sampleCategory = 'Tissue' AND sampleClassId != @tissueId);
 
 DELETE FROM SampleClass WHERE sampleCategory = 'Tissue' AND sampleClassId != @tissueId;
+-- EndNoTest
