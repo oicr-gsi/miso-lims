@@ -12,12 +12,15 @@ import uk.ac.bbsrc.tgac.miso.core.data.Sample;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.DefaultNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.NamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.OicrNamingScheme;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.BiotechNamingScheme;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.ClassnameNameGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.DefaultLibraryAliasGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.DefaultNameGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.NameGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.OicrLibraryAliasGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.OicrSampleAliasGenerator;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.BiotechLibraryAliasGenerator;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.generation.BiotechSampleAliasGenerator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.AllowAnythingValidator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.DefaultLibraryAliasValidator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.DefaultNameValidator;
@@ -26,6 +29,9 @@ import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.NameValidator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.OicrLibraryAliasValidator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.OicrProjectShortNameValidator;
 import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.OicrSampleAliasValidator;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.BiotechLibraryAliasValidator;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.BiotechProjectShortNameValidator;
+import uk.ac.bbsrc.tgac.miso.core.service.naming.validation.BiotechSampleAliasValidator;
 
 /**
  * Resolves NamingSchemes, NameGenerators, and NameValidators using statically-defined mappings
@@ -47,14 +53,17 @@ public class StaticMappedNamingSchemeResolverService implements NamingSchemeReso
 
     namingSchemes.put("default", DefaultNamingScheme.class);
     namingSchemes.put("oicr", OicrNamingScheme.class);
+    namingSchemes.put("biotech", BiotechNamingScheme.class);
     
     nameGenerators.put("default", DefaultNameGenerator.class);
     nameGenerators.put("classname", ClassnameNameGenerator.class);
     
     sampleAliasGenerators.put("oicr", OicrSampleAliasGenerator.class);
+    sampleAliasGenerators.put("biotech", BiotechSampleAliasGenerator.class);
 
     libraryAliasGenerators.put("default", DefaultLibraryAliasGenerator.class);
     libraryAliasGenerators.put("oicr", OicrLibraryAliasGenerator.class);
+    libraryAliasGenerators.put("biotech", BiotechLibraryAliasGenerator.class);
 
     nameValidators.put("default", DefaultNameValidator.class);
     nameValidators.put("allowany", AllowAnythingValidator.class);
@@ -62,13 +71,16 @@ public class StaticMappedNamingSchemeResolverService implements NamingSchemeReso
     sampleAliasValidators.put("default", DefaultSampleAliasValidator.class);
     sampleAliasValidators.put("allowany", AllowAnythingValidator.class);
     sampleAliasValidators.put("oicr", OicrSampleAliasValidator.class);
+    sampleAliasValidators.put("biotech", BiotechSampleAliasValidator.class);
 
     libraryAliasValidators.put("default", DefaultLibraryAliasValidator.class);
     libraryAliasValidators.put("allowany", AllowAnythingValidator.class);
     libraryAliasValidators.put("oicr", OicrLibraryAliasValidator.class);
+    libraryAliasValidators.put("biotech", BiotechLibraryAliasValidator.class);
 
     projectShortNameValidators.put("allowany", AllowAnythingValidator.class);
     projectShortNameValidators.put("oicr", OicrProjectShortNameValidator.class);
+    projectShortNameValidators.put("biotech", BiotechProjectShortNameValidator.class);
   }
 
   @Override
