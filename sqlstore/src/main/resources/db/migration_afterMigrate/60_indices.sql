@@ -114,4 +114,13 @@ CALL addIndex('NEB Index Primer Set 3', 'Index 34', 'CATGGC', 1);
 CALL addIndex('NEB Index Primer Set 3', 'Index 35', 'CATTTT', 1);
 CALL addIndex('NEB Index Primer Set 3', 'Index 36', 'CCAACA', 1);
 CALL addIndex('NEB Index Primer Set 3', 'Index 42', 'TAATCG', 1);
+
+CALL addIndexFamily('Lexogen i7', 'ILLUMINA', FALSE);
+
+CALL addIndex('Lexogen i7', 'B1', 'GATCAC', 1);
+CALL addIndex('Lexogen i7', 'B2', 'CGGTTA', 1);
+CALL addIndex('Lexogen i7', 'C3', 'ATACTG', 1);
+CALL addIndex('Lexogen i7', 'D1', 'TGCACG', 1);
+CALL addIndex('Lexogen i7', 'D2', 'ATGAAC', 1);
+CALL addIndex('Lexogen i7', 'D3', 'TATGTC', 1);
 --EndNoTest
