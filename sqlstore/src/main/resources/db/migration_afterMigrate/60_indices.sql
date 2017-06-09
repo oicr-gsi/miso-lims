@@ -99,4 +99,19 @@ CALL addIndex('10X Family', 'SI-GA-H9', 'SI-GA-H9', 1);
 CALL addIndex('10X Family', 'SI-GA-H10', 'SI-GA-H10', 1);
 CALL addIndex('10X Family', 'SI-GA-H11', 'SI-GA-H11', 1);
 CALL addIndex('10X Family', 'SI-GA-H12', 'SI-GA-H12', 1);
+
+CALL addIndexFamily('NEB Index Primer Set 3', 'ILLUMINA', FALSE);
+
+CALL addIndex('NEB Index Primer Set 3', 'Index 17', 'GTAGAG', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 24', 'GGTAGC', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 26', 'ATGAGC', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 28', 'CAAAAG', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 29', 'CAACTA', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 31', 'CACGAT', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 32', 'CACTCA', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 33', 'CAGGCG', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 34', 'CATGGC', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 35', 'CATTTT', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 36', 'CCAACA', 1);
+CALL addIndex('NEB Index Primer Set 3', 'Index 42', 'TAATCG', 1);
 --EndNoTest
