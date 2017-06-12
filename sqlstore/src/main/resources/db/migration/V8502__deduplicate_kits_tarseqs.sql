@@ -57,4 +57,4 @@ AND kitDescriptorId IN (
 DELETE FROM KitDescriptorChangeLog WHERE kitDescriptorId IN (@badKit1, @badKit2);
 DELETE FROM KitDescriptor WHERE kitDescriptorId IN (@badKit1, @badKit2);
 DELETE FROM TargetedSequencing WHERE targetedSequencingId = @badTarSeq;
---EndNoTest
+-- EndNoTest
