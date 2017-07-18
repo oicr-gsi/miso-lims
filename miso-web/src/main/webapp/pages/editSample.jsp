@@ -526,7 +526,7 @@
         <br/>
         <c:choose>
         <c:when test="${sampleClass eq 'Slide' or sampleCategory eq 'new'}">
-        <div id="cvSlideTable">
+        <div id="slideTable">
           <h2>Tissue Processing</h2>
           <table class="in">
             <tr>
