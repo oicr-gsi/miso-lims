@@ -86,7 +86,7 @@ import uk.ac.bbsrc.tgac.miso.core.security.SecurableByProfile;
 @Table(name = "Pool")
 public class PoolImpl extends AbstractBoxable implements Pool {
   private static final int CONCENTRATION_LENGTH = 17;
-  public static final String CONCENTRATION_UNITS = "nM";
+  public static final String CONCENTRATION_UNITS = "ng/&#181;l";
   private static final int DESCRIPTION_LENGTH = 255;
   private static final int ID_BARCODE_LENGTH = 255;
   private static final int NAME_LENGTH = 255;
