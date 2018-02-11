@@ -1,6 +1,7 @@
 package uk.ac.bbsrc.tgac.miso.webapp.controller;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import uk.ac.bbsrc.tgac.miso.core.data.Array;
 import uk.ac.bbsrc.tgac.miso.dto.Dtos;
+import uk.ac.bbsrc.tgac.miso.plugins.ExtensionManager;
+import uk.ac.bbsrc.tgac.miso.plugins.extensionpoint.ArrayMessageProvider;
 import uk.ac.bbsrc.tgac.miso.service.ArrayRunService;
 import uk.ac.bbsrc.tgac.miso.service.ArrayService;
 
@@ -37,9 +40,22 @@ public class EditArrayController {
   @Autowired
   private ArrayRunService arrayRunService;
 
+  @Autowired
+  private ExtensionManager extensionManager;
+  
+  // @Autowired(required = false)
+  // private final List<ArrayMessageProvider> arrayMessageProviders = new ArrayList<>();
+  
   @ModelAttribute("maxLengths")
   public Map<String, Integer> getColumnSizes() throws IOException {
     return arrayService.getColumnSizes();
+  }
+
+  @ModelAttribute("pluginMessages")
+  public List<String> getPluginArrayMessages() {
+    return extensionManager.getArrayMessageProviders().stream()
+        .map(ArrayMessageProvider::getMessage)
+        .collect(Collectors.toList());
   }
 
   @RequestMapping("/new")

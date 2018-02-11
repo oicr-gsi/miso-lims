@@ -124,6 +124,7 @@
     <module>miso-dto</module>
     <module>runscanner</module>
     <module>miso-external-web</module>
+    <module>plugin-support</module>
   </modules>
   <!-- SVN connection -->
   <scm>
@@ -439,6 +440,11 @@
         <version>1.6.12</version>
       </dependency>
       <dependency>
+        <groupId>org.pf4j</groupId>
+        <artifactId>pf4j-spring</artifactId>
+        <version>0.4.0</version>
+      </dependency>
+      <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
         <version>${jackson.version}</version>
@@ -665,6 +671,11 @@
       <dependency>
         <groupId>uk.ac.bbsrc.tgac.miso</groupId>
         <artifactId>miso-dto</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>uk.ac.bbsrc.tgac.miso</groupId>
+        <artifactId>plugin-support</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

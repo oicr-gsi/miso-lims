@@ -43,6 +43,14 @@
   <button id="save" type="button" class="fg-button ui-state-default ui-corner-all" onclick="SampleArray.validateAndSave()">Save</button>
 </h1>
 
+<c:if test="${!empty pluginMessages}">
+  <div class="table-note">
+    <c:forEach items="${pluginMessages}" var="message">
+      <p>${message}</p>
+    </c:forEach>
+  </div>
+</c:if>
+
 <div class="bs-callout bs-callout-warning hidden">
   <h2>Oh snap!</h2>
   <p>This form seems to be invalid</p>
