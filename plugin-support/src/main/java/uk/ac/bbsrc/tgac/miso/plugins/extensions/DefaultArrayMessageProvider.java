@@ -1,4 +1,4 @@
-package uk.ac.bbsrc.tgac.miso.webapp.context;
+package uk.ac.bbsrc.tgac.miso.plugins.extensions;
 
 import org.pf4j.Extension;
 
